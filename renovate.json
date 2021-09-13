@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "dependencyDashboardApproval": false,
+  "dependencyDashboard": false,
   "pinDigests": true,
   "prHourlyLimit": 0,
   "labels": [
