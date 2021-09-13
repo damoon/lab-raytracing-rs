@@ -333,6 +333,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "impl_ops"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90f97a5f38dd3ccfbe7aa80f4a0c00930f21b922c74195be0201c51028f22dcf"
+
+[[package]]
 name = "itoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -343,6 +349,7 @@ name = "lab-raytracing-rs"
 version = "0.0.0"
 dependencies = [
  "cucumber_rust",
+ "impl_ops",
  "tokio",
 ]
 
