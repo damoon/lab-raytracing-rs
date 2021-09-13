@@ -8,6 +8,7 @@ name = "cucumber"
 harness = false
 
 [dependencies]
+impl_ops = "0.1.1"
 
 [dev-dependencies]
 cucumber_rust = "0.9"

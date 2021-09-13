@@ -1,4 +1,5 @@
-use std::ops::Add;
+#[macro_use] extern crate impl_ops;
+use std::ops;
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -31,6 +32,24 @@ impl Tuple {
     pub fn is_vector(self) -> bool {
         !self.is_point()
     }
+
+    pub fn magnitude(self) -> f64 {
+        ((self.v[0] * self.v[0]) + (self.v[1] * self.v[1]) + (self.v[2] * self.v[2]) + (self.v[3] * self.v[3])).sqrt()
+    }
+
+    pub fn normalize(self) -> Tuple {
+        self / self.magnitude()
+    }
+
+    pub fn approximately(&self, other: Tuple) -> bool {
+        // let e = f64::EPSILON;
+        let e = 0.0001;
+        return
+        self.v[0] - other.v[0] < e &&
+        self.v[1] - other.v[1] < e &&
+        self.v[2] - other.v[2] < e &&
+        self.v[3] - other.v[3] < e;
+    }
 }
 
 impl fmt::Display for Tuple {
@@ -39,20 +58,60 @@ impl fmt::Display for Tuple {
     }
 }
 
-impl Add for &Tuple {
-    type Output = Tuple;
-
-    fn add(self, other: Self) -> Tuple {
-        Tuple {
-            v: [
-                self.v[0] + other.v[0],
-                self.v[1] + other.v[1],
-                self.v[2] + other.v[2],
-                self.v[3] + other.v[3],
-            ]
-        }
+impl_op_ex!(+ |a: &Tuple, b: &Tuple| -> Tuple {
+    Tuple {
+        v: [
+            a.v[0] + b.v[0],
+            a.v[1] + b.v[1],
+            a.v[2] + b.v[2],
+            a.v[3] + b.v[3],
+        ]
     }
-}
+});
+
+impl_op_ex!(- |a: &Tuple, b: &Tuple| -> Tuple {
+    Tuple {
+        v: [
+            a.v[0] - b.v[0],
+            a.v[1] - b.v[1],
+            a.v[2] - b.v[2],
+            a.v[3] - b.v[3],
+        ]
+    }
+});
+
+impl_op_ex!(- |a: &Tuple| -> Tuple {
+    Tuple {
+        v: [
+            - a.v[0],
+            - a.v[1],
+            - a.v[2],
+            - a.v[3],
+        ]
+    }
+});
+
+impl_op_ex_commutative!(* |a: &Tuple, b: &f64| -> Tuple {
+    Tuple {
+        v: [
+            a.v[0] * b,
+            a.v[1] * b,
+            a.v[2] * b,
+            a.v[3] * b,
+        ]
+    }
+});
+
+impl_op_ex!(/ |a: &Tuple, b: &f64| -> Tuple {
+    Tuple {
+        v: [
+            a.v[0] / b,
+            a.v[1] / b,
+            a.v[2] / b,
+            a.v[3] / b,
+        ]
+    }
+});
 
 pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     Tuple::new(x, y, z, 1.0)
@@ -60,4 +119,16 @@ pub fn point(x: f64, y: f64, z: f64) -> Tuple {
 
 pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
     Tuple::new(x, y, z, 0.0)
+}
+
+pub fn dot(t1: Tuple, t2: Tuple) -> f64 {
+    (t1.v[0] * t2.v[0]) + (t1.v[1] * t2.v[1]) + (t1.v[2] * t2.v[2]) + (t1.v[3] * t2.v[3])
+}
+
+pub fn cross(v1: Tuple, v2: Tuple) -> Tuple {
+    vector(
+        (v1.v[1] * v2.v[2]) - (v1.v[2] * v2.v[1]),
+        (v1.v[2] * v2.v[0]) - (v1.v[0] * v2.v[2]),
+        (v1.v[0] * v2.v[1]) - (v1.v[1] * v2.v[0]),
+    )
 }
