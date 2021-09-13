@@ -42,13 +42,11 @@ impl Tuple {
     }
 
     pub fn approximately(&self, other: Tuple) -> bool {
-        // let e = f64::EPSILON;
         let e = 0.0001;
-        return
         self.v[0] - other.v[0] < e &&
         self.v[1] - other.v[1] < e &&
         self.v[2] - other.v[2] < e &&
-        self.v[3] - other.v[3] < e;
+        self.v[3] - other.v[3] < e
     }
 }
 
