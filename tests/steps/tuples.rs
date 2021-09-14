@@ -1,7 +1,5 @@
 use cucumber_rust::{Steps};
-use lab_raytracing_rs::{
-    Tuple, point, vector, dot, cross
-};
+use lab_raytracing_rs::tuples::{Tuple, point, vector, dot, cross};
 
 use crate::MyWorld;
 
@@ -19,7 +17,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^(\w+).(\w+) = ([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^(\w+).(x|y|z|w) = ([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let attr = ctx.matches[2].clone();
         let desired =  ctx.matches[3].parse::<f64>().unwrap();
