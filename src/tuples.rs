@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Tuple {
     pub x: f64,
     pub y: f64,
@@ -14,19 +14,20 @@ impl Tuple {
         Tuple { x, y, z, w }
     }
 
-    pub fn is_point(self) -> bool {
+    pub fn is_point(&self) -> bool {
         self.w != 0.0
     }
-    pub fn is_vector(self) -> bool {
+    pub fn is_vector(&self) -> bool {
         !self.is_point()
     }
 
-    pub fn magnitude(self) -> f64 {
+    pub fn magnitude(&self) -> f64 {
         ((self.x * self.x) + (self.y * self.y) + (self.z * self.z) + (self.w * self.w)).sqrt()
     }
 
-    pub fn normalize(self) -> Tuple {
-        self / self.magnitude()
+    pub fn normalize(&self) -> Tuple {
+        let m = self.magnitude();
+        self / m
     }
 
     pub fn approximately(&self, other: Tuple) -> bool {
