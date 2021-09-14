@@ -1,5 +1,5 @@
-use std::ops;
 use std::fmt;
+use std::ops;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Color {
@@ -11,9 +11,7 @@ pub struct Color {
 impl Color {
     pub fn approximately(&self, other: Color) -> bool {
         let e = 0.0001;
-        self.r - other.r < e &&
-        self.g - other.g < e &&
-        self.b - other.b < e
+        self.r - other.r < e && self.g - other.g < e && self.b - other.b < e
     }
 }
 
@@ -31,7 +29,7 @@ impl_op_ex!(+ |a: &Color, b: &Color| -> Color {
     }
 });
 
-impl_op_ex!(- |a: &Color, b: &Color| -> Color {
+impl_op_ex!(-|a: &Color, b: &Color| -> Color {
     Color {
         r: a.r - b.r,
         g: a.g - b.g,
@@ -39,7 +37,7 @@ impl_op_ex!(- |a: &Color, b: &Color| -> Color {
     }
 });
 
-impl_op_ex!(* |a: &Color, b: &f32| -> Color {
+impl_op_ex!(*|a: &Color, b: &f32| -> Color {
     Color {
         r: a.r * b,
         g: a.g * b,
@@ -47,7 +45,7 @@ impl_op_ex!(* |a: &Color, b: &f32| -> Color {
     }
 });
 
-impl_op_ex!(* |a: &Color, b: &Color| -> Color {
+impl_op_ex!(*|a: &Color, b: &Color| -> Color {
     Color {
         r: a.r * b.r,
         g: a.g * b.g,
