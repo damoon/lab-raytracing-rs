@@ -28,7 +28,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color = world.colors.get(&color_name).unwrap();
             let w = ctx.matches[2].parse::<usize>().unwrap();
             let h = ctx.matches[3].parse::<usize>().unwrap();
-            canvas.set(w, h, color.clone());
+            canvas.set(w, h, *color);
             world
         },
     );
@@ -77,7 +77,7 @@ pub fn steps() -> Steps<MyWorld> {
             let desired = world.colors.get(&color_name).unwrap();
             let w = ctx.matches[2].parse::<usize>().unwrap();
             let h = ctx.matches[3].parse::<usize>().unwrap();
-            let color = canvas.at(w, h).clone();
+            let color = canvas.at(w, h);
 
             assert_eq!(&color, desired);
 

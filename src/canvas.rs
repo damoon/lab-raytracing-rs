@@ -20,7 +20,7 @@ impl Canvas {
             b: 0.0,
         };
         for _ in 0..(width * height) {
-            c.pixels.push(color.clone());
+            c.pixels.push(color);
         }
         c
     }
@@ -41,7 +41,7 @@ impl Canvas {
 
     pub fn fill(&mut self, c: Color) {
         for n in 0..(self.width * self.height) {
-            self.pixels[n] = c.clone();
+            self.pixels[n] = c;
         }
     }
 
@@ -68,7 +68,7 @@ impl Canvas {
                 s = a.0;
                 length = a.1;
             }
-            s.push_str("\n");
+            s.push('\n');
             length = 0;
         }
 
@@ -81,29 +81,29 @@ fn add_color(mut s: String, mut length: u8, c: f32) -> (String, u8) {
     let original_length = length;
 
     if original_length > 0 {
-        length = length + 1;
+        length += 1;
     }
 
-    length = length + 1;
+    length += 1;
     if r > 9 {
-        length = length + 1;
+        length += 1;
     }
     if r > 99 {
-        length = length + 1;
+        length += 1;
     }
 
     if length > 70 {
-        s.push_str("\n");
+        s.push('\n');
         length = 0;
-        length = length + 1;
+        length += 1;
         if r > 9 {
-            length = length + 1;
+            length += 1;
         }
         if r > 99 {
-            length = length + 1;
+            length += 1;
         }
     } else if original_length > 0 {
-        s.push_str(" ");
+        s.push(' ');
     }
 
     s.push_str(format!("{}", r).as_str());
