@@ -21,6 +21,10 @@ impl fmt::Display for Color {
     }
 }
 
+pub fn color(r: f32, g: f32, b: f32) -> Color {
+    Color {r, g, b}
+}
+
 impl_op_ex!(+ |a: &Color, b: &Color| -> Color {
     Color {
         r: a.r + b.r,
