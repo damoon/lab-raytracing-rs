@@ -224,7 +224,7 @@ pub fn steps() -> Steps<MyWorld> {
             let t = ctx.step.table.as_ref().unwrap();
             let desired_matrix = form_vec_4x4(&t.rows);
 
-            let inverted_matrix = matrix.invert().unwrap();
+            let inverted_matrix = matrix.inverse().unwrap();
 
             assert_eq!(desired_matrix, inverted_matrix);
 
@@ -236,7 +236,7 @@ pub fn steps() -> Steps<MyWorld> {
         let name1 = ctx.matches[1].clone();
         let name2 = ctx.matches[2].clone();
         let matrix = match world.matrices.get(&name2).unwrap() {
-            Matrix::M4x4(m) => m.invert().unwrap(),
+            Matrix::M4x4(m) => m.inverse().unwrap(),
             _ => panic!("matrix needs to be in 4x4 form"),
         };
 
@@ -285,7 +285,7 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("matrix needs to be in 4x4 form"),
             };
 
-            let matrix = m1 * m2.invert().unwrap();
+            let matrix = m1 * m2.inverse().unwrap();
 
             assert_eq!(desired_matrix, &matrix);
 

@@ -1,12 +1,12 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::colors::color;
-use lab_raytracing_rs::tuples::{Tuple, point, vector};
+use lab_raytracing_rs::tuples::{point, vector, Tuple};
 use std::io::{self, Write};
 
 fn main() -> io::Result<()> {
-    let mut p = Projectile{
-        position: point(0.0,1.0,0.0),
-        velocity: vector(1.0,1.8,0.0).normalize() * 11.25,
+    let mut p = Projectile {
+        position: point(0.0, 1.0, 0.0),
+        velocity: vector(1.0, 1.8, 0.0).normalize() * 11.25,
     };
 
     let env = Environment {

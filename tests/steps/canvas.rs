@@ -72,12 +72,12 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^pixel_at\(([a-z]+), ([-0-9.]+), ([-0-9.]+)\) = ([a-z]+)$"#,
         |world, ctx| {
             let canvas_name = ctx.matches[1].clone();
-            let color_name = ctx.matches[4].clone();
             let canvas = world.canvases.get(&canvas_name).unwrap();
-            let desired = world.colors.get(&color_name).unwrap();
             let w = ctx.matches[2].parse::<usize>().unwrap();
             let h = ctx.matches[3].parse::<usize>().unwrap();
             let color = canvas.at(w, h);
+            let color_name = ctx.matches[4].clone();
+            let desired = world.colors.get(&color_name).unwrap();
 
             assert_eq!(&color, desired);
 
@@ -85,15 +85,18 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.when_regex(r#"^([a-z]+) ← canvas_to_ppm\(([a-z]+)\)$"#, |mut world, ctx| {
-        let ppm_name = ctx.matches[1].clone();
-        let canvas_name = ctx.matches[2].clone();
-        let canvas = world.canvases.get(&canvas_name).unwrap();
-        let ppm = canvas.ppm();
-        world.strings.insert(ppm_name, ppm);
+    steps.when_regex(
+        r#"^([a-z]+) ← canvas_to_ppm\(([a-z]+)\)$"#,
+        |mut world, ctx| {
+            let ppm_name = ctx.matches[1].clone();
+            let canvas_name = ctx.matches[2].clone();
+            let canvas = world.canvases.get(&canvas_name).unwrap();
+            let ppm = canvas.ppm();
+            world.strings.insert(ppm_name, ppm);
 
-        world
-    });
+            world
+        },
+    );
 
     steps.then_regex(
         r#"^lines ([-0-9.]+)-([-0-9.]+) of ([a-z]+) are$"#,
@@ -118,13 +121,16 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^([a-z]+) ends with a newline character$"#, |world, ctx| {
-        let ppm_name = ctx.matches[1].clone();
-        let ppm = world.strings.get(&ppm_name).unwrap();
-        assert_eq!('\n', ppm.chars().last().unwrap());
+    steps.then_regex(
+        r#"^([a-z]+) ends with a newline character$"#,
+        |world, ctx| {
+            let ppm_name = ctx.matches[1].clone();
+            let ppm = world.strings.get(&ppm_name).unwrap();
+            assert_eq!('\n', ppm.chars().last().unwrap());
 
-        world
-    });
+            world
+        },
+    );
 
     steps.when_regex(
         r#"^every pixel of ([a-z]+) is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,

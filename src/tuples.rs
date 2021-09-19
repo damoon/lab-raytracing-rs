@@ -1,5 +1,5 @@
-use std::fmt;
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tuple {
@@ -17,6 +17,7 @@ impl Tuple {
     pub fn is_point(&self) -> bool {
         self.w != 0.0
     }
+
     pub fn is_vector(&self) -> bool {
         !self.is_point()
     }

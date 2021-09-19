@@ -1,10 +1,10 @@
-use lab_raytracing_rs::tuples::{Tuple, point, vector};
+use lab_raytracing_rs::tuples::{point, vector, Tuple};
 use std::fmt;
 
 fn main() {
-    let mut p = Projectile{
-        position: point(0.0,1.0,0.0),
-        velocity: vector(1.0,1.0,0.0).normalize(),
+    let mut p = Projectile {
+        position: point(0.0, 1.0, 0.0),
+        velocity: vector(1.0, 1.0, 0.0).normalize(),
     };
 
     let env = Environment {
@@ -18,7 +18,6 @@ fn main() {
         p.tick(&env);
         println!("{}", p);
     }
-
 }
 
 struct Projectile {
@@ -28,7 +27,11 @@ struct Projectile {
 
 impl fmt::Display for Projectile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "position: {}, velocity: {}", self.position, self.velocity)
+        write!(
+            f,
+            "position: {}, velocity: {}",
+            self.position, self.velocity
+        )
     }
 }
 

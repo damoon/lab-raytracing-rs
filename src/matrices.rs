@@ -195,7 +195,7 @@ impl Matrix4x4 {
         self.determinant() != 0.0
     }
 
-    pub fn invert(&self) -> Result<Self, String> {
+    pub fn inverse(&self) -> Result<Self, String> {
         let determinant = self.determinant();
         if determinant == 0.0 {
             return Err("not invertible".to_string());
