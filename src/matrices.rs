@@ -16,6 +16,12 @@ pub struct Matrix4x4 {
     state: [[f64; 4]; 4],
 }
 
+impl Default for Matrix2x2 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Matrix2x2 {
     pub fn new() -> Matrix2x2 {
         Matrix2x2 {
@@ -24,9 +30,7 @@ impl Matrix2x2 {
     }
 
     pub fn new_from(state: [[f64; 2]; 2]) -> Matrix2x2 {
-        Matrix2x2 {
-            state,
-        }
+        Matrix2x2 { state }
     }
 
     pub fn at(&self, w: usize, h: usize) -> f64 {
@@ -34,11 +38,17 @@ impl Matrix2x2 {
     }
 
     pub fn determinant(&self) -> f64 {
-        (self.state[0][0] * self.state[1][1]) - (self.state[1][0]*self.state[0][1])
+        (self.state[0][0] * self.state[1][1]) - (self.state[1][0] * self.state[0][1])
     }
 
     pub fn invertible(&self) -> bool {
         self.determinant() != 0.0
+    }
+}
+
+impl Default for Matrix3x3 {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -50,9 +60,7 @@ impl Matrix3x3 {
     }
 
     pub fn new_from(state: [[f64; 3]; 3]) -> Matrix3x3 {
-        Matrix3x3 {
-            state,
-        }
+        Matrix3x3 { state }
     }
 
     pub fn at(&self, w: usize, h: usize) -> f64 {
@@ -61,19 +69,19 @@ impl Matrix3x3 {
 
     pub fn submatrix(&self, w: usize, h: usize) -> Matrix2x2 {
         let mut state = [[0.0_f64; 2]; 2];
-        for i in 0..2 {
+        for (i, row) in state.iter_mut().enumerate() {
             let mut x = i;
             if i >= w {
                 x += 1;
             }
 
-            for j in 0..2 {
+            for (j, cell) in row.iter_mut().enumerate() {
                 let mut y = j;
                 if j >= h {
                     y += 1;
                 }
 
-                state[i][j] = self.at(x, y);
+                *cell = self.at(x, y);
             }
         }
         Matrix2x2 { state }
@@ -91,9 +99,9 @@ impl Matrix3x3 {
     }
 
     pub fn determinant(&self) -> f64 {
-        (self.state[0][0] * self.cofactor(0,0)) + 
-        (self.state[0][1] * self.cofactor(0,1)) + 
-        (self.state[0][2] * self.cofactor(0,2))
+        (self.state[0][0] * self.cofactor(0, 0))
+            + (self.state[0][1] * self.cofactor(0, 1))
+            + (self.state[0][2] * self.cofactor(0, 2))
     }
 
     pub fn invertible(&self) -> bool {
@@ -106,17 +114,21 @@ impl Matrix3x3 {
             return Err("not invertible".to_string());
         }
 
-
         let mut state = [[0.0_f64; 3]; 3];
 
-        for w in 0..3 {
-            for h in 0..3 {
-                let c = self.cofactor(w, h);
-                state[h][w] = c/determinant;
+        for (w, row) in state.iter_mut().enumerate() {
+            for (h, cell) in row.iter_mut().enumerate() {
+                *cell = self.cofactor(w, h) / determinant;
             }
         }
 
-        Ok(Self{state})
+        Ok(Self { state })
+    }
+}
+
+impl Default for Matrix4x4 {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -128,9 +140,7 @@ impl Matrix4x4 {
     }
 
     pub fn new_from(state: [[f64; 4]; 4]) -> Matrix4x4 {
-        Matrix4x4 {
-            state,
-        }
+        Matrix4x4 { state }
     }
 
     pub fn at(&self, w: usize, h: usize) -> f64 {
@@ -139,9 +149,9 @@ impl Matrix4x4 {
 
     pub fn transpose(&self) -> Self {
         let mut state = [[0.0_f64; 4]; 4];
-        for w in 0..4 {
-            for h in 0..4 {
-                state[h][w] = self.at(w, h);
+        for (w, row) in state.iter_mut().enumerate() {
+            for (h, cell) in row.iter_mut().enumerate() {
+                *cell = self.at(h, w);
             }
         }
         Self { state }
@@ -149,19 +159,19 @@ impl Matrix4x4 {
 
     pub fn submatrix(&self, w: usize, h: usize) -> Matrix3x3 {
         let mut state = [[0.0_f64; 3]; 3];
-        for i in 0..3 {
+        for (i, row) in state.iter_mut().enumerate() {
             let mut x = i;
             if i >= w {
                 x += 1;
             }
 
-            for j in 0..3 {
+            for (j, cell) in row.iter_mut().enumerate() {
                 let mut y = j;
                 if j >= h {
                     y += 1;
                 }
 
-                state[i][j] = self.at(x, y);
+                *cell = self.at(x, y);
             }
         }
         Matrix3x3 { state }
@@ -175,10 +185,10 @@ impl Matrix4x4 {
     }
 
     pub fn determinant(&self) -> f64 {
-        (self.state[0][0] * self.cofactor(0,0)) + 
-        (self.state[0][1] * self.cofactor(0,1)) + 
-        (self.state[0][2] * self.cofactor(0,2)) + 
-        (self.state[0][3] * self.cofactor(0,3))
+        (self.state[0][0] * self.cofactor(0, 0))
+            + (self.state[0][1] * self.cofactor(0, 1))
+            + (self.state[0][2] * self.cofactor(0, 2))
+            + (self.state[0][3] * self.cofactor(0, 3))
     }
 
     pub fn invertible(&self) -> bool {
@@ -191,35 +201,32 @@ impl Matrix4x4 {
             return Err("not invertible".to_string());
         }
 
-
         let mut state = [[0.0_f64; 4]; 4];
 
-        for w in 0..4 {
-            for h in 0..4 {
-                let c = self.cofactor(w, h);
-                state[h][w] = c/determinant;
+        for (w, row) in state.iter_mut().enumerate() {
+            for (h, cell) in row.iter_mut().enumerate() {
+                *cell = self.cofactor(h, w) / determinant;
             }
         }
 
-        Ok(Self{state})
+        Ok(Self { state })
     }
 }
 
 pub fn identity_matrix() -> Matrix4x4 {
     let mut state = [[0.0_f64; 4]; 4];
-    for i in 0..4 {
-        state[i][i] += 1.0;
+    for (i, row) in state.iter_mut().enumerate() {
+        row[i] += 1.0;
     }
     Matrix4x4 { state }
-
 }
 
 impl_op_ex!(*|a: &Matrix4x4, b: &Matrix4x4| -> Matrix4x4 {
     let mut state = [[0.0_f64; 4]; 4];
-    for w in 0..4 {
-        for h in 0..4 {
+    for (w, row) in state.iter_mut().enumerate() {
+        for (h, cell) in row.iter_mut().enumerate() {
             for i in 0..4 {
-                state[w][h] += a.at(w, i) * b.at(i, h);
+                *cell += a.at(w, i) * b.at(i, h);
             }
         }
     }
@@ -236,16 +243,15 @@ impl std::cmp::PartialEq for Matrix4x4 {
                 }
                 let e = 0.0001;
                 if delta > e {
-                    return false
+                    return false;
                 }
             }
         }
-        
         true
     }
 }
 
-impl_op_ex_commutative!(*|a:&Matrix4x4, b: &Tuple| -> Tuple {
+impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Tuple| -> Tuple {
     let x = (a.at(0, 0) * b.x) + (a.at(0, 1) * b.y) + (a.at(0, 2) * b.z) + (a.at(0, 3) * b.w);
     let y = (a.at(1, 0) * b.x) + (a.at(1, 1) * b.y) + (a.at(1, 2) * b.z) + (a.at(1, 3) * b.w);
     let z = (a.at(2, 0) * b.x) + (a.at(2, 1) * b.y) + (a.at(2, 2) * b.z) + (a.at(2, 3) * b.w);

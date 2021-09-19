@@ -1,3 +1,4 @@
+use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::tuples::{cross, dot, point, vector, Tuple};
 
@@ -14,8 +15,8 @@ pub fn steps() -> Steps<MyWorld> {
             let y = ctx.matches[3].parse::<f64>().unwrap();
             let z = ctx.matches[4].parse::<f64>().unwrap();
             let w = ctx.matches[5].parse::<f64>().unwrap();
-            let t = Tuple::new(x, y, z, w);
-            world.tuples.insert(name, t);
+            let tuple = Tuple::new(x, y, z, w);
+            world.tuples.insert(name, tuple);
             world
         },
     );
@@ -32,7 +33,7 @@ pub fn steps() -> Steps<MyWorld> {
             "w" => tuple.w,
             _ => panic!("Invalid attribute checked"),
         };
-        assert_eq!(value, desired);
+        assert_abs_diff_eq!(desired, value);
 
         world
     });
@@ -40,7 +41,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^([a-z]+) is a point$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
-        assert_eq!(true, tuple.is_point());
+        assert!(tuple.is_point());
 
         world
     });
@@ -48,7 +49,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^([a-z]+) is not a point$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
-        assert_eq!(false, tuple.is_point());
+        assert!(!tuple.is_point());
 
         world
     });
@@ -56,7 +57,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^([a-z]+) is a vector$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
-        assert_eq!(true, tuple.is_vector());
+        assert!(tuple.is_vector());
 
         world
     });
@@ -64,7 +65,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^([a-z]+) is not a vector$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
-        assert_eq!(false, tuple.is_vector());
+        assert!(!tuple.is_vector());
 
         world
     });
@@ -105,9 +106,9 @@ pub fn steps() -> Steps<MyWorld> {
             let y = ctx.matches[3].parse::<f64>().unwrap();
             let z = ctx.matches[4].parse::<f64>().unwrap();
             let w = ctx.matches[5].parse::<f64>().unwrap();
-            let t = Tuple::new(x, y, z, w);
-            let value = world.tuples.get(&name).unwrap();
-            assert_eq!(value, &t);
+            let desired_tuple = Tuple::new(x, y, z, w);
+            let tuple = world.tuples.get(&name).unwrap();
+            assert_eq!(&desired_tuple, tuple);
 
             world
         },
@@ -189,13 +190,14 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
-            let m = ctx.matches[2].parse::<f64>().unwrap();
+            let multiplicator = ctx.matches[2].parse::<f64>().unwrap();
+            let calculated = tuple * multiplicator;
             let x = ctx.matches[3].parse::<f64>().unwrap();
             let y = ctx.matches[4].parse::<f64>().unwrap();
             let z = ctx.matches[5].parse::<f64>().unwrap();
             let w = ctx.matches[6].parse::<f64>().unwrap();
             let desired = Tuple::new(x, y, z, w);
-            assert_eq!(tuple * m, desired);
+            assert_eq!(calculated, desired);
 
             world
         },
@@ -206,13 +208,13 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
-            let d = ctx.matches[2].parse::<f64>().unwrap();
+            let divisor = ctx.matches[2].parse::<f64>().unwrap();
             let x = ctx.matches[3].parse::<f64>().unwrap();
             let y = ctx.matches[4].parse::<f64>().unwrap();
             let z = ctx.matches[5].parse::<f64>().unwrap();
             let w = ctx.matches[6].parse::<f64>().unwrap();
             let desired = Tuple::new(x, y, z, w);
-            assert_eq!(tuple / d, desired);
+            assert_eq!(tuple / divisor, desired);
 
             world
         },
@@ -221,20 +223,27 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^magnitude\(([a-z]+)\) = ([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
-        let d = ctx.matches[2].parse::<f64>().unwrap();
-        assert_eq!(tuple.magnitude(), d);
+        let desired = ctx.matches[2].parse::<f64>().unwrap();
+        let magnitude = tuple.magnitude();
+
+        assert_abs_diff_eq!(desired, magnitude);
 
         world
     });
 
-    steps.then_regex(r#"^magnitude\(([a-z]+)\) = √([-0-9.]+)$"#, |world, ctx| {
-        let name = ctx.matches[1].clone();
-        let tuple = world.tuples.get(&name).unwrap();
-        let d = ctx.matches[2].parse::<f64>().unwrap();
-        assert_eq!(tuple.magnitude(), d.sqrt());
+    steps.then_regex(
+        r#"^magnitude\(([a-z]+)\) = √([-0-9.]+)$"#,
+        |world, ctx| {
+            let name = ctx.matches[1].clone();
+            let tuple = world.tuples.get(&name).unwrap();
+            let desired = ctx.matches[2].parse::<f64>().unwrap().sqrt();
+            let magnitude = tuple.magnitude();
 
-        world
-    });
+            assert_abs_diff_eq!(desired, magnitude);
+
+            world
+        },
+    );
 
     steps.then_regex(
         r#"^normalize\(([a-z]+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
@@ -260,32 +269,39 @@ pub fn steps() -> Steps<MyWorld> {
             let y = ctx.matches[3].parse::<f64>().unwrap();
             let z = ctx.matches[4].parse::<f64>().unwrap();
             let v = vector(x, y, z);
-            assert_eq!(true, tuple.normalize().approximately(v));
+            assert!(tuple.normalize().approximately(v));
 
             world
         },
     );
 
-    steps.when_regex(r#"^([a-z]+) ← normalize\(([a-z]+)\)$"#, |mut world, ctx| {
-        let name1 = ctx.matches[1].clone();
-        let name2 = ctx.matches[2].clone();
-        let tuple = world.tuples.get(&name2).unwrap().normalize();
-        world.tuples.insert(name1, tuple);
+    steps.when_regex(
+        r#"^([a-z]+) ← normalize\(([a-z]+)\)$"#,
+        |mut world, ctx| {
+            let name1 = ctx.matches[1].clone();
+            let name2 = ctx.matches[2].clone();
+            let tuple = world.tuples.get(&name2).unwrap().normalize();
+            world.tuples.insert(name1, tuple);
 
-        world
-    });
+            world
+        },
+    );
 
-    steps.then_regex(r#"^dot\(([a-z]+), ([a-z]+)\) = ([-0-9.]+)$"#, |world, ctx| {
-        let name1 = ctx.matches[1].clone();
-        let name2 = ctx.matches[2].clone();
-        let tuple1 = world.tuples.get(&name1).unwrap().clone();
-        let tuple2 = world.tuples.get(&name2).unwrap().clone();
-        let dot = dot(tuple1, tuple2);
-        let desired = ctx.matches[3].parse::<f64>().unwrap();
-        assert_eq!(dot, desired);
+    steps.then_regex(
+        r#"^dot\(([a-z]+), ([a-z]+)\) = ([-0-9.]+)$"#,
+        |world, ctx| {
+            let name1 = ctx.matches[1].clone();
+            let name2 = ctx.matches[2].clone();
+            let tuple1 = world.tuples.get(&name1).unwrap().clone();
+            let tuple2 = world.tuples.get(&name2).unwrap().clone();
+            let dot = dot(tuple1, tuple2);
+            let desired = ctx.matches[3].parse::<f64>().unwrap();
 
-        world
-    });
+            assert_abs_diff_eq!(dot, desired);
+
+            world
+        },
+    );
 
     steps.then_regex(
         r#"^cross\(([a-z]+), ([a-z]+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,

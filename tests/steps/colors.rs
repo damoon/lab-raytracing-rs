@@ -1,3 +1,4 @@
+use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::colors::Color;
 
@@ -20,21 +21,25 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^([a-z]+).(red|green|blue) = ([-0-9.]+)$"#, |world, ctx| {
-        let name = ctx.matches[1].clone();
-        let attr = ctx.matches[2].clone();
-        let desired = ctx.matches[3].parse::<f32>().unwrap();
-        let color = world.colors.get(&name).unwrap();
-        let value = match attr.as_str() {
-            "red" => color.r,
-            "green" => color.g,
-            "blue" => color.b,
-            _ => panic!("Invalid attribute checked"),
-        };
-        assert_eq!(value, desired);
+    steps.then_regex(
+        r#"^([a-z]+).(red|green|blue) = ([-0-9.]+)$"#,
+        |world, ctx| {
+            let name = ctx.matches[1].clone();
+            let attr = ctx.matches[2].clone();
+            let desired = ctx.matches[3].parse::<f32>().unwrap();
+            let color = world.colors.get(&name).unwrap();
+            let value = match attr.as_str() {
+                "red" => color.r,
+                "green" => color.g,
+                "blue" => color.b,
+                _ => panic!("Invalid attribute checked"),
+            };
 
-        world
-    });
+            assert_abs_diff_eq!(value, desired);
+
+            world
+        },
+    );
 
     steps.then_regex(
         r#"^([a-z0-9]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
@@ -63,7 +68,7 @@ pub fn steps() -> Steps<MyWorld> {
             let g = ctx.matches[4].parse::<f32>().unwrap();
             let b = ctx.matches[5].parse::<f32>().unwrap();
             let desired = Color { r, g, b };
-            assert_eq!(true, new_color.approximately(desired));
+            assert!(new_color.approximately(desired));
 
             world
         },
@@ -81,7 +86,7 @@ pub fn steps() -> Steps<MyWorld> {
             let g = ctx.matches[4].parse::<f32>().unwrap();
             let b = ctx.matches[5].parse::<f32>().unwrap();
             let desired = Color { r, g, b };
-            assert_eq!(true, new_color.approximately(desired));
+            assert!(new_color.approximately(desired));
 
             world
         },
@@ -98,7 +103,7 @@ pub fn steps() -> Steps<MyWorld> {
             let g = ctx.matches[4].parse::<f32>().unwrap();
             let b = ctx.matches[5].parse::<f32>().unwrap();
             let desired = Color { r, g, b };
-            assert_eq!(true, new_color.approximately(desired));
+            assert!(new_color.approximately(desired));
 
             world
         },
@@ -116,7 +121,7 @@ pub fn steps() -> Steps<MyWorld> {
             let g = ctx.matches[4].parse::<f32>().unwrap();
             let b = ctx.matches[5].parse::<f32>().unwrap();
             let desired = Color { r, g, b };
-            assert_eq!(true, new_color.approximately(desired));
+            assert!(new_color.approximately(desired));
 
             world
         },

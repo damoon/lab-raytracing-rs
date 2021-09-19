@@ -1,8 +1,8 @@
 use cucumber_rust::{async_trait, Cucumber, World};
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::colors::Color;
-use lab_raytracing_rs::tuples::Tuple;
 use lab_raytracing_rs::matrices::{Matrix2x2, Matrix3x3, Matrix4x4};
+use lab_raytracing_rs::tuples::Tuple;
 use std::collections::HashMap;
 use std::convert::Infallible;
 
@@ -15,11 +15,10 @@ pub struct MyWorld {
     strings: HashMap<String, String>,
     matrices: HashMap<String, Matrix>,
 }
-
 enum Matrix {
-    Matrix2x2(Matrix2x2),
-    Matrix3x3(Matrix3x3),
-    Matrix4x4(Matrix4x4),
+    M2x2(Matrix2x2),
+    M3x3(Matrix3x3),
+    M4x4(Matrix4x4),
 }
 
 #[async_trait(?Send)]
@@ -45,6 +44,7 @@ async fn main() {
         .steps(steps::colors::steps())
         .steps(steps::tuples::steps())
         .steps(steps::matrices::steps())
+        .steps(steps::transformations::steps())
         .cli()
         .run_and_exit()
         .await

@@ -13,3 +13,4 @@ auto_ops = "0.3.0"
 [dev-dependencies]
 cucumber_rust = "0.9"
 tokio = { version = "1.11.0", features = ["rt-multi-thread", "macros", "time"] }
+approx = "0.5.0"
