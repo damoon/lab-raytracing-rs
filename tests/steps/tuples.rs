@@ -7,7 +7,7 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"(\w+) ← tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"([a-z0-9]+) ← tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let x = ctx.matches[2].parse::<f64>().unwrap();
@@ -20,7 +20,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(\w+).(x|y|z|w) = ([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+).(x|y|z|w) = ([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let attr = ctx.matches[2].clone();
         let desired = ctx.matches[3].parse::<f64>().unwrap();
@@ -37,7 +37,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^(\w) is a point$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+) is a point$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         assert_eq!(true, tuple.is_point());
@@ -45,7 +45,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^(\w+) is not a point$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+) is not a point$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         assert_eq!(false, tuple.is_point());
@@ -53,7 +53,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^(\w+) is a vector$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+) is a vector$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         assert_eq!(true, tuple.is_vector());
@@ -61,7 +61,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^(\w+) is not a vector$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+) is not a vector$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         assert_eq!(false, tuple.is_vector());
@@ -70,7 +70,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^(\w+) ← vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) ← vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let x = ctx.matches[2].parse::<f64>().unwrap();
@@ -84,7 +84,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(\w+) ← point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) ← point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let x = ctx.matches[2].parse::<f64>().unwrap();
@@ -98,7 +98,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let x = ctx.matches[2].parse::<f64>().unwrap();
@@ -114,7 +114,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \+ (\w+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \+ ([a-z0-9]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();
@@ -133,7 +133,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \- (\w+) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \- ([a-z0-9]+) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();
@@ -151,7 +151,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \- (\w+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \- ([a-z0-9]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();
@@ -169,7 +169,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^-(\w+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^-([a-z]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
@@ -185,7 +185,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \* ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z]+) \* ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
@@ -202,7 +202,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) / ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z]+) / ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
@@ -218,7 +218,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^magnitude\((\w+)\) = ([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^magnitude\(([a-z]+)\) = ([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         let d = ctx.matches[2].parse::<f64>().unwrap();
@@ -227,7 +227,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^magnitude\((\w+)\) = √([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^magnitude\(([a-z]+)\) = √([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let tuple = world.tuples.get(&name).unwrap();
         let d = ctx.matches[2].parse::<f64>().unwrap();
@@ -237,7 +237,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^normalize\((\w+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^normalize\(([a-z]+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
@@ -252,7 +252,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^normalize\((\w+)\) = approximately vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^normalize\(([a-z]+)\) = approximately vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let tuple = world.tuples.get(&name).unwrap();
@@ -266,7 +266,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.when_regex(r#"^(\w+) ← normalize\((\w+)\)$"#, |mut world, ctx| {
+    steps.when_regex(r#"^([a-z]+) ← normalize\(([a-z]+)\)$"#, |mut world, ctx| {
         let name1 = ctx.matches[1].clone();
         let name2 = ctx.matches[2].clone();
         let tuple = world.tuples.get(&name2).unwrap().normalize();
@@ -275,7 +275,7 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.then_regex(r#"^dot\((\w+), (\w+)\) = ([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^dot\(([a-z]+), ([a-z]+)\) = ([-0-9.]+)$"#, |world, ctx| {
         let name1 = ctx.matches[1].clone();
         let name2 = ctx.matches[2].clone();
         let tuple1 = world.tuples.get(&name1).unwrap().clone();
@@ -288,7 +288,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^cross\((\w+), (\w+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^cross\(([a-z]+), ([a-z]+)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();

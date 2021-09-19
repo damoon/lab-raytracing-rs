@@ -8,7 +8,7 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"(\w+) ← canvas\(([0-9]+), ([0-9]+)\)$"#,
+        r#"^([a-z]+) ← canvas\(([0-9]+), ([0-9]+)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let w = ctx.matches[2].parse::<usize>().unwrap();
@@ -20,7 +20,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.when_regex(
-        r#"write_pixel\((\w+), ([0-9]+), ([0-9]+), (\w+)\)$"#,
+        r#"^write_pixel\(([a-z]+), ([0-9]+), ([0-9]+), (\w+)\)$"#,
         |mut world, ctx| {
             let canvas_name = ctx.matches[1].clone();
             let color_name = ctx.matches[4].clone();
@@ -33,7 +33,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(\w+).(width|height) = ([0-9]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+).(width|height) = ([0-9]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let attr = ctx.matches[2].clone();
         let desired = ctx.matches[3].parse::<usize>().unwrap();
@@ -49,7 +49,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^every pixel of (\w+) is color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^every pixel of ([a-z]+) is color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let r = ctx.matches[2].parse::<f32>().unwrap();
@@ -69,7 +69,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^pixel_at\((\w+), ([-0-9.]+), ([-0-9.]+)\) = (\w+)$"#,
+        r#"^pixel_at\(([a-z]+), ([-0-9.]+), ([-0-9.]+)\) = ([a-z]+)$"#,
         |world, ctx| {
             let canvas_name = ctx.matches[1].clone();
             let color_name = ctx.matches[4].clone();
@@ -85,7 +85,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.when_regex(r#"^(\w+) ← canvas_to_ppm\((\w+)\)$"#, |mut world, ctx| {
+    steps.when_regex(r#"^([a-z]+) ← canvas_to_ppm\(([a-z]+)\)$"#, |mut world, ctx| {
         let ppm_name = ctx.matches[1].clone();
         let canvas_name = ctx.matches[2].clone();
         let canvas = world.canvases.get(&canvas_name).unwrap();
@@ -96,7 +96,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^lines ([-0-9.]+)-([-0-9.]+) of (\w+) are$"#,
+        r#"^lines ([-0-9.]+)-([-0-9.]+) of ([a-z]+) are$"#,
         |world, ctx| {
             let ppm_name = ctx.matches[3].clone();
             let beginning = ctx.matches[1].parse::<usize>().unwrap() - 1;
@@ -118,7 +118,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(\w+) ends with a newline character$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+) ends with a newline character$"#, |world, ctx| {
         let ppm_name = ctx.matches[1].clone();
         let ppm = world.strings.get(&ppm_name).unwrap();
         assert_eq!('\n', ppm.chars().last().unwrap());
@@ -127,7 +127,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when_regex(
-        r#"^every pixel of (\w+) is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^every pixel of ([a-z]+) is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let canvas_name = ctx.matches[1].clone();
             let canvas = world.canvases.get_mut(&canvas_name).unwrap();

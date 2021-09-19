@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops;
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Color {
@@ -41,7 +41,7 @@ impl_op_ex!(-|a: &Color, b: &Color| -> Color {
     }
 });
 
-impl_op_ex!(*|a: &Color, b: &f32| -> Color {
+impl_op_ex_commutative!(*|a: &Color, b: &f32| -> Color {
     Color {
         r: a.r * b,
         g: a.g * b,

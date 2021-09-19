@@ -2,16 +2,24 @@ use cucumber_rust::{async_trait, Cucumber, World};
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::colors::Color;
 use lab_raytracing_rs::tuples::Tuple;
+use lab_raytracing_rs::matrices::{Matrix2x2, Matrix3x3, Matrix4x4};
 use std::collections::HashMap;
 use std::convert::Infallible;
 
 mod steps;
 
 pub struct MyWorld {
-    pub tuples: HashMap<String, Tuple>,
-    pub colors: HashMap<String, Color>,
-    pub canvases: HashMap<String, Canvas>,
-    pub strings: HashMap<String, String>,
+    tuples: HashMap<String, Tuple>,
+    colors: HashMap<String, Color>,
+    canvases: HashMap<String, Canvas>,
+    strings: HashMap<String, String>,
+    matrices: HashMap<String, Matrix>,
+}
+
+enum Matrix {
+    Matrix2x2(Matrix2x2),
+    Matrix3x3(Matrix3x3),
+    Matrix4x4(Matrix4x4),
 }
 
 #[async_trait(?Send)]
@@ -24,6 +32,7 @@ impl World for MyWorld {
             colors: HashMap::new(),
             canvases: HashMap::new(),
             strings: HashMap::new(),
+            matrices: HashMap::new(),
         })
     }
 }
@@ -35,6 +44,7 @@ async fn main() {
         .steps(steps::canvas::steps())
         .steps(steps::colors::steps())
         .steps(steps::tuples::steps())
+        .steps(steps::matrices::steps())
         .cli()
         .run_and_exit()
         .await

@@ -7,7 +7,7 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"(\w+) ← color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"([a-z0-9]+) ← color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let r = ctx.matches[2].parse::<f32>().unwrap();
@@ -20,7 +20,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(\w+).(red|green|blue) = ([-0-9.]+)$"#, |world, ctx| {
+    steps.then_regex(r#"^([a-z]+).(red|green|blue) = ([-0-9.]+)$"#, |world, ctx| {
         let name = ctx.matches[1].clone();
         let attr = ctx.matches[2].clone();
         let desired = ctx.matches[3].parse::<f32>().unwrap();
@@ -37,7 +37,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^(\w+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let r = ctx.matches[2].parse::<f32>().unwrap();
@@ -52,7 +52,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \+ (\w+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \+ ([a-z0-9]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();
@@ -70,7 +70,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \- (\w+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \- ([a-z0-9]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();
@@ -88,7 +88,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \* ([-0-9.]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \* ([-0-9.]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name = ctx.matches[1].clone();
             let factor = ctx.matches[2].parse::<f32>().unwrap();
@@ -105,7 +105,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(\w+) \* (\w+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^([a-z0-9]+) \* ([a-z0-9]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();
             let name2 = ctx.matches[2].clone();

@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops;
+use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tuple {
