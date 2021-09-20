@@ -14,6 +14,10 @@ pub struct MyWorld {
     canvases: HashMap<String, Canvas>,
     strings: HashMap<String, String>,
     matrices: HashMap<String, Matrix>,
+    transform: Matrix4x4,
+    inv: Matrix4x4,
+    half_quarter: Matrix4x4,
+    full_quarter: Matrix4x4,
 }
 enum Matrix {
     M2x2(Matrix2x2),
@@ -32,6 +36,10 @@ impl World for MyWorld {
             canvases: HashMap::new(),
             strings: HashMap::new(),
             matrices: HashMap::new(),
+            transform: Matrix4x4::new(),
+            inv: Matrix4x4::new(),
+            half_quarter: Matrix4x4::new(),
+            full_quarter: Matrix4x4::new(),
         })
     }
 }

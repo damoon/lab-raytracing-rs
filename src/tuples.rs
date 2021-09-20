@@ -1,7 +1,7 @@
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Tuple {
     pub x: f64,
     pub y: f64,
@@ -29,11 +29,6 @@ impl Tuple {
     pub fn normalize(&self) -> Tuple {
         let m = self.magnitude();
         self / m
-    }
-
-    pub fn approximately(&self, other: Tuple) -> bool {
-        let e = 0.0001;
-        self.x - other.x < e && self.y - other.y < e && self.z - other.z < e && self.w - other.w < e
     }
 }
 
@@ -106,4 +101,20 @@ pub fn cross(v1: Tuple, v2: Tuple) -> Tuple {
         (v1.z * v2.x) - (v1.x * v2.z),
         (v1.x * v2.y) - (v1.y * v2.x),
     )
+}
+
+impl std::cmp::PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        let e = 0.0001;
+        if (self.x - other.x).abs() > e {
+            return false;
+        }
+        if (self.y - other.y).abs() > e {
+            return false;
+        }
+        if (self.z - other.z).abs() > e {
+            return false;
+        }
+        true
+    }
 }

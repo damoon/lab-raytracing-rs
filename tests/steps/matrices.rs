@@ -2,7 +2,7 @@ use crate::Matrix;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
-use lab_raytracing_rs::tuples::Tuple;
+use lab_raytracing_rs::tuples::{point, Tuple};
 
 use crate::MyWorld;
 
@@ -168,6 +168,34 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.when_regex(
+        r#"^([A-Z]+) ← ([A-Z]+) \* ([A-Z]+) \* ([A-Z]+)$"#,
+        |mut world, ctx| {
+            let name1 = ctx.matches[1].clone();
+            let name2 = ctx.matches[2].clone();
+            let name3 = ctx.matches[3].clone();
+            let name4 = ctx.matches[4].clone();
+            let m1 = match world.matrices.get(&name2).unwrap() {
+                Matrix::M4x4(m) => m,
+                _ => panic!("matrix needs to be in 4x4 form"),
+            };
+            let m2 = match world.matrices.get(&name3).unwrap() {
+                Matrix::M4x4(m) => m,
+                _ => panic!("matrix needs to be in 4x4 form"),
+            };
+            let m3 = match world.matrices.get(&name4).unwrap() {
+                Matrix::M4x4(m) => m,
+                _ => panic!("matrix needs to be in 4x4 form"),
+            };
+
+            let matrix = m1 * m2 * m3;
+
+            world.matrices.insert(name1, Matrix::M4x4(matrix));
+
+            world
+        },
+    );
+
     steps.then_regex(
         r#"^([A-Z]+) \* ([a-z]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
@@ -185,6 +213,29 @@ pub fn steps() -> Steps<MyWorld> {
             let z = ctx.matches[5].parse::<f64>().unwrap();
             let w = ctx.matches[6].parse::<f64>().unwrap();
             let desired = Tuple::new(x, y, z, w);
+
+            assert_eq!(desired, matrix * tuple);
+
+            world
+        },
+    );
+
+    steps.then_regex(
+        r#"^([A-Z]+) \* ([a-z]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let matrix_name = ctx.matches[1].clone();
+            let matrix = match world.matrices.get(&matrix_name).unwrap() {
+                Matrix::M4x4(m) => m,
+                _ => panic!("matrix needs to be in 4x4 form"),
+            };
+
+            let tuple_name = ctx.matches[2].clone();
+            let tuple = world.tuples.get(&tuple_name).unwrap();
+
+            let x = ctx.matches[3].parse::<f64>().unwrap();
+            let y = ctx.matches[4].parse::<f64>().unwrap();
+            let z = ctx.matches[5].parse::<f64>().unwrap();
+            let desired = point(x, y, z);
 
             assert_eq!(desired, matrix * tuple);
 

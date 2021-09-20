@@ -42,21 +42,6 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^([a-z0-9]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let name = ctx.matches[1].clone();
-            let r = ctx.matches[2].parse::<f32>().unwrap();
-            let g = ctx.matches[3].parse::<f32>().unwrap();
-            let b = ctx.matches[4].parse::<f32>().unwrap();
-            let desired = Color { r, g, b };
-            let color = world.colors.get(&name).unwrap();
-            assert_eq!(&desired, color);
-
-            world
-        },
-    );
-
-    steps.then_regex(
         r#"^([a-z0-9]+) \+ ([a-z0-9]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let name1 = ctx.matches[1].clone();

@@ -98,6 +98,17 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.given_regex(
+        r#"^([a-z]+) ← vector\(√2/2, √2/2, 0\)$"#,
+        |mut world, ctx| {
+            let name = ctx.matches[1].clone();
+            let t = vector(2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0);
+            world.tuples.insert(name, t);
+
+            world
+        },
+    );
+
     steps.then_regex(
         r#"^([a-z]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
@@ -109,6 +120,21 @@ pub fn steps() -> Steps<MyWorld> {
             let desired_tuple = Tuple::new(x, y, z, w);
             let tuple = world.tuples.get(&name).unwrap();
             assert_eq!(&desired_tuple, tuple);
+
+            world
+        },
+    );
+
+    steps.then_regex(
+        r#"^([a-z0-9]+) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let name = ctx.matches[1].clone();
+            let x = ctx.matches[2].parse::<f64>().unwrap();
+            let y = ctx.matches[3].parse::<f64>().unwrap();
+            let z = ctx.matches[4].parse::<f64>().unwrap();
+            let desired = point(x, y, z);
+            let tuple = world.tuples.get(&name).unwrap();
+            assert_eq!(&desired, tuple);
 
             world
         },
@@ -268,8 +294,9 @@ pub fn steps() -> Steps<MyWorld> {
             let x = ctx.matches[2].parse::<f64>().unwrap();
             let y = ctx.matches[3].parse::<f64>().unwrap();
             let z = ctx.matches[4].parse::<f64>().unwrap();
-            let v = vector(x, y, z);
-            assert!(tuple.normalize().approximately(v));
+            let desired = vector(x, y, z);
+            let calculated = tuple.normalize();
+            assert_eq!(calculated, desired);
 
             world
         },
