@@ -1,5 +1,6 @@
 use super::tuples::Tuple;
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub struct Matrix2x2 {
@@ -14,6 +15,31 @@ pub struct Matrix3x3 {
 #[derive(Debug)]
 pub struct Matrix4x4 {
     state: [[f64; 4]; 4],
+}
+
+impl fmt::Display for Matrix4x4 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "({:.5}, {:.5}, {:.5}, {:.5})\n({:.5}, {:.5}, {:.5}, {:.5})\n({:.5}, {:.5}, {:.5}, {:.5})\n({:.5}, {:.5}, {:.5}, {:.5})",
+            self.at(0, 0),
+            self.at(0, 1),
+            self.at(0, 2),
+            self.at(0, 3),
+            self.at(1, 0),
+            self.at(1, 1),
+            self.at(1, 2),
+            self.at(1, 3),
+            self.at(2, 0),
+            self.at(2, 1),
+            self.at(2, 2),
+            self.at(2, 3),
+            self.at(3, 0),
+            self.at(3, 1),
+            self.at(3, 2),
+            self.at(3, 3)
+        )
+    }
 }
 
 impl Default for Matrix2x2 {
