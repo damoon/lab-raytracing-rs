@@ -1,4 +1,5 @@
 use super::colors::Color;
+use std::io::{Result, Write};
 
 #[derive(Debug)]
 pub struct Canvas {
@@ -45,11 +46,10 @@ impl Canvas {
         }
     }
 
-    pub fn ppm(&self) -> String {
-        let mut s = String::new();
-        s.push_str("P3\n");
-        s.push_str(format!("{} {}\n", self.width, self.height).as_str());
-        s.push_str("255\n");
+    pub fn ppm(&self, writer: &mut dyn Write) -> Result<()> {
+        writer.write_all(b"P3\n")?;
+        writer.write_all(format!("{} {}\n", self.width, self.height).as_bytes())?;
+        writer.write_all(b"255\n")?;
 
         let mut length = 0;
 
@@ -58,25 +58,19 @@ impl Canvas {
                 let i = self.index(w, h);
                 let c = self.pixels[i];
 
-                let a = add_color(s, length, c.r);
-                s = a.0;
-                length = a.1;
-                let a = add_color(s, length, c.g);
-                s = a.0;
-                length = a.1;
-                let a = add_color(s, length, c.b);
-                s = a.0;
-                length = a.1;
+                length = add_color(writer, length, c.r)?;
+                length = add_color(writer, length, c.g)?;
+                length = add_color(writer, length, c.b)?;
             }
-            s.push('\n');
+            writer.write_all(b"\n")?;
             length = 0;
         }
 
-        s
+        Ok(())
     }
 }
 
-fn add_color(mut s: String, mut length: u8, c: f32) -> (String, u8) {
+fn add_color(w: &mut dyn Write, mut length: u8, c: f32) -> Result<u8> {
     let r = clamp(c * 255.0, 0, 255);
     let original_length = length;
 
@@ -93,7 +87,7 @@ fn add_color(mut s: String, mut length: u8, c: f32) -> (String, u8) {
     }
 
     if length > 70 {
-        s.push('\n');
+        w.write_all(b"\n")?;
         length = 0;
         length += 1;
         if r > 9 {
@@ -103,12 +97,12 @@ fn add_color(mut s: String, mut length: u8, c: f32) -> (String, u8) {
             length += 1;
         }
     } else if original_length > 0 {
-        s.push(' ');
+        w.write_all(b" ")?;
     }
 
-    s.push_str(format!("{}", r).as_str());
+    w.write_all(format!("{}", r).as_bytes())?;
 
-    (s, length)
+    Ok(length)
 }
 
 fn clamp(v: f32, min: u8, max: u8) -> u8 {

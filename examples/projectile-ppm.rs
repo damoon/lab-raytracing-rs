@@ -1,7 +1,7 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::colors::color;
 use lab_raytracing_rs::tuples::{point, vector, Tuple};
-use std::io::{self, Write};
+use std::io;
 
 fn main() -> io::Result<()> {
     let mut p = Projectile {
@@ -29,7 +29,9 @@ fn main() -> io::Result<()> {
         }
     }
 
-    io::stdout().write_all(c.ppm().as_bytes())?;
+    let file = &mut io::stdout();
+    let writer = &mut io::BufWriter::with_capacity(1024 * 128, file);
+    c.ppm(writer)?;
 
     Ok(())
 }

@@ -91,7 +91,10 @@ pub fn steps() -> Steps<MyWorld> {
             let ppm_name = ctx.matches[1].clone();
             let canvas_name = ctx.matches[2].clone();
             let canvas = world.canvases.get(&canvas_name).unwrap();
-            let ppm = canvas.ppm();
+            let mut writer = std::io::BufWriter::new(Vec::new());
+            canvas.ppm(&mut writer).expect("failed to write ppm");
+            let bytes = writer.into_inner().expect("access written ppm buffer");
+            let ppm = String::from_utf8(bytes).expect("convert ppm bytes to ut8 string");
             world.strings.insert(ppm_name, ppm);
 
             world
