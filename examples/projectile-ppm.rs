@@ -1,6 +1,5 @@
 use lab_raytracing_rs::canvas::Canvas;
-use lab_raytracing_rs::colors::color;
-use lab_raytracing_rs::tuples::{point, vector, Tuple};
+use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use std::io;
 
 fn main() -> io::Result<()> {
@@ -48,7 +47,7 @@ struct Environment {
 
 impl Projectile {
     fn tick(&mut self, env: &Environment) {
-        self.position = &self.position + &self.velocity;
-        self.velocity = &self.velocity + &env.gravity + &env.wind;
+        self.position = self.position + self.velocity;
+        self.velocity = self.velocity + env.gravity + env.wind;
     }
 }

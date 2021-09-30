@@ -38,7 +38,7 @@ fn main() {
     println!();
     let tuple = Tuple::new(2.0, 3.0, 4.0, 5.0);
     println!("tuple\n{}", tuple);
-    println!("tuple * identity_matrix\n{}", &tuple * identity_matrix());
+    println!("tuple * identity_matrix\n{}", tuple * identity_matrix());
     let mut state = [[0.0_f64; 4]; 4];
     state[0][0] = 1.0;
     state[1][1] = 1.0;
@@ -47,5 +47,5 @@ fn main() {
     state[2][1] = 1.0;
     let matrix = Matrix4x4::new_from(state);
     println!("matrix\n{}", matrix);
-    println!("tuple * matrix\n{}", &tuple * matrix);
+    println!("tuple * matrix\n{}", tuple * matrix);
 }

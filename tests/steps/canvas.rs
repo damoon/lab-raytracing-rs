@@ -1,46 +1,27 @@
+use super::tuples::parse_color;
+use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::canvas::Canvas;
-use lab_raytracing_rs::colors::Color;
-
-use crate::MyWorld;
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"^([a-z]+) ← canvas\(([0-9]+), ([0-9]+)\)$"#,
+        r#"^c ← canvas\(([0-9]+), ([0-9]+)\)$"#,
         |mut world, ctx| {
-            let name = ctx.matches[1].clone();
-            let w = ctx.matches[2].parse::<usize>().unwrap();
-            let h = ctx.matches[3].parse::<usize>().unwrap();
-            let canvas = Canvas::new(w, h);
-            world.canvases.insert(name, canvas);
+            let w = ctx.matches[1].parse::<usize>().unwrap();
+            let h = ctx.matches[2].parse::<usize>().unwrap();
+            world.c = Canvas::new(w, h);
             world
         },
     );
 
-    steps.when_regex(
-        r#"^write_pixel\(([a-z]+), ([0-9]+), ([0-9]+), (\w+)\)$"#,
-        |mut world, ctx| {
-            let canvas_name = ctx.matches[1].clone();
-            let color_name = ctx.matches[4].clone();
-            let canvas = world.canvases.get_mut(&canvas_name).unwrap();
-            let color = world.colors.get(&color_name).unwrap();
-            let w = ctx.matches[2].parse::<usize>().unwrap();
-            let h = ctx.matches[3].parse::<usize>().unwrap();
-            canvas.set(w, h, *color);
-            world
-        },
-    );
-
-    steps.then_regex(r#"^([a-z]+).(width|height) = ([0-9]+)$"#, |world, ctx| {
-        let name = ctx.matches[1].clone();
-        let attr = ctx.matches[2].clone();
-        let desired = ctx.matches[3].parse::<usize>().unwrap();
-        let canvas = world.canvases.get(&name).unwrap();
+    steps.then_regex(r#"^c.(width|height) = ([0-9]+)$"#, |world, ctx| {
+        let attr = ctx.matches[1].clone();
+        let desired = ctx.matches[2].parse::<usize>().unwrap();
         let value = match attr.as_str() {
-            "width" => canvas.width,
-            "height" => canvas.height,
+            "width" => world.c.width,
+            "height" => world.c.height,
             _ => panic!("Invalid attribute checked"),
         };
         assert_eq!(value, desired);
@@ -49,67 +30,56 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^every pixel of ([a-z]+) is color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^every pixel of c is color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
-            let name = ctx.matches[1].clone();
-            let r = ctx.matches[2].parse::<f32>().unwrap();
-            let g = ctx.matches[3].parse::<f32>().unwrap();
-            let b = ctx.matches[4].parse::<f32>().unwrap();
-            let color = Color { r, g, b };
-            let canvas = world.canvases.get(&name).unwrap();
-
-            for w in 0..canvas.width {
-                for h in 0..canvas.height {
-                    assert_eq!(color, canvas.at(w, h));
+            let color = parse_color(&ctx.matches[1..=3]);
+            for w in 0..world.c.width {
+                for h in 0..world.c.height {
+                    assert_eq!(color, world.c.at(w, h));
                 }
             }
-
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^pixel_at\(([a-z]+), ([-0-9.]+), ([-0-9.]+)\) = ([a-z]+)$"#,
-        |world, ctx| {
-            let canvas_name = ctx.matches[1].clone();
-            let canvas = world.canvases.get(&canvas_name).unwrap();
-            let w = ctx.matches[2].parse::<usize>().unwrap();
-            let h = ctx.matches[3].parse::<usize>().unwrap();
-            let color = canvas.at(w, h);
-            let color_name = ctx.matches[4].clone();
-            let desired = world.colors.get(&color_name).unwrap();
-
-            assert_eq!(&color, desired);
-
             world
         },
     );
 
     steps.when_regex(
-        r#"^([a-z]+) ← canvas_to_ppm\(([a-z]+)\)$"#,
+        r#"^write_pixel\(c, ([0-9]+), ([0-9]+), (\w+)\)$"#,
         |mut world, ctx| {
-            let ppm_name = ctx.matches[1].clone();
-            let canvas_name = ctx.matches[2].clone();
-            let canvas = world.canvases.get(&canvas_name).unwrap();
-            let mut writer = std::io::BufWriter::new(Vec::new());
-            canvas.ppm(&mut writer).expect("failed to write ppm");
-            let bytes = writer.into_inner().expect("access written ppm buffer");
-            let ppm = String::from_utf8(bytes).expect("convert ppm bytes to ut8 string");
-            world.strings.insert(ppm_name, ppm);
-
+            let color = world.tuples.get(&ctx.matches[3]).unwrap();
+            let w = ctx.matches[1].parse::<usize>().unwrap();
+            let h = ctx.matches[2].parse::<usize>().unwrap();
+            world.c.set(w, h, *color);
             world
         },
     );
 
     steps.then_regex(
-        r#"^lines ([-0-9.]+)-([-0-9.]+) of ([a-z]+) are$"#,
+        r#"^pixel_at\(c, ([-0-9.]+), ([-0-9.]+)\) = (red)$"#,
         |world, ctx| {
-            let ppm_name = ctx.matches[3].clone();
+            let w = ctx.matches[1].parse::<usize>().unwrap();
+            let h = ctx.matches[2].parse::<usize>().unwrap();
+            let color = world.c.at(w, h);
+            let desired = world.tuples.get(&ctx.matches[3]).unwrap();
+            assert_eq!(&color, desired);
+            world
+        },
+    );
+
+    steps.when_regex(r#"^ppm ← canvas_to_ppm\(c\)$"#, |mut world, _ctx| {
+        let mut writer = std::io::BufWriter::new(Vec::new());
+        world.c.ppm(&mut writer).expect("failed to write ppm");
+        let bytes = writer.into_inner().expect("access written ppm buffer");
+        world.ppm = String::from_utf8(bytes).expect("convert ppm bytes to ut8 string");
+        world
+    });
+
+    steps.then_regex(
+        r#"^lines ([-0-9.]+)-([-0-9.]+) of ppm are$"#,
+        |world, ctx| {
             let beginning = ctx.matches[1].parse::<usize>().unwrap() - 1;
             let end = ctx.matches[2].parse::<usize>().unwrap() - 1;
             let mut desired_lines = ctx.step.docstring.as_ref().unwrap().lines();
-            let mut ppm_lines = world.strings.get(&ppm_name).unwrap().lines();
-
+            let mut ppm_lines = world.ppm.lines();
             desired_lines.next(); // skip first because of leading line break
             for _ in 0..beginning {
                 ppm_lines.next();
@@ -119,34 +89,20 @@ pub fn steps() -> Steps<MyWorld> {
                 let ppm_line = ppm_lines.next();
                 assert_eq!(desired_line, ppm_line);
             }
-
             world
         },
     );
 
-    steps.then_regex(
-        r#"^([a-z]+) ends with a newline character$"#,
-        |world, ctx| {
-            let ppm_name = ctx.matches[1].clone();
-            let ppm = world.strings.get(&ppm_name).unwrap();
-            assert_eq!('\n', ppm.chars().last().unwrap());
-
-            world
-        },
-    );
+    steps.then_regex(r#"^ppm ends with a newline character$"#, |world, _ctx| {
+        assert_eq!('\n', world.ppm.chars().last().unwrap());
+        world
+    });
 
     steps.when_regex(
-        r#"^every pixel of ([a-z]+) is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^every pixel of c is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
-            let canvas_name = ctx.matches[1].clone();
-            let canvas = world.canvases.get_mut(&canvas_name).unwrap();
-            let r = ctx.matches[2].parse::<f32>().unwrap();
-            let g = ctx.matches[3].parse::<f32>().unwrap();
-            let b = ctx.matches[4].parse::<f32>().unwrap();
-            let color = Color { r, g, b };
-
-            canvas.fill(color);
-
+            let color = parse_color(&ctx.matches[1..=3]);
+            world.c.fill(color);
             world
         },
     );

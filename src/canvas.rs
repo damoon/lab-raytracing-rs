@@ -1,11 +1,14 @@
-use super::colors::Color;
+// use crate::{colors::color, tuples::Tuple};
+// use super::colors::Color;
 use std::io::{Result, Write};
+
+use crate::tuples::{color, Tuple};
 
 #[derive(Debug)]
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
-    pub pixels: Vec<Color>,
+    pub pixels: Vec<Tuple>,
 }
 
 impl Canvas {
@@ -15,18 +18,14 @@ impl Canvas {
             height,
             pixels: Vec::with_capacity(width * height),
         };
-        let color = Color {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-        };
+        let black = color(0.0, 0.0, 0.0);
         for _ in 0..(width * height) {
-            c.pixels.push(color);
+            c.pixels.push(black);
         }
         c
     }
 
-    pub fn at(&self, w: usize, h: usize) -> Color {
+    pub fn at(&self, w: usize, h: usize) -> Tuple {
         let i = self.index(w, h);
         self.pixels[i]
     }
@@ -35,12 +34,12 @@ impl Canvas {
         w + h * self.width
     }
 
-    pub fn set(&mut self, w: usize, h: usize, c: Color) {
+    pub fn set(&mut self, w: usize, h: usize, c: Tuple) {
         let i = self.index(w, h);
         self.pixels[i] = c;
     }
 
-    pub fn fill(&mut self, c: Color) {
+    pub fn fill(&mut self, c: Tuple) {
         for n in 0..(self.width * self.height) {
             self.pixels[n] = c;
         }
@@ -58,9 +57,9 @@ impl Canvas {
                 let i = self.index(w, h);
                 let c = self.pixels[i];
 
-                length = add_color(writer, length, c.r)?;
-                length = add_color(writer, length, c.g)?;
-                length = add_color(writer, length, c.b)?;
+                length = add_color(writer, length, c.x)?;
+                length = add_color(writer, length, c.y)?;
+                length = add_color(writer, length, c.z)?;
             }
             writer.write_all(b"\n")?;
             length = 0;
@@ -70,7 +69,7 @@ impl Canvas {
     }
 }
 
-fn add_color(w: &mut dyn Write, mut length: u8, c: f32) -> Result<u8> {
+fn add_color(w: &mut dyn Write, mut length: u8, c: f64) -> Result<u8> {
     let r = clamp(c * 255.0, 0, 255);
     let original_length = length;
 
@@ -105,7 +104,7 @@ fn add_color(w: &mut dyn Write, mut length: u8, c: f32) -> Result<u8> {
     Ok(length)
 }
 
-fn clamp(v: f32, min: u8, max: u8) -> u8 {
+fn clamp(v: f64, min: u8, max: u8) -> u8 {
     let mut r = v.round() as u8;
     if r < min {
         r = min;

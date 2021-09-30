@@ -12,7 +12,7 @@ pub struct Matrix3x3 {
     state: [[f64; 3]; 3],
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Matrix4x4 {
     state: [[f64; 4]; 4],
 }
