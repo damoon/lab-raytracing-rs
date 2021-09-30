@@ -131,6 +131,10 @@ pub fn cross(v1: &Tuple, v2: &Tuple) -> Tuple {
     )
 }
 
+pub fn reflect(in_: &Tuple, normal: &Tuple) -> Tuple {
+    in_ - normal * 2.0 * dot(in_, normal)
+}
+
 impl std::cmp::PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
         let e = 0.0001;

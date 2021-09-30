@@ -1,19 +1,22 @@
 use crate::{
     intersections::Intersection,
+    materials::Material,
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
-    tuples::{dot, point},
+    tuples::{dot, point, Tuple},
 };
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Sphere {
     pub transform: Matrix4x4,
+    pub material: Material,
 }
 
 impl Sphere {
     pub fn default() -> Self {
         Sphere {
             transform: identity_matrix(),
+            material: Material::default(),
         }
     }
 
@@ -45,5 +48,13 @@ impl Sphere {
                 object: self.clone(),
             },
         ]
+    }
+
+    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+        let object_point = self.transform.inverse().unwrap() * world_point;
+        let object_normal = object_point - point(0.0, 0.0, 0.0);
+        let mut world_normal = self.transform.inverse().unwrap().transpose() * object_normal;
+        world_normal.w = 0.0;
+        world_normal.normalize()
     }
 }

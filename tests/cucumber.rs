@@ -1,10 +1,12 @@
 use cucumber_rust::{async_trait, Cucumber, World};
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::Intersection;
+use lab_raytracing_rs::lights::Pointlight;
+use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::spheres::Sphere;
-use lab_raytracing_rs::tuples::{point, vector, Tuple};
+use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use std::collections::HashMap;
 use std::convert::Infallible;
 
@@ -20,6 +22,8 @@ pub struct MyWorld {
     r2: Ray,
     s: Sphere,
     xs: Vec<Intersection>,
+    light: Pointlight,
+    m: Material,
 }
 enum Matrix {
     M2x2(Matrix2x2),
@@ -48,6 +52,8 @@ impl World for MyWorld {
             },
             s: Sphere::default(),
             xs: Vec::new(),
+            light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
+            m: Material::default(),
         };
         world.insert4x4("identity_matrix".to_string(), identity_matrix());
         Ok(world)
@@ -72,6 +78,8 @@ async fn main() {
         .features(&["./features"])
         .steps(steps::canvas::steps())
         .steps(steps::tuples::steps())
+        .steps(steps::lights::steps())
+        .steps(steps::materials::steps())
         .steps(steps::matrices::steps())
         .steps(steps::transformations::steps())
         .steps(steps::rays::steps())

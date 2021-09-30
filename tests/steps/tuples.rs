@@ -1,6 +1,6 @@
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::tuples::{color, cross, dot, point, vector, Tuple};
+use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple};
 
 use crate::MyWorld;
 
@@ -45,6 +45,15 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.given_regex(
+        r#"(position) ← point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |mut world, ctx| {
+            let tuple = parse_point(&ctx.matches[2..=4]);
+            world.tuples.insert(ctx.matches[1].clone(), tuple);
+            world
+        },
+    );
+
     steps.then_regex(
         r#"^(a|c).(x|y|z|w|red|green|blue) = ([-0-9.]+)$"#,
         |world, ctx| {
@@ -79,7 +88,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let tuple = match ctx.matches[2].as_str() {
                 "point" => parse_point(&ctx.matches[3..=5]),
@@ -92,14 +101,22 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.given(
-        r#"^n ← vector\(√2/2, √2/2, 0\)$"#,
+    steps.given_regex(
+        r#"^(n|eyev) ← vector\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"#,
         |mut world, ctx| {
-            let vector = vector(2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0);
+            let vector = parse_sqrt_vector(&ctx.matches[2..=4]);
             world.tuples.insert(ctx.matches[1].clone(), vector);
             world
         },
     );
+
+    steps.when("r ← reflect(v, n)", |mut world, _ctx| {
+        let vector = world.tuples.get("v").unwrap();
+        let normal = world.tuples.get("n").unwrap();
+        let reflected = reflect(vector, normal);
+        world.tuples.insert("r".to_string(), reflected);
+        world
+    });
 
     steps.then_regex(
         r#"^(-?)(p|v|a) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
@@ -132,6 +149,30 @@ pub fn steps() -> Steps<MyWorld> {
             let point = *world.tuples.get(&ctx.matches[1]).unwrap();
             let desired_color = parse_color(&ctx.matches[2..=4]);
             assert_eq!(point, desired_color);
+            world
+        },
+    );
+
+    steps.then_regex(
+        r#"^(n|r) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let tuple = *world.tuples.get(&ctx.matches[1]).unwrap();
+            let desired_vector = parse_vector(&ctx.matches[2..=4]);
+            assert_eq!(tuple, desired_vector);
+            world
+        },
+    );
+
+    steps.then_regex(
+        r#"^(n) = vector\(√3/3, √3/3, √3/3\)$"#,
+        |world, ctx| {
+            let tuple = *world.tuples.get(&ctx.matches[1]).unwrap();
+            let desired_vector = vector(
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+                3.0_f64.sqrt() / 3.0,
+            );
+            assert_eq!(tuple, desired_vector);
             world
         },
     );
@@ -206,6 +247,16 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
+        r#"^(result) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let color = world.tuples.get(&ctx.matches[1]).unwrap();
+            let desired_color = parse_color(&ctx.matches[2..=4]);
+            assert_eq!(color, &desired_color);
+            world
+        },
+    );
+
+    steps.then_regex(
         r#"^magnitude\((v|norm)\) = (√14|[-0-9.]+)$"#,
         |world, ctx| {
             let calculated = world.tuples.get(&ctx.matches[1]).unwrap().magnitude();
@@ -238,6 +289,13 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
+    steps.then_regex(r#"^(n) = normalize\((n)\)$"#, |world, ctx| {
+        let desired = world.tuples.get(&ctx.matches[1]).unwrap();
+        let vector = world.tuples.get(&ctx.matches[2]).unwrap().normalize();
+        assert_eq!(desired, &vector);
+        world
+    });
+
     steps.then_regex(r#"^dot\((a), (b)\) = ([-0-9.]+)$"#, |world, ctx| {
         let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
         let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
@@ -261,4 +319,23 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps
+}
+
+fn parse_sqrt_vector(ss: &[String]) -> Tuple {
+    let x = match ss[0].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
+        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
+        s => s.parse::<f64>().unwrap(),
+    };
+    let y = match ss[1].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
+        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
+        s => s.parse::<f64>().unwrap(),
+    };
+    let z = match ss[2].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
+        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
+        s => s.parse::<f64>().unwrap(),
+    };
+    vector(x, y, z)
 }

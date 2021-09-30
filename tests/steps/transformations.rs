@@ -49,6 +49,17 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.given_regex(
+        r#"^(m) ← scaling\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\) \* rotation_z\(π/5\)$"#,
+        |mut world, ctx| {
+            let scaling = parse_scaling(&ctx.matches[2..=4]);
+            let rotation_z = rotation_z(PI / 5.0);
+            let transformation = scaling * rotation_z;
+            world.insert4x4(ctx.matches[1].clone(), transformation);
+            world
+        },
+    );
+
     steps.then_regex(
         r#"^(transform|inv) \* (p|v) = (point|vector)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {

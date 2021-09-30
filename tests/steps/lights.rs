@@ -1,0 +1,58 @@
+use cucumber_rust::Steps;
+use lab_raytracing_rs::lights::{lighting, Pointlight};
+
+use crate::MyWorld;
+
+use super::tuples::parse_point;
+
+pub fn steps() -> Steps<MyWorld> {
+    let mut steps: Steps<MyWorld> = Steps::new();
+
+    steps.when(
+        "light ← point_light(position, intensity)",
+        |mut world, _ctx| {
+            let position = world.tuples.get("position").unwrap();
+            let intensity = world.tuples.get("intensity").unwrap();
+            world.light = Pointlight::new(*position, *intensity);
+            world
+        },
+    );
+
+    steps.then("light.position = position", |world, _ctx| {
+        let position = world.tuples.get("position").unwrap();
+        assert_eq!(world.light.position, *position);
+        world
+    });
+
+    steps.then("light.intensity = intensity", |world, _ctx| {
+        let intensity = world.tuples.get("intensity").unwrap();
+        assert_eq!(world.light.intensity, *intensity);
+        world
+    });
+
+    steps.given_regex(
+        r#"^light ← point_light\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
+        |mut world, ctx| {
+            let position = parse_point(&ctx.matches[1..=3]);
+            let intensity = parse_point(&ctx.matches[4..=6]);
+            world.light = Pointlight::new(position, intensity);
+            world
+        },
+    );
+
+    steps.when(
+        "result ← lighting(m, light, position, eyev, normalv)",
+        |mut world, _ctx| {
+            let material = &world.m;
+            let light = &world.light;
+            let position = world.tuples.get("position").unwrap();
+            let eyev = world.tuples.get("eyev").unwrap();
+            let normalv = world.tuples.get("normalv").unwrap();
+            let result = lighting(material, light, position, eyev, normalv);
+            world.tuples.insert("result".to_string(), result);
+            world
+        },
+    );
+
+    steps
+}
