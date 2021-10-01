@@ -27,7 +27,9 @@ pub fn lighting(
     in_shadow: bool,
 ) -> Tuple {
     let black = color(0.0, 0.0, 0.0);
-    let effective_color = material.color * light.intensity;
+    let distance = (light.position - point).magnitude();
+    let intensity = light.intensity * 10000.0 / (distance * distance);
+    let effective_color = material.color * intensity;
     let lightv = (light.position - point).normalize();
     let ambient = effective_color * material.ambient;
 
@@ -45,7 +47,7 @@ pub fn lighting(
 
         if reflect_dot_eye > 0.0 {
             let factor = f64::powf(reflect_dot_eye, material.shininess);
-            specular = light.intensity * material.specular * factor;
+            specular = intensity * material.specular * factor;
         }
     }
 
