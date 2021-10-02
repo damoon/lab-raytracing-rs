@@ -109,7 +109,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(B) is the following 4x4 matrix:$"#, |world, ctx| {
+    steps.then_regex(r#"^(B|t) is the following 4x4 matrix:$"#, |world, ctx| {
         let name1 = ctx.matches[1].clone();
         let m1 = match world.matrices.get(&name1).unwrap() {
             Matrix::M4x4(m) => m,
@@ -293,7 +293,7 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.then_regex(r#"^(A) = identity_matrix$"#, |world, ctx| {
+    steps.then_regex(r#"^(A|t) = identity_matrix$"#, |world, ctx| {
         let matrix = match world.matrices.get(&ctx.matches[1]).unwrap() {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),

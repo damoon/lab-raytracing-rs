@@ -1,7 +1,10 @@
-use crate::MyWorld;
+use crate::{
+    steps::tuples::{parse_point, parse_vector},
+    MyWorld,
+};
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::intersections::{hit, Intersection};
+use lab_raytracing_rs::intersections::{hit, prepare_computations, Intersection};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
@@ -19,11 +22,15 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(i1|i2|i3|i4) ← intersection\(([-0-9.]+), s\)$"#,
+        r#"^(i|i1|i2|i3|i4) ← intersection\(([-0-9.]+), (s|shape)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
-            let object = world.s.clone();
+            let object = match ctx.matches[3].as_str() {
+                "s" => world.s.clone(),
+                "shape" => world.shape.clone(),
+                _ => panic!("object not covered"),
+            };
             let intersection = Intersection { t, object };
             world.intersections.insert(name, intersection);
             world
@@ -102,6 +109,52 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^(i) is nothing$"#, |world, ctx| {
         let intersection = world.intersections.get(&ctx.matches[1]);
         assert_eq!(intersection, None);
+        world
+    });
+
+    steps.when("comps ← prepare_computations(i, r)", |mut world, _ctx| {
+        let intersection = world.intersections.get("i").unwrap().clone();
+        world.comps = prepare_computations(intersection, &world.r);
+        world
+    });
+
+    steps.then("comps.t = i.t", |world, _ctx| {
+        let intersection = world.intersections.get("i").unwrap();
+        assert_abs_diff_eq!(world.comps.t, intersection.t);
+        world
+    });
+
+    steps.then("comps.object = i.object", |world, _ctx| {
+        let intersection = world.intersections.get("i").unwrap();
+        assert_eq!(world.comps.object, intersection.object);
+        world
+    });
+
+    steps.then_regex(
+        r#"^comps\.(point|eyev|normalv) = (point|vector)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let tuple = match ctx.matches[2].as_str() {
+                "point" => parse_point(&ctx.matches[3..=5]),
+                "vector" => parse_vector(&ctx.matches[3..=5]),
+                _ => panic!("type not covered"),
+            };
+            match ctx.matches[1].as_str() {
+                "point" => assert_eq!(world.comps.point, tuple),
+                "eyev" => assert_eq!(world.comps.eyev, tuple),
+                "normalv" => assert_eq!(world.comps.normalv, tuple),
+                _ => panic!("type not covered"),
+            };
+            world
+        },
+    );
+
+    steps.then_regex(r#"^comps\.inside = (true|false)$"#, |world, ctx| {
+        let desired = match ctx.matches[1].as_str() {
+            "true" => true,
+            "false" => false,
+            _ => panic!("only true and false are valid values"),
+        };
+        assert_eq!(world.comps.inside, desired);
         world
     });
 

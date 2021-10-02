@@ -1,7 +1,7 @@
 use super::tuples::{parse_point, parse_vector};
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::rays::Ray;
+use lab_raytracing_rs::{rays::Ray, tuples::vector};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
@@ -64,6 +64,33 @@ pub fn steps() -> Steps<MyWorld> {
             world
         },
     );
+
+    steps.then_regex(
+        r#"^r.origin = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let point = parse_point(&ctx.matches[1..=3]);
+            assert_eq!(world.r.origin, point);
+            world
+        },
+    );
+
+    steps.then_regex(
+        r#"^r.direction = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let vector = parse_vector(&ctx.matches[1..=3]);
+            assert_eq!(world.r.direction, vector);
+            world
+        },
+    );
+
+    steps.then("r.direction = vector(√2/2, 0, -√2/2)", |world, _ctx| {
+        let x = 2.0_f64.sqrt() / 2.0;
+        let y = 0.0;
+        let z = -(2.0_f64.sqrt()) / 2.0;
+        let vector = vector(x, y, z);
+        assert_eq!(world.r.direction, vector);
+        world
+    });
 
     steps
 }

@@ -51,5 +51,30 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
+    steps.given_regex(
+        r#"^(outer|inner).material.ambient ← ([-0-9.]+)$"#,
+        |mut world, ctx| {
+            let value = ctx.matches[2].parse::<f64>().unwrap();
+            match ctx.matches[1].as_str() {
+                "outer" => {
+                    // workaround for expected object pointer behaviour in cucumber tests
+                    if let Some(idx) = world.w.objects.iter().position(|r| r == &world.outer) {
+                        world.w.objects[idx].material.ambient = value;
+                    }
+                    world.outer.material.ambient = value
+                }
+                "inner" => {
+                    // workaround for expected object pointer behaviour in cucumber tests
+                    if let Some(idx) = world.w.objects.iter().position(|r| r == &world.inner) {
+                        world.w.objects[idx].material.ambient = value;
+                    }
+                    world.inner.material.ambient = value
+                }
+                _ => panic!("material attribute not covered"),
+            };
+            world
+        },
+    );
+
     steps
 }

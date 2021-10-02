@@ -31,11 +31,15 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^light ← point_light\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
+        r#"^(w\.)?light ← point_light\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            let position = parse_point(&ctx.matches[1..=3]);
-            let intensity = parse_point(&ctx.matches[4..=6]);
-            world.light = Pointlight::new(position, intensity);
+            let position = parse_point(&ctx.matches[2..=4]);
+            let intensity = parse_point(&ctx.matches[5..=7]);
+            let light = Pointlight::new(position, intensity);
+            match ctx.matches[1].as_str() {
+                "w." => world.w.light = Some(light),
+                _ => world.light = light,
+            };
             world
         },
     );

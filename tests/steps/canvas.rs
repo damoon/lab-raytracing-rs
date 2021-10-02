@@ -11,7 +11,7 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, ctx| {
             let w = ctx.matches[1].parse::<usize>().unwrap();
             let h = ctx.matches[2].parse::<usize>().unwrap();
-            world.c = Canvas::new(w, h);
+            world.canvas = Canvas::new(w, h);
             world
         },
     );
@@ -20,8 +20,8 @@ pub fn steps() -> Steps<MyWorld> {
         let attr = ctx.matches[1].clone();
         let desired = ctx.matches[2].parse::<usize>().unwrap();
         let value = match attr.as_str() {
-            "width" => world.c.width,
-            "height" => world.c.height,
+            "width" => world.canvas.width,
+            "height" => world.canvas.height,
             _ => panic!("Invalid attribute checked"),
         };
         assert_eq!(value, desired);
@@ -33,9 +33,9 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^every pixel of c is color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let color = parse_color(&ctx.matches[1..=3]);
-            for w in 0..world.c.width {
-                for h in 0..world.c.height {
-                    assert_eq!(color, world.c.at(w, h));
+            for w in 0..world.canvas.width {
+                for h in 0..world.canvas.height {
+                    assert_eq!(color, world.canvas.at(w, h));
                 }
             }
             world
@@ -48,7 +48,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color = world.tuples.get(&ctx.matches[3]).unwrap();
             let w = ctx.matches[1].parse::<usize>().unwrap();
             let h = ctx.matches[2].parse::<usize>().unwrap();
-            world.c.set(w, h, *color);
+            world.canvas.set(w, h, *color);
             world
         },
     );
@@ -58,16 +58,28 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let w = ctx.matches[1].parse::<usize>().unwrap();
             let h = ctx.matches[2].parse::<usize>().unwrap();
-            let color = world.c.at(w, h);
+            let color = world.canvas.at(w, h);
             let desired = world.tuples.get(&ctx.matches[3]).unwrap();
             assert_eq!(&color, desired);
             world
         },
     );
 
+    steps.then_regex(
+        r#"^pixel_at\(image, ([-0-9.]+), ([-0-9.]+)\) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let w = ctx.matches[1].parse::<usize>().unwrap();
+            let h = ctx.matches[2].parse::<usize>().unwrap();
+            let desired = parse_color(&ctx.matches[3..=5]);
+            let color = world.image.at(w, h);
+            assert_eq!(color, desired);
+            world
+        },
+    );
+
     steps.when_regex(r#"^ppm ← canvas_to_ppm\(c\)$"#, |mut world, _ctx| {
         let mut writer = std::io::BufWriter::new(Vec::new());
-        world.c.ppm(&mut writer).expect("failed to write ppm");
+        world.canvas.ppm(&mut writer).expect("failed to write ppm");
         let bytes = writer.into_inner().expect("access written ppm buffer");
         world.ppm = String::from_utf8(bytes).expect("convert ppm bytes to ut8 string");
         world
@@ -102,7 +114,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^every pixel of c is set to color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let color = parse_color(&ctx.matches[1..=3]);
-            world.c.fill(color);
+            world.canvas.fill(color);
             world
         },
     );

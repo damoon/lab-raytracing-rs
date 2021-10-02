@@ -1,15 +1,49 @@
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{spheres::Sphere, tuples::point};
+use lab_raytracing_rs::{
+    matrices::Matrix4x4,
+    spheres::Sphere,
+    transformations::scaling,
+    tuples::{color, point, Tuple},
+};
+use regex::Regex;
 
 use super::transformations::{parse_scaling, parse_translation};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
-    steps.given_regex(r#"^s ← sphere\(\)$"#, |mut world, _ctx| {
-        world.s = Sphere::default();
+    steps.given_regex(r#"^(s|shape) ← sphere\(\)$"#, |mut world, ctx| {
+        match ctx.matches[1].as_str() {
+            "s" => world.s = Sphere::default(),
+            "shape" => world.shape = Sphere::default(),
+            _ => panic!("object name not covered"),
+        };
+
+        world
+    });
+
+    steps.given_regex(r#"^(s1|s2) ← sphere\(\) with:$"#, |mut world, ctx| {
+        let mut s = Sphere::default();
+
+        for row in &ctx.step.table.as_ref().unwrap().rows {
+            let key = row.get(0).unwrap().clone();
+            let value = row.get(1).unwrap();
+            match key.as_str() {
+                "material.color" => s.material.color = color_from_string(value),
+                "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
+                "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
+                "transform" => s.transform = transform_from_string(value),
+                _ => panic!("sphere property not covered"),
+            }
+        }
+
+        match ctx.matches[1].as_str() {
+            "s1" => world.s1 = s,
+            "s2" => world.s2 = s,
+            _ => panic!("object name not covered"),
+        };
         world
     });
 
@@ -128,4 +162,25 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps
+}
+
+fn color_from_string(s: &str) -> Tuple {
+    let re = Regex::new(r#"\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)"#).unwrap();
+    let captures = re.captures(s).unwrap();
+    let r = captures.get(1).unwrap().as_str().parse::<f64>().unwrap();
+    let g = captures.get(2).unwrap().as_str().parse::<f64>().unwrap();
+    let b = captures.get(3).unwrap().as_str().parse::<f64>().unwrap();
+    color(r, g, b)
+}
+
+fn transform_from_string(s: &str) -> Matrix4x4 {
+    let re = Regex::new(r#"(scaling)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)"#).unwrap();
+    let captures = re.captures(s).unwrap();
+    let x = captures.get(2).unwrap().as_str().parse::<f64>().unwrap();
+    let y = captures.get(3).unwrap().as_str().parse::<f64>().unwrap();
+    let z = captures.get(4).unwrap().as_str().parse::<f64>().unwrap();
+    match captures.get(1).unwrap().as_str() {
+        "scaling" => scaling(x, y, z),
+        _ => panic!("transformation not covered"),
+    }
 }

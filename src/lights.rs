@@ -3,7 +3,7 @@ use crate::{
     tuples::{color, dot, reflect, Tuple},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Pointlight {
     pub position: Tuple,
     pub intensity: Tuple,

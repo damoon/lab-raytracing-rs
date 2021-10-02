@@ -190,6 +190,16 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
+        r#"^(c) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let desired_color = parse_color(&ctx.matches[2..=4]);
+            let color = world.tuples.get(&ctx.matches[1]).unwrap();
+            assert_eq!(color, &desired_color);
+            world
+        },
+    );
+
+    steps.then_regex(
         r#"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();

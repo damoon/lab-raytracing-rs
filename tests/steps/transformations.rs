@@ -2,7 +2,7 @@ use crate::steps::tuples::{parse_point, parse_vector};
 use cucumber_rust::Steps;
 use lab_raytracing_rs::matrices::Matrix4x4;
 use lab_raytracing_rs::transformations::{
-    rotation_x, rotation_y, rotation_z, scaling, shearing, translation,
+    rotation_x, rotation_y, rotation_z, scaling, shearing, translation, view_transform,
 };
 use lab_raytracing_rs::tuples::{point, Tuple};
 use std::f64::consts::PI;
@@ -141,6 +141,29 @@ pub fn steps() -> Steps<MyWorld> {
             let tuple = world.tuples.get(&ctx.matches[3]).unwrap();
             let computed = matrix * tuple;
             world.tuples.insert(ctx.matches[1].clone(), computed);
+            world
+        },
+    );
+
+    steps.when("t ← view_transform(from, to, up)", |mut world, _ctx| {
+        let from = world.tuples.get("from").unwrap();
+        let to = world.tuples.get("to").unwrap();
+        let up = world.tuples.get("up").unwrap();
+        let view_transformation = view_transform(from, to, up);
+        world.insert4x4("t".to_string(), view_transformation);
+        world
+    });
+
+    steps.then_regex(
+        r#"^(t) = (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        |world, ctx| {
+            let desired = match ctx.matches[2].as_str() {
+                "scaling" => parse_scaling(&ctx.matches[3..=5]),
+                "translation" => parse_translation(&ctx.matches[3..=5]),
+                _ => panic!("desired function not covered"),
+            };
+            let matrix = world.get4x4(&ctx.matches[1]);
+            assert_eq!(matrix, desired);
             world
         },
     );
