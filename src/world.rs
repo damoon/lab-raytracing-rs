@@ -1,7 +1,8 @@
-use crate::intersections::Intersection;
+use crate::intersections::{hit, Intersection};
 use crate::lights::Pointlight;
 use crate::rays::Ray;
 use crate::spheres::Sphere;
+use crate::tuples::Tuple;
 
 #[derive(Debug, Clone)]
 pub struct World {
@@ -25,5 +26,18 @@ impl World {
         }
         v.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
         v
+    }
+
+    pub fn is_shadowed(&self, point: Tuple) -> bool {
+        let v = self.light.clone().unwrap().position - point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+        let r = Ray::new(point, direction);
+        let intersections = self.insersect(&r);
+        let h = hit(intersections);
+        match h {
+            None => false,
+            Some(i) => i.t < distance,
+        }
     }
 }

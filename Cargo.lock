@@ -360,6 +360,7 @@ dependencies = [
  "approx",
  "auto_ops",
  "cucumber_rust",
+ "regex",
  "tokio",
 ]
 

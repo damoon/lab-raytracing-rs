@@ -22,12 +22,13 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(i|i1|i2|i3|i4) ← intersection\(([-0-9.]+), (s|shape)\)$"#,
+        r#"^(i|i1|i2|i3|i4) ← intersection\(([-0-9.]+), (s|s2|shape)\)$"#,
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
             let object = match ctx.matches[3].as_str() {
                 "s" => world.s.clone(),
+                "s2" => world.s2.clone(),
                 "shape" => world.shape.clone(),
                 _ => panic!("object not covered"),
             };
@@ -155,6 +156,17 @@ pub fn steps() -> Steps<MyWorld> {
             _ => panic!("only true and false are valid values"),
         };
         assert_eq!(world.comps.inside, desired);
+        world
+    });
+
+    steps.then("comps.over_point.z < -EPSILON/2", |world, _ctx| {
+        let maximum = -0.0001 / 2.0;
+        assert!(world.comps.over_point.z < maximum);
+        world
+    });
+
+    steps.then("comps.point.z > comps.over_point.z", |world, _ctx| {
+        assert!(world.comps.point.z > world.comps.over_point.z);
         world
     });
 

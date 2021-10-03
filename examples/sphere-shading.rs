@@ -42,7 +42,14 @@ fn main() -> io::Result<()> {
                 let world_point = ray.position(hit.t);
                 let normal = hit.object.normal_at(world_point);
                 let eye = -ray.direction;
-                let color = lighting(&hit.object.material, &light, &world_point, &eye, &normal);
+                let color = lighting(
+                    &hit.object.material,
+                    &light,
+                    &world_point,
+                    &eye,
+                    &normal,
+                    false,
+                );
                 canvas.set(x, y, color);
             };
         }

@@ -52,7 +52,22 @@ pub fn steps() -> Steps<MyWorld> {
             let position = world.tuples.get("position").unwrap();
             let eyev = world.tuples.get("eyev").unwrap();
             let normalv = world.tuples.get("normalv").unwrap();
-            let result = lighting(material, light, position, eyev, normalv);
+            let result = lighting(material, light, position, eyev, normalv, false);
+            world.tuples.insert("result".to_string(), result);
+            world
+        },
+    );
+
+    steps.when(
+        "result ← lighting(m, light, position, eyev, normalv, in_shadow)",
+        |mut world, _ctx| {
+            let material = &world.m;
+            let light = &world.light;
+            let position = world.tuples.get("position").unwrap();
+            let eyev = world.tuples.get("eyev").unwrap();
+            let normalv = world.tuples.get("normalv").unwrap();
+            let in_shadow = world.in_shadow;
+            let result = lighting(material, light, position, eyev, normalv, in_shadow);
             world.tuples.insert("result".to_string(), result);
             world
         },
