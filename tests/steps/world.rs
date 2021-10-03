@@ -94,6 +94,29 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
+    steps.given("in_shadow ← true", |mut world, _ctx| {
+        world.in_shadow = true;
+        world
+    });
+
+    steps.then_regex(r#"^is_shadowed\(w, p\) is (true|false)$"#, |world, ctx| {
+        let desired = ctx.matches[1].parse().unwrap();
+        let point = world.tuples.get("p").unwrap();
+        let computed = world.w.is_shadowed(*point);
+        assert_eq!(computed, desired);
+        world
+    });
+
+    steps.given_regex(r#"^(s1|s2) is added to w$"#, |mut world, ctx| {
+        match ctx.matches[1].as_str() {
+            "s1" => world.w.objects.push(world.s1.clone()),
+            "s2" => world.w.objects.push(world.s2.clone()),
+            _ => panic!("object not covered"),
+        };
+
+        world
+    });
+
     steps
 }
 

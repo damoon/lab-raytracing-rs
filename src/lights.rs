@@ -24,11 +24,17 @@ pub fn lighting(
     point: &Tuple,
     eyev: &Tuple,
     normalv: &Tuple,
+    in_shadow: bool,
 ) -> Tuple {
     let black = color(0.0, 0.0, 0.0);
     let effective_color = material.color * light.intensity;
     let lightv = (light.position - point).normalize();
     let ambient = effective_color * material.ambient;
+
+    if in_shadow {
+        return ambient;
+    }
+
     let light_dot_normal = dot(&lightv, normalv);
     let mut diffuse = black;
     let mut specular = black;

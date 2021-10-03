@@ -44,6 +44,7 @@ pub struct IntersectionPrecomputations {
     pub eyev: Tuple,
     pub normalv: Tuple,
     pub inside: bool,
+    pub over_point: Tuple,
 }
 
 pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> IntersectionPrecomputations {
@@ -57,6 +58,8 @@ pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> Intersecti
         inside = true;
         normalv = -normalv;
     }
+    let e = 0.0001;
+    let over_point = point + normalv * e;
     IntersectionPrecomputations {
         t,
         object,
@@ -64,16 +67,19 @@ pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> Intersecti
         eyev,
         normalv,
         inside,
+        over_point,
     }
 }
 
 pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations) -> Tuple {
+    let in_shadow = world.is_shadowed(comps.over_point);
     lighting(
         &comps.object.material,
         world.light.as_ref().unwrap(),
-        &comps.point,
+        &comps.over_point,
         &comps.eyev,
         &comps.normalv,
+        in_shadow,
     )
 }
 

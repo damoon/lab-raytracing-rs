@@ -71,17 +71,17 @@ fn main() -> io::Result<()> {
         &vector(0.0, 1.0, 0.0),
     );
 
-    camera.transform = view_transform(
-        &point(-3.0, 4.0, -3.0),
-        &point(-0.0, 1.0, 0.0),
-        &vector(0.0, 1.0, 0.0),
-    );
+    // camera.transform = view_transform(
+    //     &point(-3.0, 4.0, -3.0),
+    //     &point(-0.0, 1.0, 0.0),
+    //     &vector(0.0, 1.0, 0.0),
+    // );
 
-    camera.transform = view_transform(
-        &point(2.0, 1.0, -4.0),
-        &point(0.0, 1.0, 0.0),
-        &vector(-1.0, 1.0, 0.0),
-    );
+    // camera.transform = view_transform(
+    //     &point(2.0, 1.0, -4.0),
+    //     &point(0.0, 1.0, 0.0),
+    //     &vector(-1.0, 1.0, 0.0),
+    // );
 
     let canvas = render(&camera, &world);
 

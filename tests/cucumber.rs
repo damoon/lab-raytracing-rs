@@ -24,6 +24,7 @@ pub struct MyWorld {
     image: Canvas,
     camera: Camera,
     ppm: String,
+    in_shadow: bool,
     matrices: HashMap<String, Matrix>,
     intersections: HashMap<String, Intersection>,
     r: Ray,
@@ -59,6 +60,7 @@ impl CucumberWorld for MyWorld {
             canvas: Canvas::new(0, 0),
             image: Canvas::new(0, 0),
             ppm: "".to_string(),
+            in_shadow: true,
             matrices: HashMap::new(),
             intersections: HashMap::new(),
             r: Ray {
