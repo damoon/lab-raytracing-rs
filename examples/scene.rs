@@ -12,10 +12,13 @@ use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use lab_raytracing_rs::tuples::vector;
 use lab_raytracing_rs::world::World;
+use std::env;
 use std::f64::consts::PI;
 use std::io;
 
 fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+
     let mut floor = Sphere::default();
     floor.transform = scaling(10.0, 0.01, 10.0);
     floor.material = Material::default();
@@ -65,23 +68,23 @@ fn main() -> io::Result<()> {
     world.objects = vec![floor, left_wall, right_wall, middle, right, left];
 
     let mut camera = Camera::new(800, 800, PI / 3.0);
-    camera.transform = view_transform(
-        &point(0.0, 1.5, -5.0),
-        &point(0.0, 1.0, 0.0),
-        &vector(0.0, 1.0, 0.0),
-    );
-
-    // camera.transform = view_transform(
-    //     &point(-3.0, 4.0, -3.0),
-    //     &point(-0.0, 1.0, 0.0),
-    //     &vector(0.0, 1.0, 0.0),
-    // );
-
-    // camera.transform = view_transform(
-    //     &point(2.0, 1.0, -4.0),
-    //     &point(0.0, 1.0, 0.0),
-    //     &vector(-1.0, 1.0, 0.0),
-    // );
+    camera.transform = match args[1].as_str() {
+        "1" => view_transform(
+            &point(0.0, 1.5, -5.0),
+            &point(0.0, 1.0, 0.0),
+            &vector(0.0, 1.0, 0.0),
+        ),
+        "2" => view_transform(
+            &point(-3.0, 4.0, -3.0),
+            &point(-0.0, 1.0, 0.0),
+            &vector(0.0, 1.0, 0.0),
+        ),
+        _ => view_transform(
+            &point(2.0, 1.0, -4.0),
+            &point(0.0, 1.0, 0.0),
+            &vector(-1.0, 1.0, 0.0),
+        ),
+    };
 
     let canvas = render(&camera, &world);
 

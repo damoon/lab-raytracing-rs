@@ -14,7 +14,7 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
-            let object = world.s.clone();
+            let object = world.shapes.get("s").unwrap().clone();
             let intersection = Intersection { t, object };
             world.intersections.insert(name, intersection);
             world
@@ -26,12 +26,7 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, ctx| {
             let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
-            let object = match ctx.matches[3].as_str() {
-                "s" => world.s.clone(),
-                "s2" => world.s2.clone(),
-                "shape" => world.shape.clone(),
-                _ => panic!("object not covered"),
-            };
+            let object = world.shapes.get(&ctx.matches[3]).unwrap().clone();
             let intersection = Intersection { t, object };
             world.intersections.insert(name, intersection);
             world
@@ -39,8 +34,14 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(r#"^(i).object = s$"#, |world, ctx| {
-        let intersection = world.intersections.get(&ctx.matches[1]).unwrap();
-        assert_eq!(world.s, intersection.object);
+        let shape = world
+            .intersections
+            .get(&ctx.matches[1])
+            .unwrap()
+            .clone()
+            .object;
+        let desired = world.shapes.get("s").unwrap().clone();
+        assert_eq!(&shape, &desired);
         world
     });
 
@@ -92,7 +93,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.when_regex(r#"^(i) ← hit\(xs\)$"#, |mut world, ctx| {
         let name = ctx.matches[1].clone();
-        let intersection = hit(world.xs.clone());
+        let intersection = hit(&world.xs);
         match intersection {
             None => world.intersections.remove(&name),
             Some(i) => world.intersections.insert(name, i),
@@ -126,8 +127,9 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then("comps.object = i.object", |world, _ctx| {
-        let intersection = world.intersections.get("i").unwrap();
-        assert_eq!(world.comps.object, intersection.object);
+        let lookup = world.comps.object.clone();
+        let desired = world.intersections.get("i").unwrap().object.clone();
+        assert_eq!(lookup, desired);
         world
     });
 

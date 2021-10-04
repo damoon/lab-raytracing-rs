@@ -1,28 +1,35 @@
+use std::{any::Any, fmt::Debug};
+
 use crate::{
-    intersections::Intersection,
     materials::Material,
-    matrices::{identity_matrix, Matrix4x4},
+    matrices::identity_matrix,
     rays::Ray,
+    shapes::{Object, Shape},
     tuples::{dot, point, Tuple},
 };
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Sphere {
-    pub transform: Matrix4x4,
-    pub material: Material,
-}
+pub struct Sphere {}
 
 impl Sphere {
-    pub fn default() -> Self {
-        Sphere {
-            transform: identity_matrix(),
-            material: Material::default(),
+    pub fn default() -> Object {
+        let shape = Box::new(Sphere {});
+        let transform = identity_matrix();
+        let material = Material::default();
+        Object {
+            shape,
+            transform,
+            material,
         }
     }
+}
 
-    pub fn intersect(&self, world_ray: &Ray) -> Vec<Intersection> {
-        let ray = world_ray.transform(&self.transform.inverse().unwrap());
+impl Shape for Sphere {
+    fn normal_at(&self, local_point: &Tuple) -> Tuple {
+        local_point - point(0.0, 0.0, 0.0)
+    }
 
+    fn intersect(&self, ray: &Ray) -> Vec<f64> {
         let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0); // Sphere is at 0, 0, 0
 
         let a = dot(&ray.direction, &ray.direction);
@@ -32,29 +39,30 @@ impl Sphere {
         let discriminant = (b * b) - 4.0 * a * c;
 
         if discriminant < 0.0 {
-            return Vec::new();
+            return vec![];
         }
 
         let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
         let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
-
-        vec![
-            Intersection {
-                t: t1,
-                object: self.clone(),
-            },
-            Intersection {
-                t: t2,
-                object: self.clone(),
-            },
-        ]
+        vec![t1, t2]
     }
 
-    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
-        let object_point = self.transform.inverse().unwrap() * world_point;
-        let object_normal = object_point - point(0.0, 0.0, 0.0);
-        let mut world_normal = self.transform.inverse().unwrap().transpose() * object_normal;
-        world_normal.w = 0.0;
-        world_normal.normalize()
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn equals(&self, other: &dyn Shape) -> bool {
+        other
+            .as_any()
+            .downcast_ref::<Sphere>()
+            .map_or(false, |a| self == a)
+    }
+
+    fn fmt_boxed(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.fmt(f)
+    }
+
+    fn clone_boxed(&self) -> Box<dyn Shape> {
+        Box::new(self.clone())
     }
 }

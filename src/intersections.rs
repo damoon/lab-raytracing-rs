@@ -1,31 +1,38 @@
 use crate::{
     lights::lighting,
     rays::Ray,
-    spheres::Sphere,
+    shapes::Object,
     tuples::{color, dot, Tuple},
     world::World,
 };
 
+// #[derive(PartialEq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Sphere,
+    pub object: Object,
 }
 
-pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
+// impl PartialEq for Intersection {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.t == other.t && self.object.equals(other.object.deref())
+//     }
+// }
+
+pub fn hit(xs: &[Intersection]) -> Option<Intersection> {
     match xs.first() {
         None => None,
         Some(_) => {
             let mut intersection = None;
-            for current in xs.into_iter() {
+            for current in xs.iter() {
                 if current.t < 0.0 {
                     continue;
                 }
                 intersection = match intersection {
-                    None => Some(current),
+                    None => Some(current.clone()),
                     Some(previous) => {
                         if current.t < previous.t {
-                            Some(current)
+                            Some(current.clone())
                         } else {
                             Some(previous)
                         }
@@ -39,7 +46,7 @@ pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
 
 pub struct IntersectionPrecomputations {
     pub t: f64,
-    pub object: Sphere,
+    pub object: Object,
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
@@ -52,7 +59,7 @@ pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> Intersecti
     let object = intersection.object;
     let point = ray.position(t);
     let eyev = -ray.direction;
-    let mut normalv = object.normal_at(point);
+    let mut normalv = object.normal_at(&point);
     let mut inside = false;
     if dot(&normalv, &eyev) < 0.0 {
         inside = true;
@@ -85,7 +92,7 @@ pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations) -> Tuple {
 
 pub fn color_at(world: &World, ray: &Ray) -> Tuple {
     let intersections = world.insersect(ray);
-    let hit = hit(intersections);
+    let hit = hit(&intersections);
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
