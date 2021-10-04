@@ -43,11 +43,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(r#"^w contains (s1|s2)$"#, |world, ctx| {
-        let object = match ctx.matches[1].as_str() {
-            "s1" => &world.s1,
-            "s2" => &world.s2,
-            _ => panic!("object not covered"),
-        };
+        let object = world.shapes.get(&ctx.matches[1]).unwrap();
         assert!(world.w.objects.contains(object));
         world
     });
@@ -65,13 +61,8 @@ pub fn steps() -> Steps<MyWorld> {
                 "second" => 1,
                 _ => panic!("position not covered"),
             };
-            match ctx.matches[1].as_str() {
-                "shape" => world.shape = world.w.objects.get(index).unwrap().clone(),
-                "outer" => world.outer = world.w.objects.get(index).unwrap().clone(),
-                "inner" => world.inner = world.w.objects.get(index).unwrap().clone(),
-                _ => panic!("object not covered"),
-            };
-
+            let shape = world.w.objects.get(index).unwrap().clone();
+            world.shapes.insert(ctx.matches[1].clone(), shape);
             world
         },
     );
@@ -90,7 +81,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then("c = inner.material.color", |world, _ctx| {
         let c = world.tuples.get("c").unwrap();
-        assert_eq!(c, &world.inner.material.color);
+        assert_eq!(c, &world.shapes.get("inner").unwrap().material.color);
         world
     });
 
@@ -108,12 +99,8 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(r#"^(s1|s2) is added to w$"#, |mut world, ctx| {
-        match ctx.matches[1].as_str() {
-            "s1" => world.w.objects.push(world.s1.clone()),
-            "s2" => world.w.objects.push(world.s2.clone()),
-            _ => panic!("object not covered"),
-        };
-
+        let shape = world.shapes.get(&ctx.matches[1]).unwrap().clone();
+        world.w.objects.push(shape);
         world
     });
 

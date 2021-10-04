@@ -1,12 +1,11 @@
 use crate::intersections::{hit, Intersection};
 use crate::lights::Pointlight;
 use crate::rays::Ray;
-use crate::spheres::Sphere;
+use crate::shapes::Object;
 use crate::tuples::Tuple;
 
-#[derive(Debug, Clone)]
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Object>,
     pub light: Option<Pointlight>,
 }
 
@@ -19,7 +18,7 @@ impl World {
     }
 
     pub fn insersect(&self, r: &Ray) -> Vec<Intersection> {
-        let mut v: Vec<Intersection> = Vec::new();
+        let mut v = Vec::new();
         for obj in self.objects.iter() {
             let mut intersections = obj.intersect(r);
             v.append(&mut intersections);
@@ -34,7 +33,7 @@ impl World {
         let direction = v.normalize();
         let r = Ray::new(point, direction);
         let intersections = self.insersect(&r);
-        let h = hit(intersections);
+        let h = hit(&intersections);
         match h {
             None => false,
             Some(i) => i.t < distance,

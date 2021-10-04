@@ -8,6 +8,7 @@ use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 use lab_raytracing_rs::rays::Ray;
+use lab_raytracing_rs::shapes::Object;
 use lab_raytracing_rs::spheres::Sphere;
 use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use lab_raytracing_rs::world::World;
@@ -29,12 +30,7 @@ pub struct MyWorld {
     intersections: HashMap<String, Intersection>,
     r: Ray,
     r2: Ray,
-    s: Sphere,
-    s1: Sphere,
-    s2: Sphere,
-    shape: Sphere,
-    outer: Sphere,
-    inner: Sphere,
+    shapes: HashMap<String, Object>,
     xs: Vec<Intersection>,
     light: Pointlight,
     m: Material,
@@ -71,12 +67,7 @@ impl CucumberWorld for MyWorld {
                 origin: point(0.0, 0.0, 0.0),
                 direction: vector(1.0, 1.0, 1.0),
             },
-            s: Sphere::default(),
-            s1: Sphere::default(),
-            s2: Sphere::default(),
-            shape: Sphere::default(),
-            outer: Sphere::default(),
-            inner: Sphere::default(),
+            shapes: HashMap::new(),
             xs: Vec::new(),
             light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
             m: Material::default(),
@@ -121,6 +112,7 @@ async fn main() {
         .steps(steps::matrices::steps())
         .steps(steps::transformations::steps())
         .steps(steps::rays::steps())
+        .steps(steps::shapes::steps())
         .steps(steps::spheres::steps())
         .steps(steps::intersections::steps())
         .steps(steps::world::steps())

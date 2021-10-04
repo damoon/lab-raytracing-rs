@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
-    let canvas_pixels = 100;
+    let canvas_pixels = 500;
     let pixel_size = wall_size / canvas_pixels as f64;
     let half_wall_size = wall_size / 2.0;
     let half_pixel_size = pixel_size / 2.0;
@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
             let position = point(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin, (position - ray_origin).normalize());
             let xs = shape.intersect(&r);
-            let hit = hit(xs);
+            let hit = hit(&xs);
             if hit.is_some() {
                 canvas.set(x, y, red);
             };

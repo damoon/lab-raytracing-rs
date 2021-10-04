@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let black = color(0.1, 0.1, 0.1);
     let white = color(1.0, 1.0, 1.0);
 
-    let mut c = Canvas::new(1000, 1000);
+    let mut c = Canvas::new(100, 100);
     c.fill(black);
 
     for i in 0..12 {

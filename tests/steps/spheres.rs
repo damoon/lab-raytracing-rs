@@ -15,13 +15,8 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^(s|shape|s1) ← sphere\(\)$"#, |mut world, ctx| {
-        match ctx.matches[1].as_str() {
-            "s" => world.s = Sphere::default(),
-            "s1" => world.s1 = Sphere::default(),
-            "shape" => world.shape = Sphere::default(),
-            _ => panic!("object name not covered"),
-        };
-
+        let shape = Sphere::default();
+        world.shapes.insert(ctx.matches[1].clone(), shape);
         world
     });
 
@@ -29,7 +24,6 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(s1|s2|shape) ← sphere\(\) with:$"#,
         |mut world, ctx| {
             let mut s = Sphere::default();
-
             for row in &ctx.step.table.as_ref().unwrap().rows {
                 let key = row.get(0).unwrap().clone();
                 let value = row.get(1).unwrap();
@@ -41,29 +35,24 @@ pub fn steps() -> Steps<MyWorld> {
                     _ => panic!("sphere property not covered"),
                 }
             }
-
-            match ctx.matches[1].as_str() {
-                "s1" => world.s1 = s,
-                "s2" => world.s2 = s,
-                "shape" => world.shape = s,
-                _ => panic!("object name not covered"),
-            };
+            world.shapes.insert(ctx.matches[1].to_string(), s);
             world
         },
     );
 
     steps.when_regex(r#"^m ← s.material$"#, |mut world, _ctx| {
-        world.m = world.s.material.clone();
+        world.m = world.shapes.get("s").unwrap().material.clone();
         world
     });
 
     steps.when("s.material ← m", |mut world, _ctx| {
-        world.s.material = world.m.clone();
+        world.shapes.get_mut("s").unwrap().material = world.m.clone();
         world
     });
 
     steps.then("s.material = m", |world, _ctx| {
-        assert_eq!(world.s.material, world.m);
+        let s = world.shapes.get("s").unwrap();
+        assert_eq!(s.material, world.m);
         world
     });
 
@@ -78,24 +67,25 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.given_regex(r#"^set_transform\(s, (m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]);
-        world.s.transform = transformation;
+        world.shapes.get_mut("s").unwrap().transform = transformation;
         world
     });
 
-    steps.when_regex(r#"^set_transform\(s, (t)\)$"#, |mut world, ctx| {
+    steps.when_regex(r#"^set_transform\(s, (t|m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]);
-        world.s.transform = transformation;
+        world.shapes.get_mut("s").unwrap().transform = transformation;
         world
     });
 
     steps.given_regex(
         r#"^set_transform\(s, (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            world.s.transform = match ctx.matches[1].as_str() {
+            let transformation = match ctx.matches[1].as_str() {
                 "scaling" => parse_scaling(&ctx.matches[2..=4]),
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
+            world.shapes.get_mut("s").unwrap().transform = transformation;
             world
         },
     );
@@ -103,24 +93,26 @@ pub fn steps() -> Steps<MyWorld> {
     steps.when_regex(
         r#"^set_transform\(s, (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            world.s.transform = match ctx.matches[1].as_str() {
+            let transformation = match ctx.matches[1].as_str() {
                 "scaling" => parse_scaling(&ctx.matches[2..=4]),
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
+            world.shapes.get_mut("s").unwrap().transform = transformation;
             world
         },
     );
 
     steps.then_regex(r#"^s.transform = (identity_matrix|t)$"#, |world, ctx| {
-        let transform = &world.s.transform;
-        let matrix = &world.get4x4(ctx.matches[1].as_str());
-        assert_eq!(transform, matrix);
+        let lookup = world.shapes.get("s").unwrap().transform.clone();
+        let desired = &world.get4x4(ctx.matches[1].as_str());
+        assert_eq!(&lookup, desired);
         world
     });
 
     steps.when_regex(r#"^xs ← intersect\(s, r\)$"#, |mut world, _ctx| {
-        world.xs = world.s.intersect(&world.r);
+        let s = world.shapes.get("s").unwrap();
+        world.xs = s.intersect(&world.r);
         world
     });
 
@@ -140,7 +132,9 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then_regex(r#"^xs\[([-0-9.]+)\].object = s$"#, |world, ctx| {
         let index = ctx.matches[1].parse::<usize>().unwrap();
-        assert_eq!(world.xs.get(index).unwrap().object, world.s);
+        let desired = world.shapes.get("s").unwrap();
+        let lookup = world.xs.get(index).unwrap().object.clone();
+        assert_eq!(&lookup, desired);
         world
     });
 
@@ -160,7 +154,7 @@ pub fn steps() -> Steps<MyWorld> {
                 s => s.parse::<f64>().unwrap()
             };
             let point = point(x, y, z);
-            let normal = world.s.normal_at(point);
+            let normal = world.shapes.get("s").unwrap().normal_at(&point);
             world.tuples.insert(ctx.matches[1].clone(), normal);
             world
         },
