@@ -11,7 +11,7 @@ pub struct Object {
 }
 
 pub trait Shape {
-    fn intersect(&self, world_ray: &Ray) -> Vec<f64>;
+    fn intersect(&self, local_ray: &Ray) -> Vec<f64>;
     fn normal_at(&self, local_point: &Tuple) -> Tuple;
     fn as_any(&self) -> &dyn Any;
     fn equals(&self, other: &dyn Shape) -> bool;

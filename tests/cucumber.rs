@@ -111,6 +111,7 @@ async fn main() {
         .steps(steps::materials::steps())
         .steps(steps::matrices::steps())
         .steps(steps::transformations::steps())
+        .steps(steps::planes::steps())
         .steps(steps::rays::steps())
         .steps(steps::shapes::steps())
         .steps(steps::spheres::steps())

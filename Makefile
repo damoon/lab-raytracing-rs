@@ -1,4 +1,4 @@
-all: test clock.ppm projectile.ppm scene-1.ppm scene-2.ppm scene-3.ppm shadow.ppm sphere-normals.ppm sphere-shading.ppm sphere-silhouette.ppm
+all: test clock.ppm projectile.ppm scene-1.ppm scene-2.ppm scene-3.ppm shadow.ppm sphere-normals.ppm sphere-shading.ppm sphere-silhouette.ppm planes.ppm
 
 test:
 	cargo test --test cucumber -- --silent
@@ -25,3 +25,6 @@ sphere-shading.ppm:
 	cargo run --release --example sphere-shading > sphere-shading.ppm
 sphere-silhouette.ppm:
 	cargo run --release --example sphere-silhouette > sphere-silhouette.ppm
+
+planes.ppm:
+	cargo run --release --example planes > planes.ppm
