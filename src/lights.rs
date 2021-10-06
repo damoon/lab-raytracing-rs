@@ -1,5 +1,7 @@
 use crate::{
     materials::Material,
+    patterns::pattern_at_shape,
+    shapes::Object,
     tuples::{color, dot, reflect, Tuple},
 };
 
@@ -20,14 +22,20 @@ impl Pointlight {
 
 pub fn lighting(
     material: &Material,
+    object: &Object,
     light: &Pointlight,
     point: &Tuple,
     eyev: &Tuple,
     normalv: &Tuple,
     in_shadow: bool,
 ) -> Tuple {
+    let material_color = match &material.pattern {
+        None => material.color,
+        Some(pattern) => pattern_at_shape(pattern, object, point),
+    };
+
     let black = color(0.0, 0.0, 0.0);
-    let effective_color = material.color * light.intensity;
+    let effective_color = material_color * light.intensity;
     let lightv = (light.position - point).normalize();
     let ambient = effective_color * material.ambient;
 

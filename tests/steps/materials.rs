@@ -42,14 +42,19 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.given_regex(r#"^m.(ambient) ← ([-0-9.]+)$"#, |mut world, ctx| {
-        let value = ctx.matches[2].parse::<f64>().unwrap();
-        match ctx.matches[1].as_str() {
-            "ambient" => world.m.ambient = value,
-            _ => panic!("material attribute not covered"),
-        };
-        world
-    });
+    steps.given_regex(
+        r#"^m.(ambient|diffuse|specular) ← ([-0-9.]+)$"#,
+        |mut world, ctx| {
+            let value = ctx.matches[2].parse::<f64>().unwrap();
+            match ctx.matches[1].as_str() {
+                "ambient" => world.m.ambient = value,
+                "diffuse" => world.m.diffuse = value,
+                "specular" => world.m.specular = value,
+                _ => panic!("material attribute not covered"),
+            };
+            world
+        },
+    );
 
     steps.given_regex(
         r#"^(outer|inner).material.ambient ← ([-0-9.]+)$"#,

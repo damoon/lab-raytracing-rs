@@ -155,15 +155,19 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^(t) = (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(t|s.transform|pattern.transform) = (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let desired = match ctx.matches[2].as_str() {
                 "scaling" => parse_scaling(&ctx.matches[3..=5]),
                 "translation" => parse_translation(&ctx.matches[3..=5]),
                 _ => panic!("desired function not covered"),
             };
-            let matrix = world.get4x4(&ctx.matches[1]);
-            assert_eq!(matrix, desired);
+            let lookup = match ctx.matches[1].as_str() {
+                "s.transform" => world.shapes.get("s").unwrap().transform.clone(),
+                "pattern.transform" => world.pattern.transform.clone(),
+                _ => world.get4x4(&ctx.matches[1]),
+            };
+            assert_eq!(lookup, desired);
             world
         },
     );

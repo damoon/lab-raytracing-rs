@@ -88,7 +88,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |mut world, ctx| {
             let tuple = match ctx.matches[2].as_str() {
                 "point" => parse_point(&ctx.matches[3..=5]),
@@ -190,7 +190,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(c) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(c|c1|c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let desired_color = parse_color(&ctx.matches[2..=4]);
             let color = world.tuples.get(&ctx.matches[1]).unwrap();
@@ -198,6 +198,13 @@ pub fn steps() -> Steps<MyWorld> {
             world
         },
     );
+
+    steps.then_regex(r#"^(c) = (white)$"#, |world, ctx| {
+        let lookup = world.tuples.get(&ctx.matches[1]).unwrap();
+        let desired = world.tuples.get(&ctx.matches[2]).unwrap();
+        assert_eq!(lookup, desired);
+        world
+    });
 
     steps.then_regex(
         r#"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,

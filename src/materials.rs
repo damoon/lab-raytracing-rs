@@ -1,4 +1,7 @@
-use crate::tuples::{color, Tuple};
+use crate::{
+    patterns::Pattern,
+    tuples::{color, Tuple},
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Material {
@@ -7,6 +10,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
+    pub pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -17,6 +21,7 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.0,
+            pattern: None,
         }
     }
 }

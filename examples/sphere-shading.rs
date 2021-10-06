@@ -44,6 +44,7 @@ fn main() -> io::Result<()> {
                 let eye = -ray.direction;
                 let color = lighting(
                     &hit.object.material,
+                    &shape,
                     &light,
                     &world_point,
                     &eye,

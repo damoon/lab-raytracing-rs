@@ -14,11 +14,14 @@ use super::transformations::{parse_scaling, parse_translation};
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
-    steps.given_regex(r#"^(s|shape|s1) ← sphere\(\)$"#, |mut world, ctx| {
-        let shape = Sphere::default();
-        world.shapes.insert(ctx.matches[1].clone(), shape);
-        world
-    });
+    steps.given_regex(
+        r#"^(s|shape|s1|object) ← sphere\(\)$"#,
+        |mut world, ctx| {
+            let shape = Sphere::default();
+            world.shapes.insert(ctx.matches[1].clone(), shape);
+            world
+        },
+    );
 
     steps.given_regex(
         r#"^(s1|s2|shape) ← sphere\(\) with:$"#,
@@ -78,14 +81,14 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^set_transform\(s, (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
+        r#"^set_transform\((s|object|shape), (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            let transformation = match ctx.matches[1].as_str() {
-                "scaling" => parse_scaling(&ctx.matches[2..=4]),
-                "translation" => parse_translation(&ctx.matches[2..=4]),
+            let transformation = match ctx.matches[2].as_str() {
+                "scaling" => parse_scaling(&ctx.matches[3..=5]),
+                "translation" => parse_translation(&ctx.matches[3..=5]),
                 _ => panic!("transformation not covered"),
             };
-            world.shapes.get_mut("s").unwrap().transform = transformation;
+            world.shapes.get_mut(&ctx.matches[1]).unwrap().transform = transformation;
             world
         },
     );

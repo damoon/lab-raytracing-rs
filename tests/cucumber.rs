@@ -7,6 +7,7 @@ use lab_raytracing_rs::intersections::{
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
+use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::shapes::Object;
 use lab_raytracing_rs::spheres::Sphere;
@@ -36,6 +37,7 @@ pub struct MyWorld {
     m: Material,
     w: World,
     comps: IntersectionPrecomputations,
+    pattern: Pattern,
 }
 enum Matrix {
     M2x2(Matrix2x2),
@@ -82,6 +84,7 @@ impl CucumberWorld for MyWorld {
                     direction: vector(1.0, 0.0, 0.0),
                 },
             ),
+            pattern: test_pattern(),
         };
         world.insert4x4("identity_matrix".to_string(), identity_matrix());
         Ok(world)
@@ -106,16 +109,17 @@ async fn main() {
         .features(&["./features"])
         .steps(steps::camera::steps())
         .steps(steps::canvas::steps())
-        .steps(steps::tuples::steps())
+        .steps(steps::intersections::steps())
         .steps(steps::lights::steps())
         .steps(steps::materials::steps())
         .steps(steps::matrices::steps())
-        .steps(steps::transformations::steps())
+        .steps(steps::patterns::steps())
         .steps(steps::planes::steps())
         .steps(steps::rays::steps())
         .steps(steps::shapes::steps())
         .steps(steps::spheres::steps())
-        .steps(steps::intersections::steps())
+        .steps(steps::transformations::steps())
+        .steps(steps::tuples::steps())
         .steps(steps::world::steps())
         .cli()
         .run_and_exit()
