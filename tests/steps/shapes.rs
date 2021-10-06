@@ -1,8 +1,5 @@
 use crate::{
-    steps::{
-        transformations::parse_translation,
-        tuples::{parse_point, parse_vector},
-    },
+    steps::tuples::{parse_point, parse_vector},
     MyWorld,
 };
 use cucumber_rust::Steps;
@@ -28,19 +25,6 @@ pub fn steps() -> Steps<MyWorld> {
             .insert(ctx.matches[1].clone(), TestShape::default());
         world
     });
-
-    steps.then_regex(
-        r#"^s.transform = (translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |mut world, ctx| {
-            let desired = match ctx.matches[1].as_str() {
-                "translation" => parse_translation(&ctx.matches[2..=4]),
-                _ => panic!("transformation not covered"),
-            };
-            let lookup = world.shapes.get_mut("s").unwrap().transform.clone();
-            assert_eq!(lookup, desired);
-            world
-        },
-    );
 
     steps.then_regex(
         r#"^s.saved_ray.(origin|direction) = (point|vector)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,

@@ -82,6 +82,7 @@ pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations) -> Tuple {
     let in_shadow = world.is_shadowed(comps.over_point);
     lighting(
         &comps.object.material,
+        &comps.object,
         world.light.as_ref().unwrap(),
         &comps.over_point,
         &comps.eyev,
