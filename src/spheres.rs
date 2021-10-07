@@ -16,11 +16,7 @@ impl Sphere {
         let shape = Box::new(Sphere {});
         let transform = identity_matrix();
         let material = Material::default();
-        Object {
-            shape,
-            transform,
-            material,
-        }
+        Object::new(shape, transform, material)
     }
 }
 

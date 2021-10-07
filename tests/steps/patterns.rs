@@ -97,7 +97,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
-            world.pattern.transform = transformation;
+            world.pattern.set_transform(transformation);
             world
         },
     );
@@ -110,7 +110,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
-            world.pattern.transform = transformation;
+            world.pattern.set_transform(transformation);
             world
         },
     );
@@ -122,7 +122,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then_regex("pattern.transform = (identity_matrix)", |world, ctx| {
         let desired = &world.get4x4(&ctx.matches[1]);
-        let lookup = &world.pattern.transform;
+        let lookup = world.pattern.transform();
         assert_eq!(lookup, desired);
         world
     });

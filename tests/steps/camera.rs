@@ -61,7 +61,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then_regex(r#"^c.transform = (identity_matrix)$"#, |world, _ctx| {
         let matrix = world.get4x4("identity_matrix");
-        assert_eq!(world.camera.transform, matrix);
+        assert_eq!(world.camera.transform(), &matrix);
         world
     });
 
@@ -89,7 +89,8 @@ pub fn steps() -> Steps<MyWorld> {
     steps.when(
         "c.transform ← rotation_y(π/4) * translation(0, -2, 5)",
         |mut world, _ctx| {
-            world.camera.transform = rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0);
+            let transform = rotation_y(PI / 4.0) * translation(0.0, -2.0, 5.0);
+            world.camera.set_transform(transform);
             world
         },
     );
@@ -100,7 +101,8 @@ pub fn steps() -> Steps<MyWorld> {
             let from = world.tuples.get("from").unwrap();
             let to = world.tuples.get("to").unwrap();
             let up = world.tuples.get("up").unwrap();
-            world.camera.transform = view_transform(from, to, up);
+            let transform = view_transform(from, to, up);
+            world.camera.set_transform(transform);
             world
         },
     );

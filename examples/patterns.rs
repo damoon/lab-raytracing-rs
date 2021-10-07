@@ -32,57 +32,59 @@ fn main() -> io::Result<()> {
     let white = color(1.0, 1.0, 1.0);
 
     let mut stripes1 = stripe_pattern(white, green);
-    stripes1.transform = rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2);
+    stripes1.set_transform(rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2));
     let mut stripes2 = stripe_pattern(white, blue);
-    stripes2.transform = rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2);
-    let merged_stripes = Pattern {
-        transform: identity_matrix(),
-        renderer: Renderer::Checkers(Box::new(stripes1), Box::new(stripes2)),
-    };
+    stripes2.set_transform(rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2));
+    let merged_stripes = Pattern::new(
+        identity_matrix(),
+        Renderer::Checkers(Box::new(stripes1), Box::new(stripes2)),
+    );
 
     let mut floor = Plane::default();
     // floor.material.pattern = Some(ring_pattern(red, grey));
     floor.material.pattern = Some(merged_stripes);
 
     let mut wall = Plane::default();
-    wall.transform = translation(0.0, 0.0, 4.0) * rotation_x(PI / 2.0);
+    wall.set_transform(translation(0.0, 0.0, 4.0) * rotation_x(PI / 2.0));
     wall.material.pattern = Some(ring_pattern(red, grey));
 
     let mut pattern = checkers_pattern(black, white);
-    pattern.transform = scaling(0.25, 0.25, 0.25);
+    pattern.set_transform(scaling(0.25, 0.25, 0.25));
     let mut middle = Sphere::default();
-    middle.transform = translation(-0.5, 1.0, 0.5)
-        * rotation_x(PI / 4.0)
-        * rotation_y(PI / 4.0)
-        * rotation_z(PI / 4.0);
+    middle.set_transform(
+        translation(-0.5, 1.0, 0.5)
+            * rotation_x(PI / 4.0)
+            * rotation_y(PI / 4.0)
+            * rotation_z(PI / 4.0),
+    );
     middle.material.pattern = Some(pattern);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 
     let mut right = Sphere::default();
-    right.transform = translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5);
+    right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
     let px = Perlin::new();
     px.set_seed(1);
     let py = Perlin::new();
     py.set_seed(1);
     let pz = Perlin::new();
     pz.set_seed(1);
-    let perlin_pattern = Pattern {
-        transform: identity_matrix(),
-        renderer: Renderer::Perturbed(
+    let perlin_pattern = Pattern::new(
+        identity_matrix(),
+        Renderer::Perturbed(
             0.5,
             Box::new(px),
             Box::new(py),
             Box::new(pz),
             Box::new(stripe_pattern(red, grey)),
         ),
-    };
+    );
     right.material.pattern = Some(perlin_pattern);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
 
     let mut left = Sphere::default();
-    left.transform = translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33);
+    left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
     left.material.color = blue;
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
@@ -92,11 +94,11 @@ fn main() -> io::Result<()> {
     world.objects = vec![floor, wall, middle, right, left];
 
     let mut camera = Camera::new(800, 800, PI / 3.0);
-    camera.transform = view_transform(
+    camera.set_transform(view_transform(
         &point(0.0, 1.5, -5.0),
         &point(0.0, 1.0, 0.0),
         &vector(0.0, 1.0, 0.0),
-    );
+    ));
 
     let canvas = render(&camera, &world);
 

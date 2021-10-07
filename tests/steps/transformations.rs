@@ -163,8 +163,8 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("desired function not covered"),
             };
             let lookup = match ctx.matches[1].as_str() {
-                "s.transform" => world.shapes.get("s").unwrap().transform.clone(),
-                "pattern.transform" => world.pattern.transform.clone(),
+                "s.transform" => world.shapes.get("s").unwrap().transform().clone(),
+                "pattern.transform" => world.pattern.transform().clone(),
                 _ => world.get4x4(&ctx.matches[1]),
             };
             assert_eq!(lookup, desired);

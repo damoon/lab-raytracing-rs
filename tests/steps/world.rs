@@ -120,7 +120,7 @@ pub fn default_world() -> World {
     s1.material.specular = 0.2;
 
     let mut s2 = Sphere::default();
-    s2.transform = scaling(0.5, 0.5, 0.5);
+    s2.set_transform(scaling(0.5, 0.5, 0.5));
 
     w.objects = vec![s1, s2];
     w
