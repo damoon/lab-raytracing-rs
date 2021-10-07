@@ -16,11 +16,7 @@ impl Plane {
         let shape = Box::new(Plane {});
         let transform = identity_matrix();
         let material = Material::default();
-        Object {
-            shape,
-            transform,
-            material,
-        }
+        Object::new(shape, transform, material)
     }
 }
 

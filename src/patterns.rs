@@ -7,7 +7,8 @@ use noise::{NoiseFn, Perlin, Seedable};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pattern {
-    pub transform: Matrix4x4,
+    transform: Matrix4x4,
+    transform_inverse: Matrix4x4,
     pub renderer: Renderer,
 }
 
@@ -53,8 +54,26 @@ impl PartialEq for Renderer {
 }
 
 impl Pattern {
+    pub fn new(transform: Matrix4x4, renderer: Renderer) -> Pattern {
+        let transform_inverse = transform.inverse().unwrap();
+        Pattern {
+            transform,
+            transform_inverse,
+            renderer,
+        }
+    }
+
     pub fn color_at(&self, p: &Tuple) -> Tuple {
         self.renderer.color_at(p)
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix4x4) {
+        self.transform = transform;
+        self.transform_inverse = self.transform.inverse().unwrap();
+    }
+
+    pub fn transform(&self) -> &Matrix4x4 {
+        &self.transform
     }
 }
 
@@ -63,39 +82,38 @@ impl Renderer {
         match self {
             Renderer::Stripes(a, b) => {
                 if p.x.floor() % 2.0 == 0.0 {
-                    return a.color_at(&(p * a.transform.inverse().unwrap()));
+                    return a.color_at(&(p * &a.transform_inverse));
                 }
-                b.color_at(&(p * b.transform.inverse().unwrap()))
+                b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::Gradient(a, b) => {
-                let a = a.color_at(&(p * a.transform.inverse().unwrap()));
-                let b = b.color_at(&(p * b.transform.inverse().unwrap()));
+                let a = a.color_at(&(p * &a.transform_inverse));
+                let b = b.color_at(&(p * &b.transform_inverse));
                 let distance = b - a;
                 let fraction = p.x - p.x.floor();
                 a + distance * fraction
             }
             Renderer::Ring(a, b) => {
                 if (p.x * p.x + p.z * p.z).sqrt().floor() % 2.0 == 0.0 {
-                    return a.color_at(&(p * a.transform.inverse().unwrap()));
+                    return a.color_at(&(p * &a.transform_inverse));
                 }
-                b.color_at(&(p * b.transform.inverse().unwrap()))
+                b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::Checkers(a, b) => {
                 if (p.x.floor() + p.y.floor() + p.z.floor()) % 2.0 == 0.0 {
-                    return a.color_at(&(p * a.transform.inverse().unwrap()));
+                    return a.color_at(&(p * &a.transform_inverse));
                 }
-                b.color_at(&(p * b.transform.inverse().unwrap()))
+                b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::RadialGradient(a, b) => {
-                let a = a.color_at(&(p * a.transform.inverse().unwrap()));
-                let b = b.color_at(&(p * b.transform.inverse().unwrap()));
+                let a = a.color_at(&(p * &a.transform_inverse));
+                let b = b.color_at(&(p * &b.transform_inverse));
                 let distance = b - a;
                 let fraction = (p - point(0.0, 0.0, 0.0)).magnitude() % 1.0;
                 a + distance * fraction
             }
             Renderer::Blended(a, b) => {
-                (a.color_at(&(p * a.transform.inverse().unwrap()))
-                    + b.color_at(&(p * b.transform.inverse().unwrap())))
+                (a.color_at(&(p * &a.transform_inverse)) + b.color_at(&(p * &b.transform_inverse)))
                     / 2.0
             }
             Renderer::Perturbed(scale, x, y, z, pattern) => {
@@ -103,7 +121,7 @@ impl Renderer {
                 let x = p.x + x.get(point_3d) * scale;
                 let y = p.y + y.get(point_3d) * scale;
                 let z = p.z + z.get(point_3d) * scale;
-                pattern.color_at(&(point(x, y, z) * pattern.transform.inverse().unwrap()))
+                pattern.color_at(&(point(x, y, z) * &pattern.transform_inverse))
             }
             Renderer::Solid(a) => *a,
             Renderer::Test() => *p,
@@ -114,6 +132,7 @@ impl Renderer {
 pub fn solid_pattern(color: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Solid(color),
     }
 }
@@ -121,6 +140,7 @@ pub fn solid_pattern(color: Tuple) -> Pattern {
 pub fn stripe_pattern(a: Tuple, b: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Stripes(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
     }
 }
@@ -128,6 +148,7 @@ pub fn stripe_pattern(a: Tuple, b: Tuple) -> Pattern {
 pub fn gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Gradient(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
     }
 }
@@ -135,6 +156,7 @@ pub fn gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
 pub fn ring_pattern(a: Tuple, b: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Ring(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
     }
 }
@@ -142,6 +164,7 @@ pub fn ring_pattern(a: Tuple, b: Tuple) -> Pattern {
 pub fn checkers_pattern(a: Tuple, b: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Checkers(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
     }
 }
@@ -149,6 +172,7 @@ pub fn checkers_pattern(a: Tuple, b: Tuple) -> Pattern {
 pub fn radial_gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::RadialGradient(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
     }
 }
@@ -156,12 +180,13 @@ pub fn radial_gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
 pub fn test_pattern() -> Pattern {
     Pattern {
         transform: identity_matrix(),
+        transform_inverse: identity_matrix().inverse().unwrap(),
         renderer: Renderer::Test(),
     }
 }
 
 pub fn pattern_at_shape(pattern: &Pattern, object: &Object, world_point: &Tuple) -> Tuple {
-    let object_point = object.transform.inverse().unwrap() * world_point;
-    let pattern_point = pattern.transform.inverse().unwrap() * object_point;
+    let object_point = object.transform_inverse() * world_point;
+    let pattern_point = &pattern.transform_inverse * object_point;
     pattern.color_at(&pattern_point)
 }

@@ -58,11 +58,7 @@ impl TestShape {
         let shape = Box::new(TestShape { saved_ray: None });
         let transform = identity_matrix();
         let material = Material::default();
-        Object {
-            shape,
-            transform,
-            material,
-        }
+        Object::new(shape, transform, material)
     }
 }
 

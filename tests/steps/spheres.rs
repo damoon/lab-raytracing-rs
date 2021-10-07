@@ -34,7 +34,7 @@ pub fn steps() -> Steps<MyWorld> {
                     "material.color" => s.material.color = color_from_string(value),
                     "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
                     "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
-                    "transform" => s.transform = transform_from_string(value),
+                    "transform" => s.set_transform(transform_from_string(value)),
                     _ => panic!("sphere property not covered"),
                 }
             }
@@ -70,13 +70,21 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.given_regex(r#"^set_transform\(s, (m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]);
-        world.shapes.get_mut("s").unwrap().transform = transformation;
+        world
+            .shapes
+            .get_mut("s")
+            .unwrap()
+            .set_transform(transformation);
         world
     });
 
     steps.when_regex(r#"^set_transform\(s, (t|m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]);
-        world.shapes.get_mut("s").unwrap().transform = transformation;
+        world
+            .shapes
+            .get_mut("s")
+            .unwrap()
+            .set_transform(transformation);
         world
     });
 
@@ -88,7 +96,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[3..=5]),
                 _ => panic!("transformation not covered"),
             };
-            world.shapes.get_mut(&ctx.matches[1]).unwrap().transform = transformation;
+            world.shapes.get_mut(&ctx.matches[1]).unwrap().set_transform(transformation);
             world
         },
     );
@@ -101,15 +109,19 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
-            world.shapes.get_mut("s").unwrap().transform = transformation;
+            world
+                .shapes
+                .get_mut("s")
+                .unwrap()
+                .set_transform(transformation);
             world
         },
     );
 
     steps.then_regex(r#"^s.transform = (identity_matrix|t)$"#, |world, ctx| {
-        let lookup = world.shapes.get("s").unwrap().transform.clone();
+        let lookup = world.shapes.get("s").unwrap().transform();
         let desired = &world.get4x4(ctx.matches[1].as_str());
-        assert_eq!(&lookup, desired);
+        assert_eq!(lookup, desired);
         world
     });
 
