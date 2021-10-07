@@ -43,7 +43,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.when_regex(r#"^r2 ← transform\(r, m\)$"#, |mut world, _ctx| {
         let transformation = world.get4x4("m");
-        world.r2 = world.r.transform(&transformation);
+        world.r2 = world.r.transform(transformation);
         world
     });
 

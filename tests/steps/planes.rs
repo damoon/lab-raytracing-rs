@@ -1,6 +1,6 @@
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{intersections::Intersection, planes::Plane};
+use lab_raytracing_rs::{intersections::Intersection, planes::default_plane};
 
 use super::tuples::parse_point;
 
@@ -8,7 +8,7 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("p ← plane()", |mut world, _ctx| {
-        let p = Plane::default();
+        let p = default_plane();
         world.shapes.insert("p".to_string(), p);
         world
     });

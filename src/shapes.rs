@@ -1,27 +1,79 @@
-use crate::{
-    intersections::Intersection, materials::Material, matrices::Matrix4x4, rays::Ray, tuples::Tuple,
-};
-use std::{any::Any, ops::Deref};
+use std::sync::{Arc, RwLock};
 
-#[derive(Debug)]
+use crate::{
+    intersections::Intersection,
+    materials::Material,
+    matrices::Matrix4x4,
+    rays::Ray,
+    tuples::{dot, point, vector, Tuple},
+};
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Object {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
     pub material: Material,
-    pub shape: Box<dyn Shape>,
+    pub shape: Shape,
 }
 
-pub trait Shape {
-    fn intersect(&self, local_ray: &Ray) -> Vec<f64>;
-    fn normal_at(&self, local_point: &Tuple) -> Tuple;
-    fn as_any(&self) -> &dyn Any;
-    fn equals(&self, other: &dyn Shape) -> bool;
-    fn fmt_boxed(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result;
-    fn clone_boxed(&self) -> Box<dyn Shape>;
+#[derive(Debug, PartialEq, Clone)]
+pub enum Shape {
+    Sphere,
+    Plane,
+    Testshape,
+}
+
+thread_local! {
+    pub static SAVED_RAY: RwLock<Arc<Ray>> = RwLock::new(Arc::new(Ray::new(point(0.0,0.0,0.0), vector(1.0, 1.0, 1.0).normalize())));
+}
+
+impl Shape {
+    pub fn intersect(&self, ray: &Ray) -> Vec<f64> {
+        match self {
+            Shape::Plane => {
+                let e = 0.0001;
+                if ray.direction.y.abs() < e {
+                    return vec![];
+                }
+
+                let t = -ray.origin.y / ray.direction.y;
+                vec![t]
+            }
+            Shape::Sphere => {
+                let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0); // Sphere is at 0, 0, 0
+
+                let a = dot(&ray.direction, &ray.direction);
+                let b = 2.0 * dot(&ray.direction, &sphere_to_ray);
+                let c = dot(&sphere_to_ray, &sphere_to_ray) - 1.0;
+
+                let discriminant = (b * b) - 4.0 * a * c;
+
+                if discriminant < 0.0 {
+                    return vec![];
+                }
+
+                let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
+                let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
+                vec![t1, t2]
+            }
+            Shape::Testshape => {
+                SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(*ray));
+                vec![]
+            }
+        }
+    }
+
+    pub fn normal_at(&self, local_point: &Tuple) -> Tuple {
+        match self {
+            Shape::Plane => vector(0.0, 1.0, 0.0),
+            Shape::Sphere => local_point - point(0.0, 0.0, 0.0),
+            Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
+        }
+    }
 }
 
 impl Object {
-    pub fn new(shape: Box<dyn Shape>, transform: Matrix4x4, material: Material) -> Object {
+    pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
         let transform_inverse = transform.inverse().unwrap();
         Object {
             shape,
@@ -33,14 +85,14 @@ impl Object {
 
     pub fn intersect(&self, world_ray: &Ray) -> Vec<Intersection> {
         let local_ray = world_ray.transform(&self.transform_inverse);
-        self.shape
-            .intersect(&local_ray)
-            .iter()
-            .map(|&i| Intersection {
-                t: i,
+        let mut xs = Vec::new();
+        for t in self.shape.intersect(&local_ray) {
+            xs.push(Intersection {
+                t,
                 object: self.clone(),
             })
-            .collect()
+        }
+        xs
     }
 
     pub fn set_transform(&mut self, transform: Matrix4x4) {
@@ -62,42 +114,5 @@ impl Object {
         let mut world_normal = self.transform_inverse.transpose() * local_normal;
         world_normal.w = 0.0;
         world_normal.normalize()
-    }
-}
-
-impl PartialEq for Object {
-    fn eq(&self, other: &Self) -> bool {
-        self.transform == other.transform
-            && self.material == other.material
-            && self.shape.equals(other.shape.deref())
-    }
-}
-
-impl Clone for Object {
-    fn clone(&self) -> Self {
-        Object {
-            shape: self.shape.clone(),
-            transform: self.transform.clone(),
-            transform_inverse: self.transform.inverse().unwrap(),
-            material: self.material.clone(),
-        }
-    }
-}
-
-// impl PartialEq for dyn Shape {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.equals(other)
-//     }
-// }
-
-impl std::fmt::Debug for dyn Shape {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.fmt_boxed(f)
-    }
-}
-
-impl Clone for Box<dyn Shape> {
-    fn clone(&self) -> Self {
-        self.clone_boxed()
     }
 }

@@ -3,7 +3,7 @@ use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     intersections::{color_at, shade_hit},
     lights::Pointlight,
-    spheres::Sphere,
+    spheres::default_sphere,
     transformations::scaling,
     tuples::{color, point},
     world::World,
@@ -61,8 +61,8 @@ pub fn steps() -> Steps<MyWorld> {
                 "second" => 1,
                 _ => panic!("position not covered"),
             };
-            let shape = world.w.objects.get(index).unwrap().clone();
-            world.shapes.insert(ctx.matches[1].clone(), shape);
+            let shape = world.w.objects.get(index).unwrap();
+            world.shapes.insert(ctx.matches[1].clone(), shape.clone());
             world
         },
     );
@@ -99,8 +99,8 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(r#"^(s1|s2) is added to w$"#, |mut world, ctx| {
-        let shape = world.shapes.get(&ctx.matches[1]).unwrap().clone();
-        world.w.objects.push(shape);
+        let shape = world.shapes.get(&ctx.matches[1]).unwrap();
+        world.w.objects.push(shape.clone());
         world
     });
 
@@ -114,12 +114,12 @@ pub fn default_world() -> World {
         color(1.0, 1.0, 1.0),
     ));
 
-    let mut s1 = Sphere::default();
+    let mut s1 = default_sphere();
     s1.material.color = color(0.8, 1.0, 0.6);
     s1.material.diffuse = 0.7;
     s1.material.specular = 0.2;
 
-    let mut s2 = Sphere::default();
+    let mut s2 = default_sphere();
     s2.set_transform(scaling(0.5, 0.5, 0.5));
 
     w.objects = vec![s1, s2];

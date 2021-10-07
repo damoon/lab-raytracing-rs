@@ -2,8 +2,8 @@ use lab_raytracing_rs::camera::render;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
-use lab_raytracing_rs::planes::Plane;
-use lab_raytracing_rs::spheres::Sphere;
+use lab_raytracing_rs::planes::default_plane;
+use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_y;
 use lab_raytracing_rs::transformations::scaling;
@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
         &vector(0.0, 1.0, 0.0),
     ));
 
-    let mut middle = Sphere::default();
+    let mut middle = default_sphere();
     middle.set_transform(translation(-0.5, 1.0, 0.5));
     middle.material = Material::default();
     middle.material.color = color(0.1, 1.0, 0.5);
@@ -38,7 +38,7 @@ fn main() -> io::Result<()> {
     middle.material.specular = 0.3;
     world.objects.push(middle);
 
-    let mut right = Sphere::default();
+    let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
     right.material = Material::default();
     right.material.color = color(0.5, 1.0, 0.1);
@@ -46,7 +46,7 @@ fn main() -> io::Result<()> {
     right.material.specular = 0.3;
     world.objects.push(right);
 
-    let mut left = Sphere::default();
+    let mut left = default_sphere();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
     left.material = Material::default();
     left.material.color = color(1.0, 0.8, 0.1);
@@ -54,13 +54,13 @@ fn main() -> io::Result<()> {
     left.material.specular = 0.3;
     world.objects.push(left);
 
-    let mut floor = Plane::default();
+    let mut floor = default_plane();
     floor.material = Material::default();
     floor.material.color = color(1.0, 0.9, 0.9);
     floor.material.specular = 0.0;
     world.objects.push(floor);
 
-    let mut ceiling = Plane::default();
+    let mut ceiling = default_plane();
     ceiling.set_transform(translation(0.0, 10.0, 0.0));
     ceiling.material = Material::default();
     ceiling.material.color = color(1.0, 0.9, 0.9);
@@ -69,7 +69,7 @@ fn main() -> io::Result<()> {
 
     for i in 0..6 {
         let f = i as f64;
-        let mut wall = Plane::default();
+        let mut wall = default_plane();
         wall.set_transform(
             rotation_y(f * PI / 3.0) * translation(0.0, 0.0, 5.0) * rotation_x(PI / 2.0),
         );

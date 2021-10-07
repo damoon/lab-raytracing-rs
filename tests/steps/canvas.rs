@@ -17,9 +17,8 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(r#"^c.(width|height) = ([0-9]+)$"#, |world, ctx| {
-        let attr = ctx.matches[1].clone();
         let desired = ctx.matches[2].parse::<usize>().unwrap();
-        let value = match attr.as_str() {
+        let value = match ctx.matches[1].as_str() {
             "width" => world.canvas.width,
             "height" => world.canvas.height,
             _ => panic!("Invalid attribute checked"),

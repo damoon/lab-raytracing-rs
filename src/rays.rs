@@ -1,6 +1,6 @@
 use crate::{matrices::Matrix4x4, tuples::Tuple};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
     pub origin: Tuple,
     pub direction: Tuple,

@@ -10,7 +10,7 @@ use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4
 use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::shapes::Object;
-use lab_raytracing_rs::spheres::Sphere;
+use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use lab_raytracing_rs::world::World;
 use std::collections::HashMap;
@@ -75,9 +75,9 @@ impl CucumberWorld for MyWorld {
             m: Material::default(),
             w: World::default(),
             comps: prepare_computations(
-                Intersection {
+                &Intersection {
                     t: 1.0,
-                    object: Sphere::default(),
+                    object: default_sphere(),
                 },
                 &Ray {
                     origin: point(2.0, 0.0, 0.0),
@@ -92,9 +92,9 @@ impl CucumberWorld for MyWorld {
 }
 
 impl MyWorld {
-    pub fn get4x4(&self, name: &str) -> Matrix4x4 {
+    pub fn get4x4(&self, name: &str) -> &Matrix4x4 {
         match &self.matrices.get(name).unwrap() {
-            Matrix::M4x4(m) => m.clone(),
+            Matrix::M4x4(m) => m,
             _ => panic!("not a 4x4 matrix"),
         }
     }

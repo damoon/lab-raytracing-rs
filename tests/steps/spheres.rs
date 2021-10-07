@@ -3,7 +3,7 @@ use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     matrices::Matrix4x4,
-    spheres::Sphere,
+    spheres::default_sphere,
     transformations::{scaling, translation},
     tuples::{color, point, Tuple},
 };
@@ -17,7 +17,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^(s|shape|s1|object) ← sphere\(\)$"#,
         |mut world, ctx| {
-            let shape = Sphere::default();
+            let shape = default_sphere();
             world.shapes.insert(ctx.matches[1].clone(), shape);
             world
         },
@@ -26,9 +26,9 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^(s1|s2|shape) ← sphere\(\) with:$"#,
         |mut world, ctx| {
-            let mut s = Sphere::default();
+            let mut s = default_sphere();
             for row in &ctx.step.table.as_ref().unwrap().rows {
-                let key = row.get(0).unwrap().clone();
+                let key = row.get(0).unwrap();
                 let value = row.get(1).unwrap();
                 match key.as_str() {
                     "material.color" => s.material.color = color_from_string(value),
@@ -69,7 +69,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(r#"^set_transform\(s, (m)\)$"#, |mut world, ctx| {
-        let transformation = world.get4x4(&ctx.matches[1]);
+        let transformation = world.get4x4(&ctx.matches[1]).clone();
         world
             .shapes
             .get_mut("s")
@@ -79,7 +79,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when_regex(r#"^set_transform\(s, (t|m)\)$"#, |mut world, ctx| {
-        let transformation = world.get4x4(&ctx.matches[1]);
+        let transformation = world.get4x4(&ctx.matches[1]).clone();
         world
             .shapes
             .get_mut("s")
@@ -120,7 +120,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then_regex(r#"^s.transform = (identity_matrix|t)$"#, |world, ctx| {
         let lookup = world.shapes.get("s").unwrap().transform();
-        let desired = &world.get4x4(ctx.matches[1].as_str());
+        let desired = world.get4x4(ctx.matches[1].as_str());
         assert_eq!(lookup, desired);
         world
     });

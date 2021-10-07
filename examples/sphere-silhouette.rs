@@ -1,7 +1,7 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::hit;
 use lab_raytracing_rs::rays::Ray;
-use lab_raytracing_rs::spheres::Sphere;
+use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
     let pixel_size = wall_size / canvas_pixels as f64;
     let half_wall_size = wall_size / 2.0;
     let half_pixel_size = pixel_size / 2.0;
-    let shape = Sphere::default();
+    let shape = default_sphere();
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
     canvas.fill(black);

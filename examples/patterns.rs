@@ -7,8 +7,8 @@ use lab_raytracing_rs::patterns::ring_pattern;
 use lab_raytracing_rs::patterns::stripe_pattern;
 use lab_raytracing_rs::patterns::Pattern;
 use lab_raytracing_rs::patterns::Renderer;
-use lab_raytracing_rs::planes::Plane;
-use lab_raytracing_rs::spheres::Sphere;
+use lab_raytracing_rs::planes::default_plane;
+use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_y;
 use lab_raytracing_rs::transformations::rotation_z;
@@ -40,17 +40,17 @@ fn main() -> io::Result<()> {
         Renderer::Checkers(Box::new(stripes1), Box::new(stripes2)),
     );
 
-    let mut floor = Plane::default();
+    let mut floor = default_plane();
     // floor.material.pattern = Some(ring_pattern(red, grey));
     floor.material.pattern = Some(merged_stripes);
 
-    let mut wall = Plane::default();
+    let mut wall = default_plane();
     wall.set_transform(translation(0.0, 0.0, 4.0) * rotation_x(PI / 2.0));
     wall.material.pattern = Some(ring_pattern(red, grey));
 
     let mut pattern = checkers_pattern(black, white);
     pattern.set_transform(scaling(0.25, 0.25, 0.25));
-    let mut middle = Sphere::default();
+    let mut middle = default_sphere();
     middle.set_transform(
         translation(-0.5, 1.0, 0.5)
             * rotation_x(PI / 4.0)
@@ -61,7 +61,7 @@ fn main() -> io::Result<()> {
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 
-    let mut right = Sphere::default();
+    let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
     let px = Perlin::new();
     px.set_seed(1);
@@ -83,7 +83,7 @@ fn main() -> io::Result<()> {
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
 
-    let mut left = Sphere::default();
+    let mut left = default_sphere();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
     left.material.color = blue;
     left.material.diffuse = 0.7;

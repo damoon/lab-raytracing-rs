@@ -121,7 +121,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex("pattern.transform = (identity_matrix)", |world, ctx| {
-        let desired = &world.get4x4(&ctx.matches[1]);
+        let desired = world.get4x4(&ctx.matches[1]);
         let lookup = world.pattern.transform();
         assert_eq!(lookup, desired);
         world
