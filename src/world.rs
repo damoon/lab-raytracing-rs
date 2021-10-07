@@ -28,7 +28,7 @@ impl World {
     }
 
     pub fn is_shadowed(&self, point: Tuple) -> bool {
-        let v = self.light.clone().unwrap().position - point;
+        let v = self.light.as_ref().unwrap().position - point;
         let distance = v.magnitude();
         let direction = v.normalize();
         let r = Ray::new(point, direction);

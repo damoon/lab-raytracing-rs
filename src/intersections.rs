@@ -7,7 +7,7 @@ use crate::{
 };
 
 // #[derive(PartialEq)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Intersection {
     pub t: f64,
     pub object: Object,
@@ -54,9 +54,9 @@ pub struct IntersectionPrecomputations {
     pub over_point: Tuple,
 }
 
-pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> IntersectionPrecomputations {
+pub fn prepare_computations(intersection: &Intersection, ray: &Ray) -> IntersectionPrecomputations {
     let t = intersection.t;
-    let object = intersection.object;
+    let object = intersection.object.clone();
     let point = ray.position(t);
     let eyev = -ray.direction;
     let mut normalv = object.normal_at(&point);
@@ -97,7 +97,7 @@ pub fn color_at(world: &World, ray: &Ray) -> Tuple {
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
-            let precomputations = prepare_computations(intersection, ray);
+            let precomputations = prepare_computations(&intersection, ray);
             shade_hit(world, &precomputations)
         }
     }

@@ -27,10 +27,11 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(r#"^the following matrix (A|B):$"#, |mut world, ctx| {
-        let name = ctx.matches[1].clone();
         let t = ctx.step.table.as_ref().unwrap();
         let m = form_vec_4x4(&t.rows);
-        world.matrices.insert(name, Matrix::M4x4(m));
+        world
+            .matrices
+            .insert(ctx.matches[1].clone(), Matrix::M4x4(m));
 
         world
     });
@@ -56,12 +57,11 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(
         r#"^(_)\[([0-9]+),([0-9]+)\] = ([-0-9]+)/([0-9]+)$"#,
         |world, ctx| {
-            let name1 = ctx.matches[1].clone();
             let w = ctx.matches[2].parse::<usize>().unwrap();
             let h = ctx.matches[3].parse::<usize>().unwrap();
             let dividend = ctx.matches[4].parse::<f64>().unwrap();
             let divisor = ctx.matches[5].parse::<f64>().unwrap();
-            let matrix = match world.matrices.get(&name1).unwrap() {
+            let matrix = match world.matrices.get(&ctx.matches[1]).unwrap() {
                 Matrix::M4x4(m) => m,
                 _ => panic!("matrix needs to be in 4x4 form"),
             };
@@ -110,8 +110,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(r#"^(B|t) is the following 4x4 matrix:$"#, |world, ctx| {
-        let name1 = ctx.matches[1].clone();
-        let m1 = match world.matrices.get(&name1).unwrap() {
+        let m1 = match world.matrices.get(&ctx.matches[1]).unwrap() {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),
         };

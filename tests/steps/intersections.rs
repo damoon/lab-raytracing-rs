@@ -12,11 +12,12 @@ pub fn steps() -> Steps<MyWorld> {
     steps.when_regex(
         r#"^(i) ← intersection\(([-0-9.]+), s\)$"#,
         |mut world, ctx| {
-            let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
             let object = world.shapes.get("s").unwrap().clone();
             let intersection = Intersection { t, object };
-            world.intersections.insert(name, intersection);
+            world
+                .intersections
+                .insert(ctx.matches[1].clone(), intersection);
             world
         },
     );
@@ -24,24 +25,20 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^(i|i1|i2|i3|i4) ← intersection\(([-0-9.]+), (s|s2|shape)\)$"#,
         |mut world, ctx| {
-            let name = ctx.matches[1].clone();
             let t = ctx.matches[2].parse::<f64>().unwrap();
             let object = world.shapes.get(&ctx.matches[3]).unwrap().clone();
             let intersection = Intersection { t, object };
-            world.intersections.insert(name, intersection);
+            world
+                .intersections
+                .insert(ctx.matches[1].clone(), intersection);
             world
         },
     );
 
     steps.then_regex(r#"^(i).object = s$"#, |world, ctx| {
-        let shape = world
-            .intersections
-            .get(&ctx.matches[1])
-            .unwrap()
-            .clone()
-            .object;
-        let desired = world.shapes.get("s").unwrap().clone();
-        assert_eq!(&shape, &desired);
+        let shape = &world.intersections.get(&ctx.matches[1]).unwrap().object;
+        let desired = world.shapes.get("s").unwrap();
+        assert_eq!(shape, desired);
         world
     });
 
@@ -92,18 +89,17 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when_regex(r#"^(i) ← hit\(xs\)$"#, |mut world, ctx| {
-        let name = ctx.matches[1].clone();
         let intersection = hit(&world.xs);
         match intersection {
-            None => world.intersections.remove(&name),
-            Some(i) => world.intersections.insert(name, i),
+            None => world.intersections.remove(&ctx.matches[1]),
+            Some(i) => world.intersections.insert(ctx.matches[1].clone(), i),
         };
         world
     });
 
     steps.then_regex(r#"^(i) = (i1|i2|i4)$"#, |world, ctx| {
-        let intersection = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-        let desired = world.intersections.get(&ctx.matches[2]).unwrap().clone();
+        let intersection = world.intersections.get(&ctx.matches[1]).unwrap();
+        let desired = world.intersections.get(&ctx.matches[2]).unwrap();
         assert_eq!(intersection, desired);
         world
     });
@@ -115,7 +111,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when("comps ← prepare_computations(i, r)", |mut world, _ctx| {
-        let intersection = world.intersections.get("i").unwrap().clone();
+        let intersection = world.intersections.get("i").unwrap();
         world.comps = prepare_computations(intersection, &world.r);
         world
     });
@@ -127,8 +123,8 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then("comps.object = i.object", |world, _ctx| {
-        let lookup = world.comps.object.clone();
-        let desired = world.intersections.get("i").unwrap().object.clone();
+        let lookup = &world.comps.object;
+        let desired = &world.intersections.get("i").unwrap().object;
         assert_eq!(lookup, desired);
         world
     });

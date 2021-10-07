@@ -61,7 +61,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then_regex(r#"^c.transform = (identity_matrix)$"#, |world, _ctx| {
         let matrix = world.get4x4("identity_matrix");
-        assert_eq!(world.camera.transform(), &matrix);
+        assert_eq!(&world.camera.transform(), &matrix);
         world
     });
 
