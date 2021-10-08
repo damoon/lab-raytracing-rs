@@ -1,11 +1,12 @@
 use crate::intersections::{hit, Intersection};
 use crate::lights::Pointlight;
 use crate::rays::Ray;
-use crate::shapes::Object;
+use crate::shapes::{intersect, Object};
 use crate::tuples::Tuple;
+use std::rc::Rc;
 
 pub struct World {
-    pub objects: Vec<Object>,
+    pub objects: Vec<Rc<Object>>,
     pub light: Option<Pointlight>,
 }
 
@@ -17,10 +18,14 @@ impl World {
         }
     }
 
+    pub fn add_object(&mut self, obj: Object) {
+        self.objects.push(Rc::new(obj));
+    }
+
     pub fn insersect(&self, r: &Ray) -> Vec<Intersection> {
         let mut v = Vec::new();
         for obj in self.objects.iter() {
-            let mut intersections = obj.intersect(r);
+            let mut intersections = intersect(obj, r);
             v.append(&mut intersections);
         }
         v.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
@@ -28,12 +33,12 @@ impl World {
     }
 
     pub fn is_shadowed(&self, point: Tuple) -> bool {
-        let v = self.light.as_ref().unwrap().position - point;
+        let v = &self.light.as_ref().unwrap().position - &point;
         let distance = v.magnitude();
         let direction = v.normalize();
         let r = Ray::new(point, direction);
         let intersections = self.insersect(&r);
-        let h = hit(&intersections);
+        let h = hit(intersections);
         match h {
             None => false,
             Some(i) => i.t < distance,

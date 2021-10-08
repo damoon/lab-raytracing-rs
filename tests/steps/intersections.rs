@@ -89,7 +89,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when_regex(r#"^(i) ← hit\(xs\)$"#, |mut world, ctx| {
-        let intersection = hit(&world.xs);
+        let intersection = hit(world.xs.clone());
         match intersection {
             None => world.intersections.remove(&ctx.matches[1]),
             Some(i) => world.intersections.insert(ctx.matches[1].clone(), i),
@@ -112,7 +112,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.when("comps ← prepare_computations(i, r)", |mut world, _ctx| {
         let intersection = world.intersections.get("i").unwrap();
-        world.comps = prepare_computations(intersection, &world.r);
+        world.comps = prepare_computations(intersection.clone(), &world.r);
         world
     });
 

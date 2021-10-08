@@ -1,4 +1,7 @@
-use std::sync::{Arc, RwLock};
+use std::{
+    rc::Rc,
+    sync::{Arc, RwLock},
+};
 
 use crate::{
     intersections::Intersection,
@@ -40,7 +43,7 @@ impl Shape {
                 vec![t]
             }
             Shape::Sphere => {
-                let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0); // Sphere is at 0, 0, 0
+                let sphere_to_ray = &ray.origin - point(0.0, 0.0, 0.0); // Sphere is at 0, 0, 0
 
                 let a = dot(&ray.direction, &ray.direction);
                 let b = 2.0 * dot(&ray.direction, &sphere_to_ray);
@@ -57,7 +60,7 @@ impl Shape {
                 vec![t1, t2]
             }
             Shape::Testshape => {
-                SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(*ray));
+                SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
                 vec![]
             }
         }
@@ -72,27 +75,27 @@ impl Shape {
     }
 }
 
+pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {
+    let local_ray = world_ray.transform(&obj.transform_inverse);
+    let mut xs = Vec::new();
+    for t in obj.shape.intersect(&local_ray) {
+        xs.push(Intersection {
+            t,
+            object: obj.clone(),
+        })
+    }
+    xs
+}
+
 impl Object {
     pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
         let transform_inverse = transform.inverse().unwrap();
         Object {
-            shape,
             transform,
             transform_inverse,
             material,
+            shape,
         }
-    }
-
-    pub fn intersect(&self, world_ray: &Ray) -> Vec<Intersection> {
-        let local_ray = world_ray.transform(&self.transform_inverse);
-        let mut xs = Vec::new();
-        for t in self.shape.intersect(&local_ray) {
-            xs.push(Intersection {
-                t,
-                object: self.clone(),
-            })
-        }
-        xs
     }
 
     pub fn set_transform(&mut self, transform: Matrix4x4) {

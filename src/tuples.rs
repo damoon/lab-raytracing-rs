@@ -1,8 +1,7 @@
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use std::fmt;
 
-//#[derive(Debug, Copy, Clone, PartialEq)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Tuple {
     pub x: f64,
     pub y: f64,

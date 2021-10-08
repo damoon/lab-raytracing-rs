@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
         let w = p.position.x as i32;
         let h = 500 - (p.position.y as i32);
         if (0..900).contains(&w) && (0..500).contains(&h) {
-            c.set(w as usize, h as usize, white);
+            c.set(w as usize, h as usize, white.clone());
         }
     }
 
@@ -47,7 +47,7 @@ struct Environment {
 
 impl Projectile {
     fn tick(&mut self, env: &Environment) {
-        self.position = self.position + self.velocity;
-        self.velocity = self.velocity + env.gravity + env.wind;
+        self.position = &self.position + &self.velocity;
+        self.velocity = &self.velocity + &env.gravity + &env.wind;
     }
 }

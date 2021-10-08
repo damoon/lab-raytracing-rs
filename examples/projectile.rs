@@ -42,7 +42,7 @@ struct Environment {
 
 impl Projectile {
     fn tick(&mut self, env: &Environment) {
-        self.position = self.position + self.velocity;
-        self.velocity = self.velocity + env.gravity + env.wind;
+        self.position = &self.position + &self.velocity;
+        self.velocity = &self.velocity + &env.gravity + &env.wind;
     }
 }

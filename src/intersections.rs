@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     lights::lighting,
     rays::Ray,
@@ -10,43 +12,32 @@ use crate::{
 #[derive(Debug, PartialEq, Clone)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Object,
+    pub object: Rc<Object>,
 }
 
-// impl PartialEq for Intersection {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.t == other.t && self.object.equals(other.object.deref())
-//     }
-// }
-
-pub fn hit(xs: &[Intersection]) -> Option<Intersection> {
-    match xs.first() {
-        None => None,
-        Some(_) => {
-            let mut intersection = None;
-            for current in xs.iter() {
-                if current.t < 0.0 {
-                    continue;
-                }
-                intersection = match intersection {
-                    None => Some(current.clone()),
-                    Some(previous) => {
-                        if current.t < previous.t {
-                            Some(current.clone())
-                        } else {
-                            Some(previous)
-                        }
-                    }
+pub fn hit(xs: Vec<Intersection>) -> Option<Intersection> {
+    let mut r = None;
+    for current in xs.into_iter() {
+        if current.t < 0.0 {
+            continue;
+        }
+        r = match r {
+            None => Some(current),
+            Some(previous) => {
+                if current.t < previous.t {
+                    Some(current)
+                } else {
+                    Some(previous)
                 }
             }
-            intersection
         }
     }
+    r
 }
 
 pub struct IntersectionPrecomputations {
     pub t: f64,
-    pub object: Object,
+    pub object: Rc<Object>,
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
@@ -54,11 +45,11 @@ pub struct IntersectionPrecomputations {
     pub over_point: Tuple,
 }
 
-pub fn prepare_computations(intersection: &Intersection, ray: &Ray) -> IntersectionPrecomputations {
+pub fn prepare_computations(intersection: Intersection, ray: &Ray) -> IntersectionPrecomputations {
     let t = intersection.t;
-    let object = intersection.object.clone();
+    let object = intersection.object;
     let point = ray.position(t);
-    let eyev = -ray.direction;
+    let eyev = -&ray.direction;
     let mut normalv = object.normal_at(&point);
     let mut inside = false;
     if dot(&normalv, &eyev) < 0.0 {
@@ -66,7 +57,7 @@ pub fn prepare_computations(intersection: &Intersection, ray: &Ray) -> Intersect
         normalv = -normalv;
     }
     let e = 0.0001;
-    let over_point = point + normalv * e;
+    let over_point = &point + &normalv * e;
     IntersectionPrecomputations {
         t,
         object,
@@ -79,7 +70,7 @@ pub fn prepare_computations(intersection: &Intersection, ray: &Ray) -> Intersect
 }
 
 pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations) -> Tuple {
-    let in_shadow = world.is_shadowed(comps.over_point);
+    let in_shadow = world.is_shadowed(comps.over_point.clone());
     lighting(
         &comps.object.material,
         &comps.object,
@@ -93,11 +84,11 @@ pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations) -> Tuple {
 
 pub fn color_at(world: &World, ray: &Ray) -> Tuple {
     let intersections = world.insersect(ray);
-    let hit = hit(&intersections);
+    let hit = hit(intersections);
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
-            let precomputations = prepare_computations(&intersection, ray);
+            let precomputations = prepare_computations(intersection, ray);
             shade_hit(world, &precomputations)
         }
     }

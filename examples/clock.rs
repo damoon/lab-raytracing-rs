@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
             * translation(0.0, -0.4 * c.width as f64, 0.0)
             * rotation_z(i as f64 * PI / 6.0)
             * translation(0.5 * c.width as f64, 0.5 * c.width as f64, 0.0);
-        c.set(point.x as usize, point.y as usize, white);
+        c.set(point.x as usize, point.y as usize, white.clone());
     }
 
     let file = &mut io::stdout();

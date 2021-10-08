@@ -3,10 +3,12 @@ use lab_raytracing_rs::intersections::hit;
 use lab_raytracing_rs::lights::lighting;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::rays::Ray;
+use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
+use std::rc::Rc;
 
 fn main() -> io::Result<()> {
     let black = color(0.1, 0.1, 0.1);
@@ -35,9 +37,9 @@ fn main() -> io::Result<()> {
             let world_x = -half_wall_size + (pixel_size * x as f64) + half_pixel_size;
 
             let position = point(world_x, world_y, wall_z);
-            let ray = Ray::new(ray_origin, (position - ray_origin).normalize());
-            let xs = shape.intersect(&ray);
-            let hit = hit(&xs);
+            let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
+            let xs = intersect(&Rc::new(shape.clone()), &ray);
+            let hit = hit(xs);
             if let Some(hit) = hit {
                 let world_point = ray.position(hit.t);
                 let normal = hit.object.normal_at(&world_point);

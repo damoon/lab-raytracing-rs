@@ -1,8 +1,11 @@
+use std::{ops::Deref, rc::Rc};
+
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     matrices::Matrix4x4,
+    shapes::intersect,
     spheres::default_sphere,
     transformations::{scaling, translation},
     tuples::{color, point, Tuple},
@@ -18,7 +21,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(s|shape|s1|object) ← sphere\(\)$"#,
         |mut world, ctx| {
             let shape = default_sphere();
-            world.shapes.insert(ctx.matches[1].clone(), shape);
+            world.shapes.insert(ctx.matches[1].clone(), Rc::new(shape));
             world
         },
     );
@@ -38,7 +41,7 @@ pub fn steps() -> Steps<MyWorld> {
                     _ => panic!("sphere property not covered"),
                 }
             }
-            world.shapes.insert(ctx.matches[1].to_string(), s);
+            world.shapes.insert(ctx.matches[1].to_string(), Rc::new(s));
             world
         },
     );
@@ -49,7 +52,9 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when("s.material ← m", |mut world, _ctx| {
-        world.shapes.get_mut("s").unwrap().material = world.m.clone();
+        let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
+        obj.material = world.m.clone();
+        world.shapes.insert("s".to_string(), Rc::new(obj));
         world
     });
 
@@ -70,21 +75,17 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.given_regex(r#"^set_transform\(s, (m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
-        world
-            .shapes
-            .get_mut("s")
-            .unwrap()
-            .set_transform(transformation);
+        let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
+        obj.set_transform(transformation);
+        world.shapes.insert("s".to_string(), Rc::new(obj));
         world
     });
 
     steps.when_regex(r#"^set_transform\(s, (t|m)\)$"#, |mut world, ctx| {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
-        world
-            .shapes
-            .get_mut("s")
-            .unwrap()
-            .set_transform(transformation);
+        let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
+        obj.set_transform(transformation);
+        world.shapes.insert("s".to_string(), Rc::new(obj));
         world
     });
 
@@ -96,7 +97,9 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[3..=5]),
                 _ => panic!("transformation not covered"),
             };
-            world.shapes.get_mut(&ctx.matches[1]).unwrap().set_transform(transformation);
+            let mut obj = world.shapes.get_mut(&ctx.matches[1]).unwrap().deref().deref().clone();
+            obj.set_transform(transformation);
+            world.shapes.insert(ctx.matches[1].to_string(), Rc::new(obj));
             world
         },
     );
@@ -109,11 +112,9 @@ pub fn steps() -> Steps<MyWorld> {
                 "translation" => parse_translation(&ctx.matches[2..=4]),
                 _ => panic!("transformation not covered"),
             };
-            world
-                .shapes
-                .get_mut("s")
-                .unwrap()
-                .set_transform(transformation);
+            let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
+            obj.set_transform(transformation);
+            world.shapes.insert("s".to_string(), Rc::new(obj));
             world
         },
     );
@@ -127,7 +128,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.when_regex(r#"^xs ← intersect\(s, r\)$"#, |mut world, _ctx| {
         let s = world.shapes.get("s").unwrap();
-        world.xs = s.intersect(&world.r);
+        world.xs = intersect(s, &world.r);
         world
     });
 

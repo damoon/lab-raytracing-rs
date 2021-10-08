@@ -21,13 +21,13 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^pattern ← (stripe_pattern|gradient_pattern|ring_pattern|checkers_pattern)\(white, black\)$"#,
         |mut world, ctx| {
-            let white = world.tuples.get("white").unwrap();
-            let black = world.tuples.get("black").unwrap();
+            let white = world.tuples.get("white").unwrap().clone();
+            let black = world.tuples.get("black").unwrap().clone();
             world.pattern = match ctx.matches[1].as_str() {
-                "stripe_pattern" => stripe_pattern(*white, *black),
-                "gradient_pattern" => gradient_pattern(*white, *black),
-                "ring_pattern" => ring_pattern(*white, *black),
-                "checkers_pattern" => checkers_pattern(*white, *black),
+                "stripe_pattern" => stripe_pattern(white, black),
+                "gradient_pattern" => gradient_pattern(white, black),
+                "ring_pattern" => ring_pattern(white, black),
+                "checkers_pattern" => checkers_pattern(white, black),
                 _ => panic!("pattern not covered"),
             };
             world

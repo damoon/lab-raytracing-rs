@@ -19,29 +19,40 @@ use std::io;
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
 
+    let mut world = World::default();
+    world.light = Some(Pointlight::new(
+        point(-10.0, 10.0, -10.0),
+        color(1.0, 1.0, 1.0),
+    ));
+
+    let mut background_material = Material::default();
+    background_material.color = color(1.0, 0.9, 0.9);
+    background_material.specular = 0.0;
+
     let mut floor = default_sphere();
+    floor.material = background_material.clone();
     floor.set_transform(scaling(10.0, 0.01, 10.0));
-    floor.material = Material::default();
-    floor.material.color = color(1.0, 0.9, 0.9);
-    floor.material.specular = 0.0;
+    world.add_object(floor);
 
     let mut left_wall = default_sphere();
+    left_wall.material = background_material.clone();
     left_wall.set_transform(
         translation(0.0, 0.0, 5.0)
             * rotation_y(-PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
     );
-    left_wall.material = floor.material.clone();
+    world.add_object(left_wall);
 
     let mut right_wall = default_sphere();
+    right_wall.material = background_material;
     right_wall.set_transform(
         translation(0.0, 0.0, 5.0)
             * rotation_y(PI / 4.0)
             * rotation_x(PI / 2.0)
             * scaling(10.0, 0.01, 10.0),
     );
-    right_wall.material = floor.material.clone();
+    world.add_object(right_wall);
 
     let mut middle = default_sphere();
     middle.set_transform(translation(-0.5, 1.0, 0.5));
@@ -49,6 +60,7 @@ fn main() -> io::Result<()> {
     middle.material.color = color(0.1, 1.0, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
+    world.add_object(middle);
 
     let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
@@ -56,6 +68,7 @@ fn main() -> io::Result<()> {
     right.material.color = color(0.5, 1.0, 0.1);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
+    world.add_object(right);
 
     let mut left = default_sphere();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
@@ -63,13 +76,7 @@ fn main() -> io::Result<()> {
     left.material.color = color(1.0, 0.8, 0.1);
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
-
-    let mut world = World::default();
-    world.light = Some(Pointlight::new(
-        point(-10.0, 10.0, -10.0),
-        color(1.0, 1.0, 1.0),
-    ));
-    world.objects = vec![floor, left_wall, right_wall, middle, right, left];
+    world.add_object(left);
 
     let mut camera = Camera::new(800, 800, PI / 3.0);
     camera.set_transform(match args[1].as_str() {

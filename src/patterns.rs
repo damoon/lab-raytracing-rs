@@ -87,8 +87,8 @@ impl Renderer {
                 b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::Gradient(a, b) => {
-                let a = a.color_at(&(p * &a.transform_inverse));
-                let b = b.color_at(&(p * &b.transform_inverse));
+                let a = &a.color_at(&(p * &a.transform_inverse));
+                let b = &b.color_at(&(p * &b.transform_inverse));
                 let distance = b - a;
                 let fraction = p.x - p.x.floor();
                 a + distance * fraction
@@ -106,8 +106,8 @@ impl Renderer {
                 b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::RadialGradient(a, b) => {
-                let a = a.color_at(&(p * &a.transform_inverse));
-                let b = b.color_at(&(p * &b.transform_inverse));
+                let a = &a.color_at(&(p * &a.transform_inverse));
+                let b = &b.color_at(&(p * &b.transform_inverse));
                 let distance = b - a;
                 let fraction = (p - point(0.0, 0.0, 0.0)).magnitude() % 1.0;
                 a + distance * fraction
@@ -123,8 +123,8 @@ impl Renderer {
                 let z = p.z + z.get(point_3d) * scale;
                 pattern.color_at(&(point(x, y, z) * &pattern.transform_inverse))
             }
-            Renderer::Solid(a) => *a,
-            Renderer::Test() => *p,
+            Renderer::Solid(a) => a.clone(),
+            Renderer::Test() => p.clone(),
         }
     }
 }

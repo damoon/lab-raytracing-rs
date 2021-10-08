@@ -7,8 +7,8 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.when_regex(r#"^r ← ray\(origin, direction\)$"#, |mut world, _ctx| {
-        let origin = *world.tuples.get("origin").unwrap();
-        let direction = *world.tuples.get("direction").unwrap();
+        let origin = world.tuples.get("origin").unwrap().clone();
+        let direction = world.tuples.get("direction").unwrap().clone();
         world.r = Ray::new(origin, direction);
         world
     });

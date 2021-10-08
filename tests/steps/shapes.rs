@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     steps::tuples::{parse_point, parse_vector},
     MyWorld,
@@ -11,7 +13,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(r#"^(s) ← test_shape\(\)$"#, |mut world, ctx| {
         world
             .shapes
-            .insert(ctx.matches[1].clone(), default_testshape());
+            .insert(ctx.matches[1].clone(), Rc::new(default_testshape()));
         world
     });
 
@@ -25,8 +27,8 @@ pub fn steps() -> Steps<MyWorld> {
             };
             let ray = lab_raytracing_rs::shapes::SAVED_RAY.with(|c| c.read().unwrap().clone());
             let lookup = match ctx.matches[1].as_str() {
-                "origin" => ray.origin,
-                "direction" => ray.direction,
+                "origin" => ray.origin.clone(),
+                "direction" => ray.direction.clone(),
                 _ => panic!("lookup attribute not covered"),
             };
             assert_eq!(lookup, desired);

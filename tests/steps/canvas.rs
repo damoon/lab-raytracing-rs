@@ -34,7 +34,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color = parse_color(&ctx.matches[1..=3]);
             for w in 0..world.canvas.width {
                 for h in 0..world.canvas.height {
-                    assert_eq!(color, world.canvas.at(w, h));
+                    assert_eq!(&color, world.canvas.at(w, h));
                 }
             }
             world
@@ -47,7 +47,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color = world.tuples.get(&ctx.matches[3]).unwrap();
             let w = ctx.matches[1].parse::<usize>().unwrap();
             let h = ctx.matches[2].parse::<usize>().unwrap();
-            world.canvas.set(w, h, *color);
+            world.canvas.set(w, h, color.clone());
             world
         },
     );
@@ -59,7 +59,7 @@ pub fn steps() -> Steps<MyWorld> {
             let h = ctx.matches[2].parse::<usize>().unwrap();
             let color = world.canvas.at(w, h);
             let desired = world.tuples.get(&ctx.matches[3]).unwrap();
-            assert_eq!(&color, desired);
+            assert_eq!(color, desired);
             world
         },
     );
@@ -71,7 +71,7 @@ pub fn steps() -> Steps<MyWorld> {
             let h = ctx.matches[2].parse::<usize>().unwrap();
             let desired = parse_color(&ctx.matches[3..=5]);
             let color = world.image.at(w, h);
-            assert_eq!(color, desired);
+            assert_eq!(color, &desired);
             world
         },
     );

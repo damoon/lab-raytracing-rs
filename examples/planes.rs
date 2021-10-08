@@ -36,7 +36,7 @@ fn main() -> io::Result<()> {
     middle.material.color = color(0.1, 1.0, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
-    world.objects.push(middle);
+    world.add_object(middle);
 
     let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
@@ -44,7 +44,7 @@ fn main() -> io::Result<()> {
     right.material.color = color(0.5, 1.0, 0.1);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
-    world.objects.push(right);
+    world.add_object(right);
 
     let mut left = default_sphere();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
@@ -52,20 +52,20 @@ fn main() -> io::Result<()> {
     left.material.color = color(1.0, 0.8, 0.1);
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
-    world.objects.push(left);
+    world.add_object(left);
 
     let mut floor = default_plane();
     floor.material = Material::default();
     floor.material.color = color(1.0, 0.9, 0.9);
     floor.material.specular = 0.0;
-    world.objects.push(floor);
+    world.add_object(floor);
 
     let mut ceiling = default_plane();
     ceiling.set_transform(translation(0.0, 10.0, 0.0));
     ceiling.material = Material::default();
     ceiling.material.color = color(1.0, 0.9, 0.9);
     ceiling.material.specular = 0.0;
-    world.objects.push(ceiling);
+    world.add_object(ceiling);
 
     for i in 0..6 {
         let f = i as f64;
@@ -76,7 +76,7 @@ fn main() -> io::Result<()> {
         wall.material = Material::default();
         wall.material.color = color(0.9 - f / 10.0, 0.9 - f / 10.0, 0.9 - f / 10.0);
         wall.material.specular = 0.0;
-        world.objects.push(wall);
+        world.add_object(wall);
     }
 
     let canvas = render(&camera, &world);

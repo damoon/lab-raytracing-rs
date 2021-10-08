@@ -122,7 +122,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(-?)(p|v|a) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let desired_tuple = parse_tuple(&ctx.matches[3..=6]);
-            let mut tuple = *world.tuples.get(&ctx.matches[2]).unwrap();
+            let mut tuple = world.tuples.get(&ctx.matches[2]).unwrap().clone();
             if &ctx.matches[1] == "-" {
                 tuple = -tuple;
             }
@@ -146,7 +146,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(
         r#"^(p2|p3|p4) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
-            let point = *world.tuples.get(&ctx.matches[1]).unwrap();
+            let point = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_color = parse_color(&ctx.matches[2..=4]);
             assert_eq!(point, desired_color);
             world
@@ -156,7 +156,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(
         r#"^(n|r|n1|n2|n3) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
-            let tuple = *world.tuples.get(&ctx.matches[1]).unwrap();
+            let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_vector = parse_vector(&ctx.matches[2..=4]);
             assert_eq!(tuple, desired_vector);
             world
@@ -166,7 +166,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(
         r#"^(n) = vector\(√3/3, √3/3, √3/3\)$"#,
         |world, ctx| {
-            let tuple = *world.tuples.get(&ctx.matches[1]).unwrap();
+            let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_vector = vector(
                 3.0_f64.sqrt() / 3.0,
                 3.0_f64.sqrt() / 3.0,

@@ -16,7 +16,7 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, _ctx| {
             let position = world.tuples.get("position").unwrap();
             let intensity = world.tuples.get("intensity").unwrap();
-            world.light = Pointlight::new(*position, *intensity);
+            world.light = Pointlight::new(position.clone(), intensity.clone());
             world
         },
     );
