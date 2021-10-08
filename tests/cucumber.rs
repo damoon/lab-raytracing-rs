@@ -15,6 +15,7 @@ use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use lab_raytracing_rs::world::World;
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::rc::Rc;
 
 mod steps;
 
@@ -31,7 +32,7 @@ pub struct MyWorld {
     intersections: HashMap<String, Intersection>,
     r: Ray,
     r2: Ray,
-    shapes: HashMap<String, Object>,
+    shapes: HashMap<String, Rc<Object>>,
     xs: Vec<Intersection>,
     light: Pointlight,
     m: Material,
@@ -75,9 +76,9 @@ impl CucumberWorld for MyWorld {
             m: Material::default(),
             w: World::default(),
             comps: prepare_computations(
-                &Intersection {
+                Intersection {
                     t: 1.0,
-                    object: default_sphere(),
+                    object: Rc::new(default_sphere()),
                 },
                 &Ray {
                     origin: point(2.0, 0.0, 0.0),

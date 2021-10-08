@@ -31,9 +31,12 @@ fn main() -> io::Result<()> {
     let grey = color(0.8, 0.8, 0.8);
     let white = color(1.0, 1.0, 1.0);
 
-    let mut stripes1 = stripe_pattern(white, green);
+    let mut world = World::default();
+    world.light = Some(Pointlight::new(point(-10.0, 10.0, -10.0), white.clone()));
+
+    let mut stripes1 = stripe_pattern(white.clone(), green);
     stripes1.set_transform(rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2));
-    let mut stripes2 = stripe_pattern(white, blue);
+    let mut stripes2 = stripe_pattern(white.clone(), blue.clone());
     stripes2.set_transform(rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2));
     let merged_stripes = Pattern::new(
         identity_matrix(),
@@ -43,10 +46,12 @@ fn main() -> io::Result<()> {
     let mut floor = default_plane();
     // floor.material.pattern = Some(ring_pattern(red, grey));
     floor.material.pattern = Some(merged_stripes);
+    world.add_object(floor);
 
     let mut wall = default_plane();
     wall.set_transform(translation(0.0, 0.0, 4.0) * rotation_x(PI / 2.0));
-    wall.material.pattern = Some(ring_pattern(red, grey));
+    wall.material.pattern = Some(ring_pattern(red.clone(), grey.clone()));
+    world.add_object(wall);
 
     let mut pattern = checkers_pattern(black, white);
     pattern.set_transform(scaling(0.25, 0.25, 0.25));
@@ -60,6 +65,7 @@ fn main() -> io::Result<()> {
     middle.material.pattern = Some(pattern);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
+    world.add_object(middle);
 
     let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
@@ -82,16 +88,14 @@ fn main() -> io::Result<()> {
     right.material.pattern = Some(perlin_pattern);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
+    world.add_object(right);
 
     let mut left = default_sphere();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
     left.material.color = blue;
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
-
-    let mut world = World::default();
-    world.light = Some(Pointlight::new(point(-10.0, 10.0, -10.0), white));
-    world.objects = vec![floor, wall, middle, right, left];
+    world.add_object(left);
 
     let mut camera = Camera::new(800, 800, PI / 3.0);
     camera.set_transform(view_transform(

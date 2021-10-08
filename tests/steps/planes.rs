@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{intersections::Intersection, planes::default_plane};
@@ -9,7 +11,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.given("p ← plane()", |mut world, _ctx| {
         let p = default_plane();
-        world.shapes.insert("p".to_string(), p);
+        world.shapes.insert("p".to_string(), Rc::new(p));
         world
     });
 

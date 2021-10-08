@@ -1,3 +1,5 @@
+use std::{ops::Deref, rc::Rc};
+
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::materials::Material;
@@ -61,15 +63,19 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, ctx| {
             let value = ctx.matches[2].parse::<f64>().unwrap();
 
-            let shape = world.shapes.get_mut(&ctx.matches[1]).unwrap();
-            let mut material = shape.material.clone();
-            material.ambient = value;
+            let object_ref = world.shapes.get(&ctx.matches[1]).unwrap();
+            let idx = world.w.objects.iter().position(|r| r == object_ref);
 
-            if let Some(idx) = world.w.objects.iter().position(|r| r == shape) {
-                world.w.objects[idx].material = material.clone();
+            let mut object = object_ref.deref().clone();
+            object.material.ambient = value;
+            let object_ref = Rc::new(object);
+
+            world
+                .shapes
+                .insert(ctx.matches[1].clone(), object_ref.clone());
+            if let Some(idx) = idx {
+                world.w.objects[idx] = object_ref;
             }
-
-            shape.material = material;
 
             world
         },

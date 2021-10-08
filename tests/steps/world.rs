@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
@@ -93,7 +95,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^is_shadowed\(w, p\) is (true|false)$"#, |world, ctx| {
         let desired = ctx.matches[1].parse().unwrap();
         let point = world.tuples.get("p").unwrap();
-        let computed = world.w.is_shadowed(*point);
+        let computed = world.w.is_shadowed(point.clone());
         assert_eq!(computed, desired);
         world
     });
@@ -122,6 +124,6 @@ pub fn default_world() -> World {
     let mut s2 = default_sphere();
     s2.set_transform(scaling(0.5, 0.5, 0.5));
 
-    w.objects = vec![s1, s2];
+    w.objects = vec![Rc::new(s1), Rc::new(s2)];
     w
 }

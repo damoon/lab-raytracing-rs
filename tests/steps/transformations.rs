@@ -69,7 +69,7 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("action not defined"),
             };
             let transformation = world.get4x4(&ctx.matches[1]);
-            let tuple = *world.tuples.get(&ctx.matches[2]).unwrap();
+            let tuple = world.tuples.get(&ctx.matches[2]).unwrap().clone();
             let calculated = transformation * tuple;
             assert_eq!(calculated, desired);
 
@@ -114,7 +114,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(half_quarter|full_quarter|inv) \* (p) = (point)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"#,
         |world, ctx| {
             let transformation = world.get4x4(&ctx.matches[1]);
-            let tuple = *world.tuples.get(&ctx.matches[2]).unwrap();
+            let tuple = world.tuples.get(&ctx.matches[2]).unwrap().clone();
             let desired = match ctx.matches[3].as_str() {
                 "point" => parse_sqrt_point(&ctx.matches[4..=6]),
                 _ => panic!("action not defined"),

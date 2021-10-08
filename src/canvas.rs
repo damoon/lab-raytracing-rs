@@ -18,16 +18,16 @@ impl Canvas {
             height,
             pixels: Vec::with_capacity(width * height),
         };
-        let black = color(0.0, 0.0, 0.0);
         for _ in 0..(width * height) {
+            let black = color(0.0, 0.0, 0.0);
             c.pixels.push(black);
         }
         c
     }
 
-    pub fn at(&self, w: usize, h: usize) -> Tuple {
+    pub fn at(&self, w: usize, h: usize) -> &Tuple {
         let i = self.index(w, h);
-        self.pixels[i]
+        &self.pixels[i]
     }
 
     fn index(&self, w: usize, h: usize) -> usize {
@@ -41,7 +41,7 @@ impl Canvas {
 
     pub fn fill(&mut self, c: Tuple) {
         for n in 0..(self.width * self.height) {
-            self.pixels[n] = c;
+            self.pixels[n] = c.clone();
         }
     }
 
@@ -55,7 +55,7 @@ impl Canvas {
         for h in 0..self.height {
             for w in 0..self.width {
                 let i = self.index(w, h);
-                let c = self.pixels[i];
+                let c = &self.pixels[i];
 
                 length = add_color(writer, length, c.x)?;
                 length = add_color(writer, length, c.y)?;

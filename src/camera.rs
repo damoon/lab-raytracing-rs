@@ -67,7 +67,7 @@ impl Camera {
         // (remember that the canvas is at z=-1)
         let pixel = &self.transform_inverse * point(world_x, world_y, -1.0);
         let origin = &self.transform_inverse * point(0.0, 0.0, 0.0);
-        let direction = (pixel - origin).normalize();
+        let direction = (pixel - &origin).normalize();
         Ray::new(origin, direction)
     }
 }
