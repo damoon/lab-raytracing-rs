@@ -77,7 +77,7 @@ pub fn render(camera: &Camera, world: &World) -> Canvas {
     for y in 0..camera.vsize {
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
-            let color = color_at(world, &ray);
+            let color = color_at(world, &ray, 100);
             image.set(x, y, color);
         }
     }

@@ -29,7 +29,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^m.(ambient|diffuse|specular|shininess) = ([-0-9.]+)$"#,
+        r#"^m.(ambient|diffuse|specular|shininess|reflective) = ([-0-9.]+)$"#,
         |world, ctx| {
             let desired = ctx.matches[2].parse::<f64>().unwrap();
             let value = match ctx.matches[1].as_str() {
@@ -37,6 +37,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "diffuse" => world.m.diffuse,
                 "specular" => world.m.specular,
                 "shininess" => world.m.shininess,
+                "reflective" => world.m.reflective,
                 _ => panic!("material attribute not covered"),
             };
             assert_abs_diff_eq!(value, desired);
@@ -59,7 +60,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(outer|inner).material.ambient ← ([-0-9.]+)$"#,
+        r#"^(outer|inner|shape).material.ambient ← ([-0-9.]+)$"#,
         |mut world, ctx| {
             let value = ctx.matches[2].parse::<f64>().unwrap();
 

@@ -5,6 +5,7 @@ use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     matrices::Matrix4x4,
+    planes::default_plane,
     shapes::intersect,
     spheres::default_sphere,
     transformations::{scaling, translation},
@@ -18,18 +19,26 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"^(s|shape|s1|object) ← sphere\(\)$"#,
+        r#"^(s|shape|s1|object) ← (sphere|plane)\(\)$"#,
         |mut world, ctx| {
-            let shape = default_sphere();
-            world.shapes.insert(ctx.matches[1].clone(), Rc::new(shape));
+            let s = match ctx.matches[2].as_str() {
+                "sphere" => default_sphere(),
+                "plane" => default_plane(),
+                _ => panic!("object kind not covered"),
+            };
+            world.shapes.insert(ctx.matches[1].clone(), Rc::new(s));
             world
         },
     );
 
     steps.given_regex(
-        r#"^(s1|s2|shape) ← sphere\(\) with:$"#,
+        r#"^(s1|s2|shape|lower|upper) ← (sphere|plane)\(\) with:$"#,
         |mut world, ctx| {
-            let mut s = default_sphere();
+            let mut s = match ctx.matches[2].as_str() {
+                "sphere" => default_sphere(),
+                "plane" => default_plane(),
+                _ => panic!("object kind not covered"),
+            };
             for row in &ctx.step.table.as_ref().unwrap().rows {
                 let key = row.get(0).unwrap();
                 let value = row.get(1).unwrap();
@@ -37,8 +46,9 @@ pub fn steps() -> Steps<MyWorld> {
                     "material.color" => s.material.color = color_from_string(value),
                     "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
                     "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
+                    "material.reflective" => s.material.reflective = value.parse::<f64>().unwrap(),
                     "transform" => s.set_transform(transform_from_string(value)),
-                    _ => panic!("sphere property not covered"),
+                    _ => panic!("object property not covered"),
                 }
             }
             world.shapes.insert(ctx.matches[1].to_string(), Rc::new(s));
@@ -160,11 +170,13 @@ pub fn steps() -> Steps<MyWorld> {
             let x = match ctx.matches[2].as_str() {
                 "√3/3" => 3.0_f64.sqrt()/3.0,
                 s => s.parse::<f64>().unwrap()
-            };            let y = match ctx.matches[3].as_str() {
+            };            
+            let y = match ctx.matches[3].as_str() {
                 "√3/3" => 3.0_f64.sqrt()/3.0,
                 "√2/2" => 2.0_f64.sqrt()/2.0,
                 s => s.parse::<f64>().unwrap()
-            };            let z = match ctx.matches[4].as_str() {
+            };            
+            let z = match ctx.matches[4].as_str() {
                 "√3/3" => 3.0_f64.sqrt()/3.0,
                 "-√2/2" => -(2.0_f64.sqrt()/2.0),
                 s => s.parse::<f64>().unwrap()
