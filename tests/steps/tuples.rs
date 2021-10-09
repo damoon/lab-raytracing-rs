@@ -20,9 +20,18 @@ pub fn parse_point(ss: &[String]) -> Tuple {
 }
 
 pub fn parse_vector(ss: &[String]) -> Tuple {
-    let x = ss[0].parse::<f64>().unwrap();
-    let y = ss[1].parse::<f64>().unwrap();
-    let z = ss[2].parse::<f64>().unwrap();
+    let x = match ss[0].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0,
+        s => s.parse::<f64>().unwrap(),
+    };
+    let y = match ss[1].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0,
+        s => s.parse::<f64>().unwrap(),
+    };
+    let z = match ss[2].as_str() {
+        "√2/2" => 2.0_f64.sqrt() / 2.0,
+        s => s.parse::<f64>().unwrap(),
+    };
     vector(x, y, z)
 }
 
@@ -190,7 +199,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(c|c1|c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(c|c1|c2|color) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let desired_color = parse_color(&ctx.matches[2..=4]);
             let color = world.tuples.get(&ctx.matches[1]).unwrap();

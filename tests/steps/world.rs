@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
-    intersections::{color_at, shade_hit},
+    intersections::{color_at, reflected_color, shade_hit},
     lights::Pointlight,
     spheres::default_sphere,
     transformations::scaling,
@@ -69,17 +69,44 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.when("c ← shade_hit(w, comps)", |mut world, _ctx| {
-        let color = shade_hit(&world.w, &world.comps);
+    steps.when_regex(
+        r#"^(c|color) ← shade_hit\(w, comps\)$"#,
+        |mut world, ctx| {
+            let color = shade_hit(&world.w, &world.comps, 100);
+            world.tuples.insert(ctx.matches[1].clone(), color);
+            world
+        },
+    );
+
+    steps.when("color ← reflected_color(w, comps)", |mut world, _ctx| {
+        let color = reflected_color(&world.w, &world.comps, 100);
+        world.tuples.insert("color".to_string(), color);
+        world
+    });
+
+    steps.when(
+        "color ← reflected_color(w, comps, 0)",
+        |mut world, _ctx| {
+            let color = reflected_color(&world.w, &world.comps, 0);
+            world.tuples.insert("color".to_string(), color);
+            world
+        },
+    );
+
+    steps.when("c ← color_at(w, r)", |mut world, _ctx| {
+        let color = color_at(&world.w, &world.r, 100);
         world.tuples.insert("c".to_string(), color);
         world
     });
 
-    steps.when("c ← color_at(w, r)", |mut world, _ctx| {
-        let color = color_at(&world.w, &world.r);
-        world.tuples.insert("c".to_string(), color);
-        world
-    });
+    steps.then(
+        "color_at(w, r) should terminate successfully",
+        |mut world, _ctx| {
+            let color = color_at(&world.w, &world.r, 100);
+            world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
+            world
+        },
+    );
 
     steps.then("c = inner.material.color", |world, _ctx| {
         let c = world.tuples.get("c").unwrap();
@@ -100,11 +127,14 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.given_regex(r#"^(s1|s2) is added to w$"#, |mut world, ctx| {
-        let shape = world.shapes.get(&ctx.matches[1]).unwrap();
-        world.w.objects.push(shape.clone());
-        world
-    });
+    steps.given_regex(
+        r#"^(s1|s2|shape|lower|upper) is added to w$"#,
+        |mut world, ctx| {
+            let shape = world.shapes.get(&ctx.matches[1]).unwrap();
+            world.w.objects.push(shape.clone());
+            world
+        },
+    );
 
     steps
 }

@@ -13,6 +13,22 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
+    steps.given_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), vector\(([-0-9.]+), (-√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)\)$"#, |mut world, ctx| {
+        let origin = parse_point(&ctx.matches[1..=3]);
+        let dx = ctx.matches[4].parse::<f64>().unwrap();            
+        let dy = match ctx.matches[5].as_str() {
+            "-√2/2" => -(2.0_f64.sqrt()/2.0),
+            s => s.parse::<f64>().unwrap()
+        };
+        let dz = match ctx.matches[6].as_str() {
+            "√2/2" => (2.0_f64.sqrt()/2.0),
+            s => s.parse::<f64>().unwrap()
+        };
+        let direction = vector(dx, dy, dz);
+        world.r = Ray::new(origin, direction);
+        world
+    });
+
     steps.given_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#, |mut world, ctx| {
         let origin = parse_point(&ctx.matches[1..=3]);
         let direction = parse_vector(&ctx.matches[4..=6]);

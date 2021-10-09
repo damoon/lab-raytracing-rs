@@ -1,4 +1,4 @@
-all: test clock.ppm projectile.ppm scene-1.ppm scene-2.ppm scene-3.ppm shadow.ppm sphere-normals.ppm sphere-shading.ppm sphere-silhouette.ppm planes.ppm patterns.ppm
+all: test clock.ppm projectile.ppm scene-1.ppm scene-2.ppm scene-3.ppm shadow.ppm sphere-normals.ppm sphere-shading.ppm sphere-silhouette.ppm planes.ppm patterns.ppm reflections.ppm
 
 test:
 	cargo test --test cucumber -- --silent
@@ -31,3 +31,11 @@ planes.ppm:
 
 patterns.ppm:
 	cargo run --release --example patterns > patterns.ppm
+
+reflections.ppm:
+	cargo run --release --example reflections > reflections.ppm
+
+release:
+	RUSTFLAGS="-C target-cpu=native" cargo build --release --example patterns
+flamegraph:
+	RUSTFLAGS="-C target-cpu=native" CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph --example patterns > /dev/null

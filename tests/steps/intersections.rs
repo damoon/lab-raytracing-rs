@@ -23,9 +23,12 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(i|i1|i2|i3|i4) ← intersection\(([-0-9.]+), (s|s2|shape)\)$"#,
+        r#"^(i|i1|i2|i3|i4) ← intersection\((√2|[-0-9.]+), (s|s2|shape)\)$"#,
         |mut world, ctx| {
-            let t = ctx.matches[2].parse::<f64>().unwrap();
+            let t = match ctx.matches[2].as_str() {
+                "√2" => 2.0_f64.sqrt(),
+                s => s.parse::<f64>().unwrap(),
+            };
             let object = world.shapes.get(&ctx.matches[3]).unwrap().clone();
             let intersection = Intersection { t, object };
             world
@@ -130,7 +133,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(
-        r#"^comps\.(point|eyev|normalv) = (point|vector)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^comps\.(point|eyev|normalv|reflectv) = (point|vector)\((√2/2|[-0-9.]+), (√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)$"#,
         |world, ctx| {
             let tuple = match ctx.matches[2].as_str() {
                 "point" => parse_point(&ctx.matches[3..=5]),
@@ -141,6 +144,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "point" => assert_eq!(world.comps.point, tuple),
                 "eyev" => assert_eq!(world.comps.eyev, tuple),
                 "normalv" => assert_eq!(world.comps.normalv, tuple),
+                "reflectv" => assert_eq!(world.comps.reflectv, tuple),
                 _ => panic!("type not covered"),
             };
             world
