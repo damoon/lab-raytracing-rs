@@ -29,15 +29,22 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^m.(ambient|diffuse|specular|shininess|reflective) = ([-0-9.]+)$"#,
+        r#"^(m|s.material).(ambient|diffuse|specular|shininess|reflective|transparency|refractive_index) = ([-0-9.]+)$"#,
         |world, ctx| {
-            let desired = ctx.matches[2].parse::<f64>().unwrap();
-            let value = match ctx.matches[1].as_str() {
-                "ambient" => world.m.ambient,
-                "diffuse" => world.m.diffuse,
-                "specular" => world.m.specular,
-                "shininess" => world.m.shininess,
-                "reflective" => world.m.reflective,
+            let desired = ctx.matches[3].parse::<f64>().unwrap();
+            let material = match ctx.matches[1].as_str() {
+                "m" => world.m.clone(),
+                "s.material" => world.shapes.get("s").unwrap().material.clone(),
+                _ => panic!("material origin not covered"),
+            };
+            let value = match ctx.matches[2].as_str() {
+                "ambient" => material.ambient,
+                "diffuse" => material.diffuse,
+                "specular" => material.specular,
+                "shininess" => material.shininess,
+                "reflective" => material.reflective,
+                "transparency" => material.transparency,
+                "refractive_index" => material.refractive_index,
                 _ => panic!("material attribute not covered"),
             };
             assert_abs_diff_eq!(value, desired);
@@ -63,21 +70,9 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(outer|inner|shape).material.ambient ← ([-0-9.]+)$"#,
         |mut world, ctx| {
             let value = ctx.matches[2].parse::<f64>().unwrap();
-
-            let object_ref = world.shapes.get(&ctx.matches[1]).unwrap();
-            let idx = world.w.objects.iter().position(|r| r == object_ref);
-
-            let mut object = object_ref.deref().clone();
+            let mut object = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
             object.material.ambient = value;
-            let object_ref = Rc::new(object);
-
-            world
-                .shapes
-                .insert(ctx.matches[1].clone(), object_ref.clone());
-            if let Some(idx) = idx {
-                world.w.objects[idx] = object_ref;
-            }
-
+            world.shapes.insert(ctx.matches[1].clone(), Rc::new(object));
             world
         },
     );

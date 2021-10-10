@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
             let position = point(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
             let xs = intersect(&Rc::new(shape.clone()), &r);
-            let hit = hit(xs);
+            let hit = hit(&xs);
             if let Some(hit) = hit {
                 let world_point = r.position(hit.t);
                 let normal = shape.normal_at(&world_point);

@@ -84,6 +84,7 @@ impl CucumberWorld for MyWorld {
                     origin: point(2.0, 0.0, 0.0),
                     direction: vector(1.0, 0.0, 0.0),
                 },
+                &Vec::new(),
             ),
             pattern: test_pattern(),
         };

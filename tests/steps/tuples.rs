@@ -4,41 +4,43 @@ use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple
 
 use crate::MyWorld;
 
+pub fn parse_float(s: &str) -> f64 {
+    match s {
+        "√2" => 2.0_f64.sqrt(),
+        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
+        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
+        "√3/3" => 3.0_f64.sqrt() / 3.0_f64,
+        "-√3/3" => -(3.0_f64.sqrt()) / 3.0_f64,
+        s => s.parse::<f64>().unwrap(),
+    }
+}
+
 pub fn parse_tuple(ss: &[String]) -> Tuple {
-    let x = ss[0].parse::<f64>().unwrap();
-    let y = ss[1].parse::<f64>().unwrap();
-    let z = ss[2].parse::<f64>().unwrap();
-    let w = ss[3].parse::<f64>().unwrap();
+    let x = parse_float(ss[0].as_str());
+    let y = parse_float(ss[1].as_str());
+    let z = parse_float(ss[2].as_str());
+    let w = parse_float(ss[3].as_str());
     Tuple::new(x, y, z, w)
 }
 
 pub fn parse_point(ss: &[String]) -> Tuple {
-    let x = ss[0].parse::<f64>().unwrap();
-    let y = ss[1].parse::<f64>().unwrap();
-    let z = ss[2].parse::<f64>().unwrap();
+    let x = parse_float(ss[0].as_str());
+    let y = parse_float(ss[1].as_str());
+    let z = parse_float(ss[2].as_str());
     point(x, y, z)
 }
 
 pub fn parse_vector(ss: &[String]) -> Tuple {
-    let x = match ss[0].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let y = match ss[1].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let z = match ss[2].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0,
-        s => s.parse::<f64>().unwrap(),
-    };
+    let x = parse_float(ss[0].as_str());
+    let y = parse_float(ss[1].as_str());
+    let z = parse_float(ss[2].as_str());
     vector(x, y, z)
 }
 
 pub fn parse_color(ss: &[String]) -> Tuple {
-    let r = ss[0].parse::<f64>().unwrap();
-    let g = ss[1].parse::<f64>().unwrap();
-    let b = ss[2].parse::<f64>().unwrap();
+    let r = parse_float(ss[0].as_str());
+    let g = parse_float(ss[1].as_str());
+    let b = parse_float(ss[2].as_str());
     color(r, g, b)
 }
 
@@ -113,7 +115,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^(n|eyev) ← vector\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"#,
         |mut world, ctx| {
-            let vector = parse_sqrt_vector(&ctx.matches[2..=4]);
+            let vector = parse_vector(&ctx.matches[2..=4]);
             world.tuples.insert(ctx.matches[1].clone(), vector);
             world
         },
@@ -345,23 +347,4 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps
-}
-
-fn parse_sqrt_vector(ss: &[String]) -> Tuple {
-    let x = match ss[0].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let y = match ss[1].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let z = match ss[2].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    vector(x, y, z)
 }
