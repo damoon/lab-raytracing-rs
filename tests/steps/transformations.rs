@@ -4,7 +4,6 @@ use lab_raytracing_rs::matrices::Matrix4x4;
 use lab_raytracing_rs::transformations::{
     rotation_x, rotation_y, rotation_z, scaling, shearing, translation, view_transform,
 };
-use lab_raytracing_rs::tuples::{point, Tuple};
 use std::f64::consts::PI;
 
 use crate::MyWorld;
@@ -116,7 +115,7 @@ pub fn steps() -> Steps<MyWorld> {
             let transformation = world.get4x4(&ctx.matches[1]);
             let tuple = world.tuples.get(&ctx.matches[2]).unwrap().clone();
             let desired = match ctx.matches[3].as_str() {
-                "point" => parse_sqrt_point(&ctx.matches[4..=6]),
+                "point" => parse_point(&ctx.matches[4..=6]),
                 _ => panic!("action not defined"),
             };
             let calculated = transformation * tuple;
@@ -173,23 +172,4 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps
-}
-
-fn parse_sqrt_point(ss: &[String]) -> Tuple {
-    let x = match ss[0].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let y = match ss[1].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    let z = match ss[2].as_str() {
-        "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
-        "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
-        s => s.parse::<f64>().unwrap(),
-    };
-    point(x, y, z)
 }

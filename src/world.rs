@@ -38,7 +38,7 @@ impl World {
         let direction = v.normalize();
         let r = Ray::new(point, direction);
         let intersections = self.insersect(&r);
-        let h = hit(intersections);
+        let h = hit(&intersections);
         match h {
             None => false,
             Some(i) => i.t < distance,

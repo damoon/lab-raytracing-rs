@@ -1,2 +1,5 @@
 /target
 *.ppm
+NOTES.txt
+perf.*
+flamegraph.svg

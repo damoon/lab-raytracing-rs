@@ -7,6 +7,8 @@ use crate::{
     world::World,
 };
 
+pub const RAY_RECURSION_DEPTH: usize = 5;
+
 pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
@@ -16,6 +18,7 @@ pub struct Camera {
     pub pixel_size: f64,
     pub half_width: f64,
     pub half_height: f64,
+    pub ray_recursion_depth: usize,
 }
 
 impl Camera {
@@ -42,6 +45,7 @@ impl Camera {
             pixel_size,
             half_width,
             half_height,
+            ray_recursion_depth: RAY_RECURSION_DEPTH,
         }
     }
 
@@ -77,7 +81,7 @@ pub fn render(camera: &Camera, world: &World) -> Canvas {
     for y in 0..camera.vsize {
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
-            let color = color_at(world, &ray, 100);
+            let color = color_at(world, &ray, camera.ray_recursion_depth);
             image.set(x, y, color);
         }
     }

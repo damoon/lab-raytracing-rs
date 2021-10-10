@@ -3,7 +3,8 @@ use std::rc::Rc;
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
-    intersections::{color_at, reflected_color, shade_hit},
+    camera::RAY_RECURSION_DEPTH,
+    intersections::{color_at, reflected_color, refracted_color, shade_hit},
     lights::Pointlight,
     spheres::default_sphere,
     transformations::scaling,
@@ -56,7 +57,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^(shape|outer|inner) ← the (first|second) object in w$"#,
+        r#"^(shape|outer|inner|A|B) ← the (first|second) object in w$"#,
         |mut world, ctx| {
             let index = match ctx.matches[2].as_str() {
                 "first" => 0,
@@ -69,20 +70,44 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.given_regex(
+        r#"^(A|B|outer|inner) is the (first|second) object in w$"#,
+        |mut world, ctx| {
+            let index = match ctx.matches[2].as_str() {
+                "first" => 0,
+                "second" => 1,
+                _ => panic!("position not covered"),
+            };
+            let object = world.shapes.get(&ctx.matches[1]).unwrap();
+            world.w.objects[index] = object.clone();
+            world
+        },
+    );
+
     steps.when_regex(
         r#"^(c|color) ← shade_hit\(w, comps\)$"#,
         |mut world, ctx| {
-            let color = shade_hit(&world.w, &world.comps, 100);
+            let color = shade_hit(&world.w, &world.comps, RAY_RECURSION_DEPTH);
             world.tuples.insert(ctx.matches[1].clone(), color);
             world
         },
     );
 
     steps.when("color ← reflected_color(w, comps)", |mut world, _ctx| {
-        let color = reflected_color(&world.w, &world.comps, 100);
+        let color = reflected_color(&world.w, &world.comps, RAY_RECURSION_DEPTH);
         world.tuples.insert("color".to_string(), color);
         world
     });
+
+    steps.when_regex(
+        r#"^(color) ← shade_hit\(w, comps, ([0-9]+)\)$"#,
+        |mut world, ctx| {
+            let remaining = ctx.matches[2].parse::<usize>().unwrap();
+            let color = shade_hit(&world.w, &world.comps, remaining);
+            world.tuples.insert(ctx.matches[1].clone(), color);
+            world
+        },
+    );
 
     steps.when(
         "color ← reflected_color(w, comps, 0)",
@@ -93,8 +118,18 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.when_regex(
+        r#"^c ← refracted_color\(w, comps, ([0-9]+)\)$"#,
+        |mut world, ctx| {
+            let remaining = ctx.matches[1].parse::<usize>().unwrap();
+            let color = refracted_color(&world.w, &world.comps, remaining);
+            world.tuples.insert("c".to_string(), color);
+            world
+        },
+    );
+
     steps.when("c ← color_at(w, r)", |mut world, _ctx| {
-        let color = color_at(&world.w, &world.r, 100);
+        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
         world.tuples.insert("c".to_string(), color);
         world
     });
@@ -102,7 +137,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then(
         "color_at(w, r) should terminate successfully",
         |mut world, _ctx| {
-            let color = color_at(&world.w, &world.r, 100);
+            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
             world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
             world
         },
@@ -128,7 +163,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.given_regex(
-        r#"^(s1|s2|shape|lower|upper) is added to w$"#,
+        r#"^(s1|s2|shape|lower|upper|floor|ball) is added to w$"#,
         |mut world, ctx| {
             let shape = world.shapes.get(&ctx.matches[1]).unwrap();
             world.w.objects.push(shape.clone());

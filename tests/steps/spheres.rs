@@ -1,29 +1,32 @@
-use std::{ops::Deref, rc::Rc};
-
+use super::{
+    transformations::{parse_scaling, parse_translation},
+    tuples::parse_point,
+};
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     matrices::Matrix4x4,
-    planes::default_plane,
+    patterns::test_pattern,
+    planes::{default_plane, glass_sphere},
     shapes::intersect,
     spheres::default_sphere,
     transformations::{scaling, translation},
-    tuples::{color, point, Tuple},
+    tuples::{color, Tuple},
 };
 use regex::Regex;
-
-use super::transformations::{parse_scaling, parse_translation};
+use std::{ops::Deref, rc::Rc};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"^(s|shape|s1|object) ← (sphere|plane)\(\)$"#,
+        r#"^(s|shape|s1|object) ← (sphere|plane|glass_sphere)\(\)$"#,
         |mut world, ctx| {
             let s = match ctx.matches[2].as_str() {
                 "sphere" => default_sphere(),
                 "plane" => default_plane(),
+                "glass_sphere" => glass_sphere(),
                 _ => panic!("object kind not covered"),
             };
             world.shapes.insert(ctx.matches[1].clone(), Rc::new(s));
@@ -32,11 +35,12 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.given_regex(
-        r#"^(s1|s2|shape|lower|upper) ← (sphere|plane)\(\) with:$"#,
+        r#"^(s1|s2|shape|lower|upper|A|B|C|floor|ball) ← (sphere|plane|glass_sphere)\(\) with:$"#,
         |mut world, ctx| {
             let mut s = match ctx.matches[2].as_str() {
                 "sphere" => default_sphere(),
                 "plane" => default_plane(),
+                "glass_sphere" => glass_sphere(),
                 _ => panic!("object kind not covered"),
             };
             for row in &ctx.step.table.as_ref().unwrap().rows {
@@ -44,9 +48,16 @@ pub fn steps() -> Steps<MyWorld> {
                 let value = row.get(1).unwrap();
                 match key.as_str() {
                     "material.color" => s.material.color = color_from_string(value),
+                    "material.ambient" => s.material.ambient = value.parse::<f64>().unwrap(),
                     "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
                     "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
                     "material.reflective" => s.material.reflective = value.parse::<f64>().unwrap(),
+                    "material.transparency" => {
+                        s.material.transparency = value.parse::<f64>().unwrap()
+                    }
+                    "material.refractive_index" => {
+                        s.material.refractive_index = value.parse::<f64>().unwrap()
+                    }
                     "transform" => s.set_transform(transform_from_string(value)),
                     _ => panic!("object property not covered"),
                 }
@@ -55,6 +66,27 @@ pub fn steps() -> Steps<MyWorld> {
             world
         },
     );
+
+    steps.given_regex(r#"^(shape|A|B) has:$"#, |mut world, ctx| {
+        let mut s = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
+        for row in &ctx.step.table.as_ref().unwrap().rows {
+            let key = row.get(0).unwrap();
+            let value = row.get(1).unwrap();
+            match (key.as_str(), value.as_str()) {
+                ("material.ambient", value) => s.material.ambient = value.parse::<f64>().unwrap(),
+                ("material.pattern", "test_pattern()") => s.material.pattern = Some(test_pattern()),
+                ("material.transparency", value) => {
+                    s.material.transparency = value.parse::<f64>().unwrap()
+                }
+                ("material.refractive_index", value) => {
+                    s.material.refractive_index = value.parse::<f64>().unwrap()
+                }
+                _ => panic!("object property not covered"),
+            }
+        }
+        world.shapes.insert(ctx.matches[1].to_string(), Rc::new(s));
+        world
+    });
 
     steps.when_regex(r#"^m ← s.material$"#, |mut world, _ctx| {
         world.m = world.shapes.get("s").unwrap().material.clone();
@@ -167,21 +199,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.when_regex(
         r#"^(n) ← normal_at\(s, point\((√3/3|[-0-9.]+), (√3/3|√2/2|[-0-9.]+), (√3/3|-√2/2|[-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            let x = match ctx.matches[2].as_str() {
-                "√3/3" => 3.0_f64.sqrt()/3.0,
-                s => s.parse::<f64>().unwrap()
-            };            
-            let y = match ctx.matches[3].as_str() {
-                "√3/3" => 3.0_f64.sqrt()/3.0,
-                "√2/2" => 2.0_f64.sqrt()/2.0,
-                s => s.parse::<f64>().unwrap()
-            };            
-            let z = match ctx.matches[4].as_str() {
-                "√3/3" => 3.0_f64.sqrt()/3.0,
-                "-√2/2" => -(2.0_f64.sqrt()/2.0),
-                s => s.parse::<f64>().unwrap()
-            };
-            let point = point(x, y, z);
+            let point = parse_point(&ctx.matches[2..=4]);
             let normal = world.shapes.get("s").unwrap().normal_at(&point);
             world.tuples.insert(ctx.matches[1].clone(), normal);
             world

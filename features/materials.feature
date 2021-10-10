@@ -16,10 +16,10 @@ Feature: Materials
         Given m ← material()
         Then m.reflective = 0.0
 
-    #   Scenario: Transparency and Refractive Index for the default material
-    #     Given m ← material()
-    #     Then m.transparency = 0.0
-    #     And m.refractive_index = 1.0
+    Scenario: Transparency and Refractive Index for the default material
+        Given m ← material()
+        Then m.transparency = 0.0
+        And m.refractive_index = 1.0
 
     Scenario: Lighting with the eye between the light and the surface
         Given eyev ← vector(0, 0, -1)
