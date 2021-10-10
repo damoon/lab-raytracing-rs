@@ -17,6 +17,7 @@ pub struct Object {
     transform_inverse: Matrix4x4,
     pub material: Material,
     pub shape: Shape,
+    pub throws_shaddow: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -95,6 +96,7 @@ impl Object {
             transform_inverse,
             material,
             shape,
+            throws_shaddow: true,
         }
     }
 

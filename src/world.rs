@@ -1,4 +1,4 @@
-use crate::intersections::{hit, Intersection};
+use crate::intersections::Intersection;
 use crate::lights::Pointlight;
 use crate::rays::Ray;
 use crate::shapes::{intersect, Object};
@@ -37,11 +37,19 @@ impl World {
         let distance = v.magnitude();
         let direction = v.normalize();
         let r = Ray::new(point, direction);
-        let intersections = self.insersect(&r);
-        let h = hit(&intersections);
-        match h {
-            None => false,
-            Some(i) => i.t < distance,
+
+        for i in self.insersect(&r).iter() {
+            if i.t < 0.0 {
+                continue;
+            }
+            if i.t > distance {
+                continue;
+            }
+            if i.object.throws_shaddow {
+                return true;
+            }
         }
+
+        false
     }
 }
