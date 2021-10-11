@@ -38,9 +38,11 @@ reflections.ppm:
 refraction.ppm:
 	cargo run --release --example refraction > refraction.ppm
 
-release:
-	RUSTFLAGS="-C target-cpu=native" cargo build --release --example refraction
-flamegraph:
-	echo -1 | sudo tee /proc/sys/kernel/perf_event_paranoid
-	echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
-	RUSTFLAGS="-C target-cpu=native" CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph --example refraction > /dev/null
+#flamegraph-cargo.svg:
+#	echo -1 | sudo tee /proc/sys/kernel/perf_event_paranoid
+#	echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
+#	cargo flamegraph --output flamegraph-cargo.svg --example refraction > /dev/null
+
+profile: flamegraph.svg
+	PROFILE_CPU=1 cargo run --release --example refraction > refraction.ppm
+	pprof -output profile.svg -svg target/release/examples/refraction profile.pb

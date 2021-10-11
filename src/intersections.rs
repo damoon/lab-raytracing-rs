@@ -8,11 +8,16 @@ use crate::{
     world::World,
 };
 
-// #[derive(PartialEq)]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f64,
     pub object: Rc<Object>,
+}
+
+impl PartialEq for Intersection {
+    fn eq(&self, other: &Intersection) -> bool {
+        self.t.eq(&other.t) && Rc::ptr_eq(&self.object, &other.object)
+    }
 }
 
 pub fn hit(xs: &[Intersection]) -> Option<Intersection> {
@@ -54,7 +59,7 @@ pub fn prepare_computations(
     ray: &Ray,
     xs: &[Intersection],
 ) -> IntersectionPrecomputations {
-    let mut containers: Vec<Rc<Object>> = Vec::new();
+    let mut containers: Vec<Rc<Object>> = Vec::with_capacity(xs.len());
     let mut n1 = 0.0;
     let mut n2 = 0.0;
     for i in xs.iter() {
@@ -66,11 +71,13 @@ pub fn prepare_computations(
             }
         }
 
-        if containers.contains(&i.object) {
-            let index = containers.iter().position(|x| x == &i.object).unwrap();
-            containers.remove(index);
-        } else {
-            containers.push(i.object.clone());
+        match containers.iter().position(|x| Rc::ptr_eq(x, &i.object)) {
+            Some(index) => {
+                containers.remove(index);
+            }
+            None => {
+                containers.push(i.object.clone());
+            }
         }
 
         if i == &intersection {

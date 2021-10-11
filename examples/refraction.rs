@@ -21,10 +21,20 @@ use lab_raytracing_rs::tuples::point;
 use lab_raytracing_rs::tuples::vector;
 use lab_raytracing_rs::world::World;
 use noise::{Perlin, Seedable};
+use pprof::protos::Message;
+use std::env;
 use std::f64::consts::PI;
+use std::fs::File;
 use std::io;
+use std::io::Write;
 
 fn main() -> io::Result<()> {
+    // start cpu profiler
+    let guard = match env::var("PROFILE_CPU") {
+        Err(_) => None,
+        Ok(_) => Some(pprof::ProfilerGuard::new(100).unwrap()),
+    };
+
     let black = color(0.0, 0.0, 0.0);
     let red = color(1.0, 0.0, 0.0);
     let green = color(0.0, 1.0, 0.0);
@@ -119,6 +129,20 @@ fn main() -> io::Result<()> {
     let file = &mut io::stdout();
     let writer = &mut io::BufWriter::with_capacity(1024 * 128, file);
     canvas.ppm(writer)?;
+
+    if let Some(guard) = guard {
+        // write cpu profile
+        let report = guard.report().build().unwrap();
+        let mut file = File::create("profile.pb").unwrap();
+        let profile = report.pprof().unwrap();
+        let mut content = Vec::new();
+        profile.encode(&mut content).unwrap();
+        file.write_all(&content).unwrap();
+
+        // write flamegraph
+        let file = File::create("flamegraph.svg").unwrap();
+        report.flamegraph(file).unwrap();
+    }
 
     Ok(())
 }

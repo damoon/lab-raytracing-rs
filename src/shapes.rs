@@ -11,7 +11,7 @@ use crate::{
     tuples::{dot, point, vector, Tuple},
 };
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Object {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
@@ -20,7 +20,7 @@ pub struct Object {
     pub throws_shaddow: bool,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
     Sphere,
     Plane,
@@ -78,14 +78,14 @@ impl Shape {
 
 pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {
     let local_ray = world_ray.transform(&obj.transform_inverse);
-    let mut xs = Vec::new();
-    for t in obj.shape.intersect(&local_ray) {
-        xs.push(Intersection {
-            t,
+    obj.shape
+        .intersect(&local_ray)
+        .iter()
+        .map(|t| Intersection {
+            t: *t,
             object: obj.clone(),
         })
-    }
-    xs
+        .collect()
 }
 
 impl Object {
