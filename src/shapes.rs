@@ -24,6 +24,7 @@ pub struct Object {
 pub enum Shape {
     Sphere,
     Plane,
+    Cube,
     Testshape,
 }
 
@@ -60,6 +61,20 @@ impl Shape {
                 let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
                 vec![t1, t2]
             }
+            Shape::Cube => {
+                let (xtmin, xtmax) = check_axis(ray.origin.x, ray.direction.x);
+                let (ytmin, ytmax) = check_axis(ray.origin.y, ray.direction.y);
+                let (ztmin, ztmax) = check_axis(ray.origin.z, ray.direction.z);
+
+                let tmin = max(xtmin, ytmin, ztmin);
+                let tmax = min(xtmax, ytmax, ztmax);
+
+                if tmin > tmax {
+                    return vec![];
+                }
+
+                vec![tmin, tmax]
+            }
             Shape::Testshape => {
                 SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
                 vec![]
@@ -71,9 +86,54 @@ impl Shape {
         match self {
             Shape::Plane => vector(0.0, 1.0, 0.0),
             Shape::Sphere => local_point - point(0.0, 0.0, 0.0),
+            Shape::Cube => {
+                let maxc = max(local_point.x.abs(), local_point.y.abs(), local_point.z.abs());
+                if maxc == local_point.x.abs() {
+                    return vector(local_point.x, 0.0, 0.0);
+                } else if maxc == local_point.y.abs() {
+                    return vector(0.0, local_point.y, 0.0)
+                }
+                return vector(0.0, 0.0, local_point.z)
+            },
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
     }
+}
+
+fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
+    let tmin_numerator = -1.0 - origin;
+    let tmax_numerator = 1.0 - origin;
+    let (mut tmin, mut tmax) = if direction.abs() >= 0.0001 {
+        (tmin_numerator / direction, tmax_numerator / direction)
+    } else {
+        (tmin_numerator * f64::INFINITY, tmax_numerator * f64::INFINITY)
+    };
+    if tmin > tmax {
+        std::mem::swap(&mut tmin, &mut tmax)
+    }
+    return (tmin, tmax)
+}
+
+fn max(a: f64, b: f64, c: f64) -> f64 {
+    let mut max = a;
+    if b > max {
+        max = b;
+    }
+    if c > max {
+        max = c;
+    }
+    max
+}
+
+fn min(a: f64, b: f64, c: f64) -> f64 {
+    let mut min = a;
+    if b < min {
+        min = b;
+    }
+    if c < min {
+        min = c;
+    }
+    min
 }
 
 pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {

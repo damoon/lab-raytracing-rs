@@ -8,11 +8,10 @@ use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     matrices::Matrix4x4,
     patterns::test_pattern,
-    planes::{default_plane, glass_sphere},
-    shapes::intersect,
-    spheres::default_sphere,
+    planes::{default_cube, default_plane, glass_sphere},
+    shapes::intersect, spheres::default_sphere,
     transformations::{scaling, translation},
-    tuples::{color, Tuple},
+    tuples::{color, Tuple}
 };
 use regex::Regex;
 use std::{ops::Deref, rc::Rc};
@@ -21,12 +20,13 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"^(s|shape|s1|object) ← (sphere|plane|glass_sphere)\(\)$"#,
+        r#"^(s|shape|s1|object|c) ← (sphere|plane|glass_sphere|cube)\(\)$"#,
         |mut world, ctx| {
             let s = match ctx.matches[2].as_str() {
                 "sphere" => default_sphere(),
                 "plane" => default_plane(),
                 "glass_sphere" => glass_sphere(),
+                "cube" => default_cube(),
                 _ => panic!("object kind not covered"),
             };
             world.shapes.insert(ctx.matches[1].clone(), Rc::new(s));
