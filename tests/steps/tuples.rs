@@ -311,6 +311,12 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
+    steps.given_regex(r#"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#, |mut world, ctx| {
+        let normalized = parse_vector(&ctx.matches[2..=4]).normalize();
+        world.tuples.insert(ctx.matches[1].clone(), normalized);
+        world
+    });
+
     steps.when_regex(r#"^(norm) ← normalize\((v)\)$"#, |mut world, ctx| {
         let normalized = world.tuples.get(&ctx.matches[2]).unwrap().normalize();
         world.tuples.insert(ctx.matches[1].clone(), normalized);

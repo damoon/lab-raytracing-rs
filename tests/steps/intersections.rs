@@ -93,7 +93,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^xs\[([-0-9.]+)\].t = ([-0-9.]+)$"#, |world, ctx| {
         let index = ctx.matches[1].parse::<usize>().unwrap();
         let desired = ctx.matches[2].parse::<f64>().unwrap();
-        assert_abs_diff_eq!(world.xs.get(index).unwrap().t, desired);
+        assert!((world.xs.get(index).unwrap().t - desired).abs() < 0.0001);
         world
     });
 

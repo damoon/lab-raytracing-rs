@@ -6,6 +6,13 @@ use lab_raytracing_rs::{rays::Ray, tuples::vector};
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
+    steps.given_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), direction\)$"#, |mut world, ctx| {
+        let origin = parse_point(&ctx.matches[1..=3]);
+        let direction = world.tuples.get("direction").unwrap().clone();
+        world.r = Ray::new(origin, direction);
+        world
+    });
+
     steps.when_regex(r#"^r ← ray\(origin, direction\)$"#, |mut world, _ctx| {
         let origin = world.tuples.get("origin").unwrap().clone();
         let direction = world.tuples.get("direction").unwrap().clone();
