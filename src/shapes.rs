@@ -64,10 +64,18 @@ impl Shape {
             Shape::Cube => {
                 let (xtmin, xtmax) = check_axis(ray.origin.x, ray.direction.x);
                 let (ytmin, ytmax) = check_axis(ray.origin.y, ray.direction.y);
+
+                let tmin = if xtmin > ytmin { xtmin } else { ytmin };
+                let tmax = if xtmax < ytmax { xtmax } else { ytmax };
+
+                if tmin > tmax {
+                    return vec![];
+                }
+
                 let (ztmin, ztmax) = check_axis(ray.origin.z, ray.direction.z);
 
-                let tmin = max(xtmin, ytmin, ztmin);
-                let tmax = min(xtmax, ytmax, ztmax);
+                let tmin = if ztmin > tmin { ztmin } else { tmin };
+                let tmax = if ztmax < tmax { ztmax } else { tmax };
 
                 if tmin > tmax {
                     return vec![];
@@ -87,13 +95,14 @@ impl Shape {
             Shape::Plane => vector(0.0, 1.0, 0.0),
             Shape::Sphere => local_point - point(0.0, 0.0, 0.0),
             Shape::Cube => {
-                let maxc = max(local_point.x.abs(), local_point.y.abs(), local_point.z.abs());
-                if maxc == local_point.x.abs() {
-                    return vector(local_point.x, 0.0, 0.0);
-                } else if maxc == local_point.y.abs() {
-                    return vector(0.0, local_point.y, 0.0)
+                let xabs = local_point.x.abs();
+                let yabs = local_point.y.abs();
+                let zabs = local_point.z.abs();
+                match max_index(xabs, yabs, zabs) {
+                    0 => vector(local_point.x, 0.0, 0.0),
+                    1 => vector(0.0, local_point.y, 0.0),
+                    _ => vector(0.0, 0.0, local_point.z),
                 }
-                return vector(0.0, 0.0, local_point.z)
             },
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
@@ -111,29 +120,20 @@ fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
     if tmin > tmax {
         std::mem::swap(&mut tmin, &mut tmax)
     }
-    return (tmin, tmax)
+    (tmin, tmax)
 }
 
-fn max(a: f64, b: f64, c: f64) -> f64 {
+fn max_index(a: f64, b: f64, c: f64) -> usize {
+    let mut n = 0;
     let mut max = a;
     if b > max {
         max = b;
+        n = 1;
     }
     if c > max {
-        max = c;
+        n = 2
     }
-    max
-}
-
-fn min(a: f64, b: f64, c: f64) -> f64 {
-    let mut min = a;
-    if b < min {
-        min = b;
-    }
-    if c < min {
-        min = c;
-    }
-    min
+    n
 }
 
 pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {
