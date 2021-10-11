@@ -15,8 +15,8 @@ pub fn steps() -> Steps<MyWorld> {
         world
     });
 
-    steps.when("xs ← local_intersect(p, r)", |mut world, _ctx| {
-        let obj = world.shapes.get("p").unwrap();
+    steps.when_regex(r#"xs ← local_intersect\((p|c), r\)"#, |mut world, ctx| {
+        let obj = world.shapes.get(&ctx.matches[1]).unwrap();
         world.xs = obj
             .shape
             .intersect(&world.r)
@@ -46,6 +46,17 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(n1|n2|n3) ← local_normal_at\((p), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
             let point = &parse_point(&ctx.matches[3..=5]);
+            let obj = world.shapes.get(&ctx.matches[2]).unwrap();
+            let normal = obj.shape.normal_at(point);
+            world.tuples.insert(ctx.matches[1].to_string(), normal);
+            world
+        },
+    );
+
+    steps.when_regex(
+        r#"^(normal) ← local_normal_at\((c), (p)\)$"#,
+        |mut world, ctx| {
+            let point = world.tuples.get(&ctx.matches[3]).unwrap();
             let obj = world.shapes.get(&ctx.matches[2]).unwrap();
             let normal = obj.shape.normal_at(point);
             world.tuples.insert(ctx.matches[1].to_string(), normal);

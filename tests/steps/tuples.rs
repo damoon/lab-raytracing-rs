@@ -165,7 +165,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(
-        r#"^(n|r|n1|n2|n3) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
+        r#"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_vector = parse_vector(&ctx.matches[2..=4]);

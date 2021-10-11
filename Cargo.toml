@@ -3,9 +3,6 @@ name = "lab-raytracing-rs"
 version = "0.0.0"
 edition = "2018"
 
-[build]
-rustflags = ["-C", "target-cpu=native"] 
-
 [[test]]
 name = "cucumber"
 harness = false

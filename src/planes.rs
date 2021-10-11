@@ -12,6 +12,13 @@ pub fn default_plane() -> Object {
     Object::new(shape, transform, material)
 }
 
+pub fn default_cube() -> Object {
+    let shape = Shape::Cube;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
 pub fn glass_sphere() -> Object {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
