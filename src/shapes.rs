@@ -25,6 +25,7 @@ pub enum Shape {
     Sphere,
     Plane,
     Cube,
+    Cylinder,
     Testshape,
 }
 
@@ -83,6 +84,24 @@ impl Shape {
 
                 vec![tmin, tmax]
             }
+            Shape::Cylinder => {
+                let a = f64::powf(ray.direction.x, 2.0) + f64::powf(ray.direction.z, 2.0);
+                // ray is parallel to the y axis
+                if a.abs() < 0.0001 {
+                    return vec![];
+                }
+                let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
+                let c = f64::powf(ray.origin.x, 2.0) + f64::powf(ray.origin.z, 2.0) - 1.0;
+                let disc = f64::powf(b, 2.0) - 4.0 * a * c;
+                // ray does not intersect the cylinder
+                if disc < 0.0 {
+                    return vec![];
+                }
+                
+                let t0 = (-b - disc.sqrt()) / (2.0 * a);
+                let t1 = (-b + disc.sqrt()) / (2.0 * a);
+                return vec![t0, t1]
+            }
             Shape::Testshape => {
                 SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
                 vec![]
@@ -104,6 +123,9 @@ impl Shape {
                     _ => vector(0.0, 0.0, local_point.z),
                 }
             },
+            Shape::Cylinder => {
+                vector(local_point.x, 0.0, local_point.z)
+            }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
     }

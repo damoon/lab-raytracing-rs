@@ -21,3 +21,10 @@ pub fn default_testshape() -> Object {
     let material = Material::default();
     Object::new(shape, transform, material)
 }
+
+pub fn default_cylinder() -> Object {
+    let shape = Shape::Cylinder;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
