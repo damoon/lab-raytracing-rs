@@ -12,7 +12,7 @@ pub struct Matrix3x3 {
     state: [[f64; 3]; 3],
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Matrix4x4 {
     state: [[f64; 4]; 4],
 }
@@ -258,24 +258,6 @@ impl_op_ex!(*|a: &Matrix4x4, b: &Matrix4x4| -> Matrix4x4 {
     }
     Matrix4x4 { state }
 });
-
-impl std::cmp::PartialEq for Matrix4x4 {
-    fn eq(&self, other: &Self) -> bool {
-        for w in 0..4 {
-            for h in 0..4 {
-                let mut delta = self.at(w, h) - other.at(w, h);
-                if delta < 0.0 {
-                    delta = -delta;
-                }
-                let e = 0.0001;
-                if delta > e {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-}
 
 impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Tuple| -> Tuple {
     let x = (a.at(0, 0) * b.x) + (a.at(0, 1) * b.y) + (a.at(0, 2) * b.z) + (a.at(0, 3) * b.w);

@@ -114,12 +114,9 @@ pub fn steps() -> Steps<MyWorld> {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),
         };
-
         let t = ctx.step.table.as_ref().unwrap();
         let m = form_vec_4x4(&t.rows);
-
-        assert_eq!(&m, m1);
-
+        assert!(eq_matrix4x4_epsilon(&m, m1));
         world
     });
 
@@ -206,10 +203,10 @@ pub fn steps() -> Steps<MyWorld> {
                 Matrix::M4x4(m) => m,
                 _ => panic!("matrix needs to be in 4x4 form"),
             };
-            let inverted_matrix = matrix.inverse().unwrap();
+            let inverted = matrix.inverse().unwrap();
             let t = ctx.step.table.as_ref().unwrap();
-            let desired_matrix = form_vec_4x4(&t.rows);
-            assert_eq!(desired_matrix, inverted_matrix);
+            let desired = form_vec_4x4(&t.rows);
+            assert!(eq_matrix4x4_epsilon(&inverted, &desired));
             world
         },
     );
@@ -237,11 +234,11 @@ pub fn steps() -> Steps<MyWorld> {
             _ => panic!("matrix needs to be in 4x4 form"),
         };
         let computed = m1 * m2.inverse().unwrap();
-        let desired_matrix = match world.matrices.get(&ctx.matches[3]).unwrap() {
+        let desired = match world.matrices.get(&ctx.matches[3]).unwrap() {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),
         };
-        assert_eq!(desired_matrix, &computed);
+        assert!(eq_matrix4x4_epsilon(&computed, &desired));
         world
     });
 
@@ -414,4 +411,20 @@ fn form_vec_4x4(v: &[Vec<String>]) -> Matrix4x4 {
         }
     }
     Matrix4x4::new_from(state)
+}
+
+fn eq_matrix4x4_epsilon(matrix: &Matrix4x4, other: &Matrix4x4) -> bool {
+    for w in 0..4 {
+        for h in 0..4 {
+            let mut delta = matrix.at(w, h) - other.at(w, h);
+            if delta < 0.0 {
+                delta = -delta;
+            }
+            let e = 0.0001;
+            if delta > e {
+                return false;
+            }
+        }
+    }
+    true
 }

@@ -1,5 +1,7 @@
 /target
 *.ppm
+*.png
 NOTES.txt
 perf.*
-flamegraph.svg
+profile*
+flamegraph*.svg
