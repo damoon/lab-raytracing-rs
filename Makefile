@@ -1,4 +1,4 @@
-all: test clock.png projectile.png scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png
+all: test clock.png projectile.png scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png cylinders-cones.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg
@@ -8,7 +8,7 @@ clean:
 #	echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
 #	cargo flamegraph --output flamegraph-cargo.svg --example refraction | convert /dev/stdin /dev/null
 
-export EXAMPLE=refraction
+export EXAMPLE=cylinders-cones
 
 profile:
 	PROFILE_CPU=1 cargo run --release --example $(EXAMPLE) | convert /dev/stdin $(EXAMPLE).png
@@ -55,3 +55,6 @@ refraction.png:
 
 cubes.png:
 	cargo run --release --example cubes | convert /dev/stdin cubes.png
+
+cylinders-cones.png:
+	cargo run --release --example cylinders-cones | convert /dev/stdin cylinders-cones.png
