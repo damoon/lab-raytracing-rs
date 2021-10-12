@@ -5,7 +5,7 @@ use super::{
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{matrices::Matrix4x4, patterns::test_pattern, shapes::{default_cube, default_cylinder, default_plane, default_sphere, glass_sphere, intersect}, transformations::{scaling, translation}, tuples::{color, Tuple}};
+use lab_raytracing_rs::{matrices::Matrix4x4, patterns::test_pattern, shapes::{default_cone, default_cube, default_cylinder, default_plane, default_sphere, glass_sphere, intersect}, transformations::{scaling, translation}, tuples::{color, Tuple}};
 use regex::Regex;
 use std::{ops::Deref, rc::Rc};
 
@@ -13,7 +13,7 @@ pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
-        r#"^(s|shape|s1|object|c|cyl) ← (sphere|plane|glass_sphere|cube|cylinder)\(\)$"#,
+        r#"^(s|shape|s1|object|c|cyl) ← (sphere|plane|glass_sphere|cube|cylinder|cone)\(\)$"#,
         |mut world, ctx| {
             let s = match ctx.matches[2].as_str() {
                 "sphere" => default_sphere(),
@@ -21,6 +21,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "glass_sphere" => glass_sphere(),
                 "cube" => default_cube(),
                 "cylinder" => default_cylinder(),
+                "cone" => default_cone(),
                 _ => panic!("object kind not covered"),
             };
             world.shapes.insert(ctx.matches[1].clone(), Rc::new(s));
