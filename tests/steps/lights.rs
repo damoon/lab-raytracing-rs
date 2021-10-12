@@ -1,8 +1,5 @@
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{
-    lights::{lighting, Pointlight},
-    spheres::default_sphere,
-};
+use lab_raytracing_rs::{lights::{lighting, Pointlight}, shapes::default_sphere};
 
 use crate::MyWorld;
 

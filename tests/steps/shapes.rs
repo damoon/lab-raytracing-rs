@@ -5,7 +5,7 @@ use crate::{
     MyWorld,
 };
 use cucumber_rust::Steps;
-use lab_raytracing_rs::spheres::default_testshape;
+use lab_raytracing_rs::shapes::default_testshape;
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();

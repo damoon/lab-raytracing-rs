@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{intersections::Intersection, planes::default_plane};
+use lab_raytracing_rs::{intersections::Intersection, shapes::default_plane};
 
 use super::tuples::parse_point;
 

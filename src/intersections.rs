@@ -212,7 +212,7 @@ pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {
     // total internal reflection can only occur if n1 > n2
     if comps.n1 > comps.n2 {
         let n = comps.n1 / comps.n2;
-        let sin2_t = f64::powf(n, 2.0) * (1.0 - (cos * cos));
+        let sin2_t = f64::powi(n, 2) * (1.0 - (cos * cos));
         if sin2_t > 1.0 {
             return 1.0;
         }
@@ -223,6 +223,6 @@ pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {
         cos = cos_t
     }
 
-    let r0 = f64::powf((comps.n1 - comps.n2) / (comps.n1 + comps.n2), 2.0);
-    r0 + (1.0 - r0) * f64::powf(1.0 - cos, 5.0)
+    let r0 = f64::powi((comps.n1 - comps.n2) / (comps.n1 + comps.n2), 2);
+    r0 + (1.0 - r0) * f64::powi(1.0 - cos, 5)
 }

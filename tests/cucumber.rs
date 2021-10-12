@@ -9,8 +9,7 @@ use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
-use lab_raytracing_rs::shapes::Object;
-use lab_raytracing_rs::spheres::default_sphere;
+use lab_raytracing_rs::shapes::{Object, default_sphere};
 use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use lab_raytracing_rs::world::World;
 use std::collections::HashMap;
@@ -111,6 +110,7 @@ async fn main() {
         .features(&["./features"])
         .steps(steps::camera::steps())
         .steps(steps::canvas::steps())
+        .steps(steps::cylinders::steps())
         .steps(steps::intersections::steps())
         .steps(steps::lights::steps())
         .steps(steps::materials::steps())
