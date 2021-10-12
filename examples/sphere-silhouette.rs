@@ -1,8 +1,8 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::hit;
 use lab_raytracing_rs::rays::Ray;
+use lab_raytracing_rs::shapes::default_sphere;
 use lab_raytracing_rs::shapes::intersect;
-use lab_raytracing_rs::spheres::default_sphere;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;

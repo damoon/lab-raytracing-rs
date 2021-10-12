@@ -1,0 +1,85 @@
+use std::{ops::Deref, rc::Rc};
+
+use crate::MyWorld;
+use cucumber_rust::Steps;
+use lab_raytracing_rs::shapes::Shape;
+
+pub fn steps() -> Steps<MyWorld> {
+    let mut steps: Steps<MyWorld> = Steps::new();
+
+    steps.then_regex(r#"cyl.(minimum|maximum|closed) = (-?infinity)"#, |world, ctx| {
+        let obj = world.shapes.get("cyl").unwrap();
+        match obj.shape {
+            Shape::Cylinder(min, max, _closed) => {
+                let lookup = match ctx.matches[1].as_str() {
+                    "minimum" => min,
+                    "maximum" => max,
+                    _ => panic!("cylinder property not covered"),
+                };
+                let desired = match ctx.matches[2].as_str() {
+                    "-infinity" => -f64::INFINITY,
+                    "infinity" => f64::INFINITY,
+                    _ => panic!("desired value not covered"),
+                };
+                assert_eq!(lookup, desired);
+            }
+            _ => panic!("expected shape of kind cylinder")
+        }
+        world
+    });
+
+    steps.then_regex(r#"cyl.(closed) = (true|false)"#, |world, ctx| {
+        let desired = match ctx.matches[2].as_str() {
+            "true" => true,
+            "false" => false,
+            _ => panic!("desired value not true of false"),
+        };
+        let obj = world.shapes.get("cyl").unwrap();
+        match obj.shape {
+            Shape::Cylinder(_min, _max, closed) => {
+                let lookup = match ctx.matches[1].as_str() {
+                    "closed" => closed,
+                    _ => panic!("cylinder property not covered"),
+                };
+                assert_eq!(lookup, desired);
+            }
+            _ => panic!("expected shape of kind cylinder")
+        }
+        world
+    });
+
+    steps.given_regex(r#"cyl.(minimum|maximum) ← ([-0-9.]+)"#, |mut world, ctx| {
+        let value = ctx.matches[2].parse::<f64>().unwrap();
+        let mut obj = world.shapes.get("cyl").unwrap().deref().clone();
+        obj.shape = match obj.shape {
+            Shape::Cylinder(min, max, closed) => match ctx.matches[1].as_str() {
+                "minimum" => Shape::Cylinder(value, max, closed),
+                "maximum" => Shape::Cylinder(min, value, closed),
+                _ => panic!("cylinder property not covered"),
+            },
+            _ => panic!("expected shape of kind cylinder")
+        };
+        world.shapes.insert("cyl".to_string(), Rc::new(obj));
+        world
+    });
+
+    steps.given_regex(r#"cyl.(closed) ← (true|false)"#, |mut world, ctx| {
+        let value = match ctx.matches[2].as_str() {
+            "true" => true,
+            "false" => false,
+            _ => panic!("value not true of false"),
+        };
+        let mut obj = world.shapes.get("cyl").unwrap().deref().clone();
+        obj.shape = match obj.shape {
+            Shape::Cylinder(min, max, _closed) => match ctx.matches[1].as_str() {
+                "closed" => Shape::Cylinder(min, max, value),
+                _ => panic!("cylinder property not covered"),
+            },
+            _ => panic!("expected shape of kind cylinder")
+        };
+        world.shapes.insert("cyl".to_string(), Rc::new(obj));
+        world
+    });
+
+    steps
+}

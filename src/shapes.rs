@@ -3,13 +3,56 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use crate::{
-    intersections::Intersection,
-    materials::Material,
-    matrices::Matrix4x4,
-    rays::Ray,
-    tuples::{dot, point, vector, Tuple},
-};
+use crate::{intersections::Intersection, materials::Material, matrices::{Matrix4x4, identity_matrix}, rays::Ray, tuples::{Tuple, color, dot, point, vector}};
+
+pub fn default_sphere() -> Object {
+    let shape = Shape::Sphere;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
+pub fn default_testshape() -> Object {
+    let shape = Shape::Testshape;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
+pub fn default_plane() -> Object {
+    let shape = Shape::Plane;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
+pub fn default_cube() -> Object {
+    let shape = Shape::Cube;
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
+pub fn glass_sphere() -> Object {
+    let shape = Shape::Sphere;
+    let transform = identity_matrix();
+    let mut material = Material::default();
+    material.transparency = 1.0;
+    material.refractive_index = 1.5;
+    material.reflective = 1.0;
+    material.color = color(0.0, 0.0, 0.0);
+    material.ambient = 0.1;
+    material.diffuse = 0.1;
+    material.shininess = 300.0;
+    Object::new(shape, transform, material)
+}
+
+pub fn default_cylinder() -> Object {
+    let shape = Shape::Cylinder(-f64::INFINITY, f64::INFINITY, false);
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Object {
@@ -25,7 +68,7 @@ pub enum Shape {
     Sphere,
     Plane,
     Cube,
-    Cylinder,
+    Cylinder(f64, f64, bool),
     Testshape,
 }
 
@@ -84,23 +127,41 @@ impl Shape {
 
                 vec![tmin, tmax]
             }
-            Shape::Cylinder => {
-                let a = f64::powf(ray.direction.x, 2.0) + f64::powf(ray.direction.z, 2.0);
+            Shape::Cylinder(min, max, closed) => {
+                let mut xs = Vec::with_capacity(2);
+
+                let a = f64::powi(ray.direction.x, 2) + f64::powi(ray.direction.z, 2);
                 // ray is parallel to the y axis
                 if a.abs() < 0.0001 {
-                    return vec![];
+                    intersect_caps(min, max, closed, ray, &mut xs);
+                    return xs;
                 }
                 let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
-                let c = f64::powf(ray.origin.x, 2.0) + f64::powf(ray.origin.z, 2.0) - 1.0;
-                let disc = f64::powf(b, 2.0) - 4.0 * a * c;
+                let c = f64::powi(ray.origin.x, 2) + f64::powi(ray.origin.z, 2) - 1.0;
+                let disc = f64::powi(b, 2) - 4.0 * a * c;
                 // ray does not intersect the cylinder
                 if disc < 0.0 {
                     return vec![];
                 }
                 
-                let t0 = (-b - disc.sqrt()) / (2.0 * a);
-                let t1 = (-b + disc.sqrt()) / (2.0 * a);
-                return vec![t0, t1]
+                let mut t0 = (-b - disc.sqrt()) / (2.0 * a);
+                let mut t1 = (-b + disc.sqrt()) / (2.0 * a);
+                if t0 > t1 {
+                    std::mem::swap(&mut t0, &mut t1)
+                }
+                
+                let y0 = ray.origin.y + t0 * ray.direction.y;
+                if min < &y0 && &y0 < max {
+                    xs.push(t0);
+                }
+                let y1 = ray.origin.y + t1 * ray.direction.y;
+                if min < &y1 && &y1 < max {
+                    xs.push(t1);
+                }
+
+                intersect_caps(min, max, closed, ray, &mut xs);
+                
+                xs
             }
             Shape::Testshape => {
                 SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
@@ -123,7 +184,15 @@ impl Shape {
                     _ => vector(0.0, 0.0, local_point.z),
                 }
             },
-            Shape::Cylinder => {
+            Shape::Cylinder(minimum, maximum, _closed) => {
+                let e = 0.0001;
+                // compute the square of the distance from the y axis
+                let dist = f64::powi(local_point.x, 2) + f64::powi(local_point.z, 2);
+                if dist < 1.0 && local_point.y >= maximum - e {
+                    return vector(0.0, 1.0, 0.0)
+                } else if dist < 1.0 && local_point.y <= minimum + e {
+                    return vector(0.0, -1.0, 0.0)
+                }
                 vector(local_point.x, 0.0, local_point.z)
             }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
@@ -156,6 +225,37 @@ fn max_index(a: f64, b: f64, c: f64) -> usize {
         n = 2
     }
     n
+}
+
+// a helper function to reduce duplication.
+// checks to see if the intersection at `t` is within a radius
+// of 1 (the radius of your cylinders) from the y axis.
+fn check_cap(ray: &Ray, t: f64) -> bool {
+    let x = ray.origin.x + t * ray.direction.x;
+    let z = ray.origin.z + t * ray.direction.z;
+    f64::powi(x, 2) + f64::powi(z, 2) <= 1.0
+}
+
+fn intersect_caps(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
+    // caps only matter if the cylinder is closed, and might possibly be
+    // intersected by the ray.
+    if !closed || ray.direction.y.abs() < 0.0001 {
+        return
+    }
+
+    // check for an intersection with the lower end cap by intersecting
+    // the ray with the plane at y=cyl.minimum
+    let t = (minimum - ray.origin.y) / ray.direction.y;
+    if check_cap(ray, t) {
+        xs.push(t);
+    }
+
+    // check for an intersection with the upper end cap by intersecting
+    // the ray with the plane at y=cyl.maximum
+    let t = (maximum - ray.origin.y) / ray.direction.y;
+    if check_cap(ray, t) {
+        xs.push(t);
+    }
 }
 
 pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {

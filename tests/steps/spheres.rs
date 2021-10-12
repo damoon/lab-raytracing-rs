@@ -5,14 +5,7 @@ use super::{
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{
-    matrices::Matrix4x4,
-    patterns::test_pattern,
-    planes::{default_cube, default_plane, glass_sphere},
-    shapes::intersect, spheres::default_sphere, spheres::default_cylinder,
-    transformations::{scaling, translation},
-    tuples::{color, Tuple}
-};
+use lab_raytracing_rs::{matrices::Matrix4x4, patterns::test_pattern, shapes::{default_cube, default_cylinder, default_plane, default_sphere, glass_sphere, intersect}, transformations::{scaling, translation}, tuples::{color, Tuple}};
 use regex::Regex;
 use std::{ops::Deref, rc::Rc};
 

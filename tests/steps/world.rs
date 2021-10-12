@@ -2,15 +2,7 @@ use std::rc::Rc;
 
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{
-    camera::RAY_RECURSION_DEPTH,
-    intersections::{color_at, reflected_color, refracted_color, shade_hit},
-    lights::Pointlight,
-    spheres::default_sphere,
-    transformations::scaling,
-    tuples::{color, point},
-    world::World,
-};
+use lab_raytracing_rs::{camera::RAY_RECURSION_DEPTH, intersections::{color_at, reflected_color, refracted_color, shade_hit}, lights::Pointlight, shapes::default_sphere, transformations::scaling, tuples::{color, point}, world::World};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
