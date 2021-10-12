@@ -54,6 +54,13 @@ pub fn default_cylinder() -> Object {
     Object::new(shape, transform, material)
 }
 
+pub fn default_cone() -> Object {
+    let shape = Shape::Cone(-f64::INFINITY, f64::INFINITY, false);
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Object {
     transform: Matrix4x4,
@@ -69,6 +76,7 @@ pub enum Shape {
     Plane,
     Cube,
     Cylinder(f64, f64, bool),
+    Cone(f64, f64, bool),
     Testshape,
 }
 
@@ -133,7 +141,7 @@ impl Shape {
                 let a = f64::powi(ray.direction.x, 2) + f64::powi(ray.direction.z, 2);
                 // ray is parallel to the y axis
                 if a.abs() < 0.0001 {
-                    intersect_caps(min, max, closed, ray, &mut xs);
+                    intersect_caps_cylinder(min, max, closed, ray, &mut xs);
                     return xs;
                 }
                 let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
@@ -159,8 +167,45 @@ impl Shape {
                     xs.push(t1);
                 }
 
-                intersect_caps(min, max, closed, ray, &mut xs);
+                intersect_caps_cylinder(min, max, closed, ray, &mut xs);
                 
+                xs
+            }
+            Shape::Cone(min, max, closed) => {
+                let mut xs = Vec::with_capacity(4);
+
+                let a = f64::powi(ray.direction.x, 2) - f64::powi(ray.direction.y, 2) + f64::powi(ray.direction.z, 2);
+                let b =  2.0 * ray.origin.x * ray.direction.x -  2.0 * ray.origin.y * ray.direction.y +  2.0 * ray.origin.z * ray.direction.z;
+                let c = f64::powi(ray.origin.x, 2) - f64::powi(ray.origin.y, 2) + f64::powi(ray.origin.z, 2);
+
+                if a.abs() < f64::EPSILON && b.abs() > f64::EPSILON{
+                    let t = -c / (2.0 * b);
+                    xs.push(t);
+                }
+
+                if a.abs() > 0.0001 {
+                    let disc = f64::powi(b, 2) - 4.0 * a * c;
+                    // ray does not intersect the cylinder
+                    if disc >= 0.0 {
+                        let mut t0 = (-b - disc.sqrt()) / (2.0 * a);
+                        let mut t1 = (-b + disc.sqrt()) / (2.0 * a);
+                        if t0 > t1 {
+                            std::mem::swap(&mut t0, &mut t1)
+                        }
+
+                        let y0 = ray.origin.y + t0 * ray.direction.y;
+                        if min < &y0 && &y0 < max {
+                            xs.push(t0);
+                        }
+                        let y1 = ray.origin.y + t1 * ray.direction.y;
+                        if min < &y1 && &y1 < max {
+                            xs.push(t1);
+                        }
+                    }
+                }
+
+                intersect_caps_cone(min, max, closed, ray, &mut xs);
+
                 xs
             }
             Shape::Testshape => {
@@ -190,10 +235,27 @@ impl Shape {
                 let dist = f64::powi(local_point.x, 2) + f64::powi(local_point.z, 2);
                 if dist < 1.0 && local_point.y >= maximum - e {
                     return vector(0.0, 1.0, 0.0)
-                } else if dist < 1.0 && local_point.y <= minimum + e {
+                }
+                if dist < 1.0 && local_point.y <= minimum + e {
                     return vector(0.0, -1.0, 0.0)
                 }
                 vector(local_point.x, 0.0, local_point.z)
+            }
+            Shape::Cone(minimum, maximum, _closed) => {
+                let e = 0.0001;
+                // compute the square of the distance from the y axis
+                let dist = f64::powi(local_point.x, 2) + f64::powi(local_point.z, 2);
+                if dist < f64::powi(*maximum, 2) && local_point.y >= maximum - e {
+                    return vector(0.0, 1.0, 0.0)
+                }
+                if dist < f64::powi(*minimum, 2) && local_point.y <= minimum + e {
+                    return vector(0.0, -1.0, 0.0)
+                }
+                let mut y = dist.sqrt();
+                if local_point.y > 0.0 {
+                    y = -y;
+                }
+                vector(local_point.x, y, local_point.z)
             }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
@@ -230,13 +292,13 @@ fn max_index(a: f64, b: f64, c: f64) -> usize {
 // a helper function to reduce duplication.
 // checks to see if the intersection at `t` is within a radius
 // of 1 (the radius of your cylinders) from the y axis.
-fn check_cap(ray: &Ray, t: f64) -> bool {
+fn check_cap(ray: &Ray, t: f64, r: f64) -> bool {
     let x = ray.origin.x + t * ray.direction.x;
     let z = ray.origin.z + t * ray.direction.z;
-    f64::powi(x, 2) + f64::powi(z, 2) <= 1.0
+    f64::powi(x, 2) + f64::powi(z, 2) <= f64::powi(r, 2)
 }
 
-fn intersect_caps(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
+fn intersect_caps_cylinder(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
     if !closed || ray.direction.y.abs() < 0.0001 {
@@ -246,14 +308,36 @@ fn intersect_caps(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &m
     // check for an intersection with the lower end cap by intersecting
     // the ray with the plane at y=cyl.minimum
     let t = (minimum - ray.origin.y) / ray.direction.y;
-    if check_cap(ray, t) {
+    if check_cap(ray, t, 1.0) {
         xs.push(t);
     }
 
     // check for an intersection with the upper end cap by intersecting
     // the ray with the plane at y=cyl.maximum
     let t = (maximum - ray.origin.y) / ray.direction.y;
-    if check_cap(ray, t) {
+    if check_cap(ray, t, 1.0) {
+        xs.push(t);
+    }
+}
+
+fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
+    // caps only matter if the cylinder is closed, and might possibly be
+    // intersected by the ray.
+    if !closed || ray.direction.y.abs() < 0.0001 {
+        return
+    }
+
+    // check for an intersection with the lower end cap by intersecting
+    // the ray with the plane at y=cyl.minimum
+    let t = (minimum - ray.origin.y) / ray.direction.y;
+    if check_cap(ray, t, *minimum) {
+        xs.push(t);
+    }
+
+    // check for an intersection with the upper end cap by intersecting
+    // the ray with the plane at y=cyl.maximum
+    let t = (maximum - ray.origin.y) / ray.direction.y;
+    if check_cap(ray, t, *maximum) {
         xs.push(t);
     }
 }
