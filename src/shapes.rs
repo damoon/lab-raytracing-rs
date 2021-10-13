@@ -138,15 +138,15 @@ impl Shape {
             Shape::Cylinder(min, max, closed) => {
                 let mut xs = Vec::with_capacity(2);
 
-                let a = f64::powi(ray.direction.x, 2) + f64::powi(ray.direction.z, 2);
+                let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
                 // ray is parallel to the y axis
                 if a.abs() < 0.0001 {
                     intersect_caps_cylinder(min, max, closed, ray, &mut xs);
                     return xs;
                 }
                 let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
-                let c = f64::powi(ray.origin.x, 2) + f64::powi(ray.origin.z, 2) - 1.0;
-                let disc = f64::powi(b, 2) - 4.0 * a * c;
+                let c = ray.origin.x.powi(2) + ray.origin.z.powi(2) - 1.0;
+                let disc = b.powi(2) - 4.0 * a * c;
                 // ray does not intersect the cylinder
                 if disc < 0.0 {
                     return vec![];
@@ -174,9 +174,9 @@ impl Shape {
             Shape::Cone(min, max, closed) => {
                 let mut xs = Vec::with_capacity(4);
 
-                let a = f64::powi(ray.direction.x, 2) - f64::powi(ray.direction.y, 2) + f64::powi(ray.direction.z, 2);
+                let a = ray.direction.x.powi(2) - ray.direction.y.powi(2) + ray.direction.z.powi(2);
                 let b =  2.0 * ray.origin.x * ray.direction.x -  2.0 * ray.origin.y * ray.direction.y +  2.0 * ray.origin.z * ray.direction.z;
-                let c = f64::powi(ray.origin.x, 2) - f64::powi(ray.origin.y, 2) + f64::powi(ray.origin.z, 2);
+                let c = ray.origin.x.powi(2) - ray.origin.y.powi(2) + ray.origin.z.powi(2);
 
                 if a.abs() < f64::EPSILON && b.abs() > f64::EPSILON{
                     let t = -c / (2.0 * b);
@@ -184,7 +184,7 @@ impl Shape {
                 }
 
                 if a.abs() > 0.0001 {
-                    let disc = f64::powi(b, 2) - 4.0 * a * c;
+                    let disc = b.powi(2) - 4.0 * a * c;
                     // ray does not intersect the cylinder
                     if disc >= 0.0 {
                         let mut t0 = (-b - disc.sqrt()) / (2.0 * a);
@@ -232,7 +232,7 @@ impl Shape {
             Shape::Cylinder(minimum, maximum, _closed) => {
                 let e = 0.0001;
                 // compute the square of the distance from the y axis
-                let dist = f64::powi(local_point.x, 2) + f64::powi(local_point.z, 2);
+                let dist = local_point.x.powi(2) + local_point.z.powi(2);
                 if dist < 1.0 && local_point.y >= maximum - e {
                     return vector(0.0, 1.0, 0.0)
                 }
@@ -244,11 +244,11 @@ impl Shape {
             Shape::Cone(minimum, maximum, _closed) => {
                 let e = 0.0001;
                 // compute the square of the distance from the y axis
-                let dist = f64::powi(local_point.x, 2) + f64::powi(local_point.z, 2);
-                if dist < f64::powi(*maximum, 2) && local_point.y >= maximum - e {
+                let dist = local_point.x.powi(2) + local_point.z.powi(2);
+                if dist < maximum.powi(2) && local_point.y >= maximum - e {
                     return vector(0.0, 1.0, 0.0)
                 }
-                if dist < f64::powi(*minimum, 2) && local_point.y <= minimum + e {
+                if dist < minimum.powi(2) && local_point.y <= minimum + e {
                     return vector(0.0, -1.0, 0.0)
                 }
                 let mut y = dist.sqrt();
@@ -295,7 +295,7 @@ fn max_index(a: f64, b: f64, c: f64) -> usize {
 fn check_cap(ray: &Ray, t: f64, r: f64) -> bool {
     let x = ray.origin.x + t * ray.direction.x;
     let z = ray.origin.z + t * ray.direction.z;
-    f64::powi(x, 2) + f64::powi(z, 2) <= f64::powi(r, 2)
+    x.powi(2) + z.powi(2) <= r.powi(2)
 }
 
 fn intersect_caps_cylinder(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
