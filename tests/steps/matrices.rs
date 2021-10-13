@@ -116,7 +116,7 @@ pub fn steps() -> Steps<MyWorld> {
         };
         let t = ctx.step.table.as_ref().unwrap();
         let m = form_vec_4x4(&t.rows);
-        assert!(eq_matrix4x4_epsilon(&m, m1));
+        assert!(eq_matrix4x4_similar(&m, m1));
         world
     });
 
@@ -206,7 +206,7 @@ pub fn steps() -> Steps<MyWorld> {
             let inverted = matrix.inverse().unwrap();
             let t = ctx.step.table.as_ref().unwrap();
             let desired = form_vec_4x4(&t.rows);
-            assert!(eq_matrix4x4_epsilon(&inverted, &desired));
+            assert!(eq_matrix4x4_similar(&inverted, &desired));
             world
         },
     );
@@ -238,7 +238,7 @@ pub fn steps() -> Steps<MyWorld> {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),
         };
-        assert!(eq_matrix4x4_epsilon(&computed, &desired));
+        assert!(eq_matrix4x4_similar(&computed, &desired));
         world
     });
 
@@ -413,15 +413,10 @@ fn form_vec_4x4(v: &[Vec<String>]) -> Matrix4x4 {
     Matrix4x4::new_from(state)
 }
 
-fn eq_matrix4x4_epsilon(matrix: &Matrix4x4, other: &Matrix4x4) -> bool {
+fn eq_matrix4x4_similar(matrix: &Matrix4x4, other: &Matrix4x4) -> bool {
     for w in 0..4 {
         for h in 0..4 {
-            let mut delta = matrix.at(w, h) - other.at(w, h);
-            if delta < 0.0 {
-                delta = -delta;
-            }
-            let e = 0.0001;
-            if delta > e {
+            if (matrix.at(w, h) - other.at(w, h)).abs() > 0.0001 {
                 return false;
             }
         }

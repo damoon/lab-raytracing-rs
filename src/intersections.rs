@@ -100,7 +100,7 @@ pub fn prepare_computations(
         normalv = -normalv;
     }
     let reflectv = reflect(&ray.direction, &normalv);
-    let e = 0.0001;
+    let e = 0.0000000001;
     let over_point = &point + (&normalv * e);
     let under_point = &point - (&normalv * e);
 

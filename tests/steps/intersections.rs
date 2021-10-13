@@ -197,13 +197,13 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then("comps.over_point.z < -EPSILON/2", |world, _ctx| {
-        let maximum = -0.0001 / 2.0;
+        let maximum = -f64::EPSILON / 2.0;
         assert!(world.comps.over_point.z < maximum);
         world
     });
 
     steps.then("comps.under_point.z > EPSILON/2", |world, _ctx| {
-        let minimum = 0.0001 / 2.0;
+        let minimum = f64::EPSILON / 2.0;
         assert!(world.comps.under_point.z > minimum);
         world
     });
