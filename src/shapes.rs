@@ -1,12 +1,13 @@
+use crate::{
+    intersections::Intersection,
+    materials::{Material, REFRACTIVE_INDEX_GLASS},
+    matrices::{identity_matrix, Matrix4x4},
+    rays::Ray,
+    tuples::{color, dot, point, vector, Tuple},
+};
 use std::{
     rc::Rc,
     sync::{Arc, RwLock},
-};
-use crate::{
-    intersections::Intersection,
-    materials::Material,
-    matrices::{Matrix4x4, identity_matrix},
-    rays::Ray, tuples::{Tuple, color, dot, point, vector}
 };
 
 pub fn default_sphere() -> Object {
@@ -42,7 +43,7 @@ pub fn glass_sphere() -> Object {
     let transform = identity_matrix();
     let mut material = Material::default();
     material.transparency = 1.0;
-    material.refractive_index = 1.5;
+    material.refractive_index = REFRACTIVE_INDEX_GLASS;
     material.reflective = 1.0;
     material.color = color(0.0, 0.0, 0.0);
     material.ambient = 0.1;
@@ -52,14 +53,14 @@ pub fn glass_sphere() -> Object {
 }
 
 pub fn default_cylinder() -> Object {
-    let shape = Shape::Cylinder(-f64::INFINITY, f64::INFINITY, false);
+    let shape = Shape::Cylinder(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
 pub fn default_cone() -> Object {
-    let shape = Shape::Cone(-f64::INFINITY, f64::INFINITY, false);
+    let shape = Shape::Cone(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
@@ -154,13 +155,13 @@ impl Shape {
                 if disc < 0.0 {
                     return vec![];
                 }
-                
+
                 let mut t0 = (-b - disc.sqrt()) / (2.0 * a);
                 let mut t1 = (-b + disc.sqrt()) / (2.0 * a);
                 if t0 > t1 {
                     std::mem::swap(&mut t0, &mut t1)
                 }
-                
+
                 let y0 = ray.origin.y + t0 * ray.direction.y;
                 if min < &y0 && &y0 < max {
                     xs.push(t0);
@@ -171,17 +172,18 @@ impl Shape {
                 }
 
                 intersect_caps_cylinder(min, max, closed, ray, &mut xs);
-                
+
                 xs
             }
             Shape::Cone(min, max, closed) => {
                 let mut xs = Vec::with_capacity(4);
 
                 let a = ray.direction.x.powi(2) - ray.direction.y.powi(2) + ray.direction.z.powi(2);
-                let b =  2.0 * ray.origin.x * ray.direction.x -  2.0 * ray.origin.y * ray.direction.y +  2.0 * ray.origin.z * ray.direction.z;
+                let b = 2.0 * ray.origin.x * ray.direction.x - 2.0 * ray.origin.y * ray.direction.y
+                    + 2.0 * ray.origin.z * ray.direction.z;
                 let c = ray.origin.x.powi(2) - ray.origin.y.powi(2) + ray.origin.z.powi(2);
 
-                if a.abs() < f64::EPSILON && b.abs() > f64::EPSILON{
+                if a.abs() < f64::EPSILON && b.abs() > f64::EPSILON {
                     let t = -c / (2.0 * b);
                     xs.push(t);
                 }
@@ -231,15 +233,15 @@ impl Shape {
                     1 => vector(0.0, local_point.y, 0.0),
                     _ => vector(0.0, 0.0, local_point.z),
                 }
-            },
+            }
             Shape::Cylinder(minimum, maximum, _closed) => {
                 // compute the square of the distance from the y axis
                 let dist = local_point.x.powi(2) + local_point.z.powi(2);
                 if dist < 1.0 && local_point.y >= maximum - f64::EPSILON {
-                    return vector(0.0, 1.0, 0.0)
+                    return vector(0.0, 1.0, 0.0);
                 }
                 if dist < 1.0 && local_point.y <= minimum + f64::EPSILON {
-                    return vector(0.0, -1.0, 0.0)
+                    return vector(0.0, -1.0, 0.0);
                 }
                 vector(local_point.x, 0.0, local_point.z)
             }
@@ -247,10 +249,10 @@ impl Shape {
                 // compute the square of the distance from the y axis
                 let dist = local_point.x.powi(2) + local_point.z.powi(2);
                 if dist < maximum.powi(2) && local_point.y >= maximum - f64::EPSILON {
-                    return vector(0.0, 1.0, 0.0)
+                    return vector(0.0, 1.0, 0.0);
                 }
                 if dist < minimum.powi(2) && local_point.y <= minimum + f64::EPSILON {
-                    return vector(0.0, -1.0, 0.0)
+                    return vector(0.0, -1.0, 0.0);
                 }
                 let mut y = dist.sqrt();
                 if local_point.y > 0.0 {
@@ -269,7 +271,10 @@ fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
     let (mut tmin, mut tmax) = if direction.abs() >= f64::EPSILON {
         (tmin_numerator / direction, tmax_numerator / direction)
     } else {
-        (tmin_numerator * f64::INFINITY, tmax_numerator * f64::INFINITY)
+        (
+            tmin_numerator * f64::INFINITY,
+            tmax_numerator * f64::INFINITY,
+        )
     };
     if tmin > tmax {
         std::mem::swap(&mut tmin, &mut tmax)
@@ -299,11 +304,17 @@ fn check_cap(ray: &Ray, t: f64, r: f64) -> bool {
     x.powi(2) + z.powi(2) <= r.powi(2)
 }
 
-fn intersect_caps_cylinder(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
+fn intersect_caps_cylinder(
+    minimum: &f64,
+    maximum: &f64,
+    closed: &bool,
+    ray: &Ray,
+    xs: &mut Vec<f64>,
+) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
     if !closed || ray.direction.y.abs() < f64::EPSILON {
-        return
+        return;
     }
 
     // check for an intersection with the lower end cap by intersecting
@@ -325,7 +336,7 @@ fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, x
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
     if !closed || ray.direction.y.abs() < f64::EPSILON {
-        return
+        return;
     }
 
     // check for an intersection with the lower end cap by intersecting

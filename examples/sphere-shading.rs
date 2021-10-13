@@ -4,6 +4,7 @@ use lab_raytracing_rs::lights::lighting;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::shapes::default_sphere;
+use lab_raytracing_rs::shapes::default_testshape;
 use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
@@ -39,7 +40,7 @@ fn main() -> io::Result<()> {
             let position = point(world_x, world_y, wall_z);
             let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
             let xs = intersect(&Rc::new(shape.clone()), &ray);
-            let hit = hit(&xs);
+            let hit = hit(&xs, &Rc::new(default_testshape()));
             if let Some(hit) = hit {
                 let world_point = ray.position(hit.t);
                 let normal = hit.object.normal_at(&world_point);

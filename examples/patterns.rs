@@ -34,7 +34,7 @@ fn main() -> io::Result<()> {
     let mut world = World::default();
     world.light = Some(Pointlight::new(point(-10.0, 10.0, -10.0), white.clone()));
 
-    let mut stripes1 = stripe_pattern(white.clone(), green);
+    let mut stripes1 = stripe_pattern(black.clone(), green);
     stripes1.set_transform(rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2));
     let mut stripes2 = stripe_pattern(white.clone(), blue.clone());
     stripes2.set_transform(rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2));

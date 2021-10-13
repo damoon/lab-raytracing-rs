@@ -20,10 +20,13 @@ impl PartialEq for Intersection {
     }
 }
 
-pub fn hit(xs: &[Intersection]) -> Option<Intersection> {
+pub fn hit(xs: &[Intersection], object: &Rc<Object>) -> Option<Intersection> {
     let mut r = None;
     for current in xs.iter() {
         if current.t < 0.0 {
+            continue;
+        }
+        if Rc::ptr_eq(object, &current.object) && current.t < 1024.0 * f64::EPSILON {
             continue;
         }
         r = match r {
@@ -48,14 +51,12 @@ pub struct IntersectionPrecomputations {
     pub normalv: Tuple,
     pub reflectv: Tuple,
     pub inside: bool,
-    pub over_point: Tuple,
-    pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
 }
 
 pub fn prepare_computations(
-    intersection: Intersection,
+    intersection: &Intersection,
     ray: &Ray,
     xs: &[Intersection],
 ) -> IntersectionPrecomputations {
@@ -63,7 +64,7 @@ pub fn prepare_computations(
     let mut n1 = 0.0;
     let mut n2 = 0.0;
     for i in xs.iter() {
-        if i == &intersection {
+        if i == intersection {
             if containers.is_empty() {
                 n1 = 1.0;
             } else {
@@ -80,7 +81,7 @@ pub fn prepare_computations(
             }
         }
 
-        if i == &intersection {
+        if i == intersection {
             if containers.is_empty() {
                 n2 = 1.0;
             } else {
@@ -90,54 +91,49 @@ pub fn prepare_computations(
     }
 
     let t = intersection.t;
-    let object = intersection.object;
+    let object = &intersection.object;
     let point = ray.position(t);
     let eyev = -&ray.direction;
-    let mut normalv = (&object.normal_at(&point)).clone();
+    let mut normalv = object.normal_at(&point);
     let mut inside = false;
     if dot(&normalv, &eyev) < 0.0 {
         inside = true;
         normalv = -normalv;
     }
     let reflectv = reflect(&ray.direction, &normalv);
-    let e = 0.0000000001;
-    let over_point = &point + (&normalv * e);
-    let under_point = &point - (&normalv * e);
 
     IntersectionPrecomputations {
         t,
-        object,
+        object: object.clone(),
         point,
         eyev,
         normalv,
         reflectv,
         inside,
-        over_point,
-        under_point,
         n1,
         n2,
     }
 }
 
-pub fn color_at(world: &World, ray: &Ray, remaining: usize) -> Tuple {
+pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: &Rc<Object>) -> Tuple {
     let intersections = world.insersect(ray);
-    let hit = hit(&intersections);
+    let hit = hit(&intersections, object);
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
-            let precomputations = prepare_computations(intersection, ray, &intersections);
+            let precomputations = prepare_computations(&intersection, ray, &intersections);
             shade_hit(world, &precomputations, remaining)
         }
     }
 }
 
 pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations, remaining: usize) -> Tuple {
-    let in_shadow = world.is_shadowed(comps.over_point.clone());
+    let in_shadow = world.is_shadowed(comps.point.clone(), &comps.object);
     let surface = lighting(
         &comps.object.material,
         &comps.object,
         world.light.as_ref().unwrap(),
-        &comps.over_point,
+        &comps.point,
         &comps.eyev,
         &comps.normalv,
         in_shadow,
@@ -165,8 +161,8 @@ pub fn reflected_color(
     if remaining == 0 {
         return color(0.0, 0.0, 0.0);
     }
-    let reflect_ray = Ray::new(comps.over_point.clone(), comps.reflectv.clone());
-    let color = color_at(world, &reflect_ray, remaining - 1);
+    let reflect_ray = Ray::new(comps.point.clone(), comps.reflectv.clone());
+    let color = color_at(world, &reflect_ray, remaining - 1, &comps.object);
     color * comps.object.material.reflective
 }
 
@@ -199,10 +195,10 @@ pub fn refracted_color(
     // Compute the direction of the refracted ray
     let direction = &comps.normalv * (n_ratio * cos_i - cos_t) - &comps.eyev * n_ratio;
     // Create the refracted ray
-    let refract_ray = Ray::new(comps.under_point.clone(), direction);
+    let refract_ray = Ray::new(comps.point.clone(), direction);
     // Find the color of the refracted ray, making sure to multiply
     // by the transparency value to account for any opacity
-    color_at(world, &refract_ray, remaining - 1) * comps.object.material.transparency
+    color_at(world, &refract_ray, remaining - 1, &comps.object) * comps.object.material.transparency
 }
 
 pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {

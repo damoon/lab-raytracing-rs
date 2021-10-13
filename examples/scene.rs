@@ -2,6 +2,7 @@ use lab_raytracing_rs::camera::render;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
+use lab_raytracing_rs::shapes::default_plane;
 use lab_raytracing_rs::shapes::default_sphere;
 use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_y;
@@ -29,29 +30,20 @@ fn main() -> io::Result<()> {
     background_material.color = color(1.0, 0.9, 0.9);
     background_material.specular = 0.0;
 
-    let mut floor = default_sphere();
+    let mut floor = default_plane();
     floor.material = background_material.clone();
-    floor.set_transform(scaling(10.0, 0.01, 10.0));
     world.add_object(floor);
 
-    let mut left_wall = default_sphere();
+    let mut left_wall = default_plane();
     left_wall.material = background_material.clone();
-    left_wall.set_transform(
-        translation(0.0, 0.0, 5.0)
-            * rotation_y(-PI / 4.0)
-            * rotation_x(PI / 2.0)
-            * scaling(10.0, 0.01, 10.0),
-    );
+    left_wall
+        .set_transform(translation(0.0, 0.0, 5.0) * rotation_y(-PI / 4.0) * rotation_x(PI / 2.0));
     world.add_object(left_wall);
 
-    let mut right_wall = default_sphere();
+    let mut right_wall = default_plane();
     right_wall.material = background_material;
-    right_wall.set_transform(
-        translation(0.0, 0.0, 5.0)
-            * rotation_y(PI / 4.0)
-            * rotation_x(PI / 2.0)
-            * scaling(10.0, 0.01, 10.0),
-    );
+    right_wall
+        .set_transform(translation(0.0, 0.0, 5.0) * rotation_y(PI / 4.0) * rotation_x(PI / 2.0));
     world.add_object(right_wall);
 
     let mut middle = default_sphere();

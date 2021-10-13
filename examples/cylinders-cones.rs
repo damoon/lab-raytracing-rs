@@ -1,9 +1,9 @@
 use lab_raytracing_rs::camera::render;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
-use lab_raytracing_rs::shapes::Shape;
 use lab_raytracing_rs::shapes::default_cone;
 use lab_raytracing_rs::shapes::default_cylinder;
+use lab_raytracing_rs::shapes::Shape;
 use lab_raytracing_rs::transformations::translation;
 use lab_raytracing_rs::transformations::view_transform;
 use lab_raytracing_rs::tuples::color;
@@ -29,7 +29,7 @@ fn main() -> io::Result<()> {
     let white = color(1.0, 1.0, 1.0);
 
     let mut world = World::default();
-    world.light = Some(Pointlight::new(point(12.0, 20.0, 12.0), white.clone()));
+    world.light = Some(Pointlight::new(point(12.0, 20.0, 12.0), white));
 
     let mut head = default_cone();
     head.shape = Shape::Cone(-1.2, 0.0, false);
@@ -41,7 +41,6 @@ fn main() -> io::Result<()> {
     body.shape = Shape::Cylinder(0.0, 9.0, false);
     body.material.color = red;
     world.add_object(body);
-
 
     let mut camera = Camera::new(1600, 900, PI / 3.0);
     camera.set_transform(view_transform(

@@ -238,7 +238,7 @@ pub fn steps() -> Steps<MyWorld> {
             Matrix::M4x4(m) => m,
             _ => panic!("matrix needs to be in 4x4 form"),
         };
-        assert!(eq_matrix4x4_similar(&computed, &desired));
+        assert!(eq_matrix4x4_similar(&computed, desired));
         world
     });
 

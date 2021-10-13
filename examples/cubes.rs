@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
     let white = color(1.0, 1.0, 1.0);
 
     let mut world = World::default();
-    world.light = Some(Pointlight::new(point(0.0, 2.9, -3.0), white.clone()));
+    world.light = Some(Pointlight::new(point(0.0, 2.9, -3.0), white));
 
     let mut light_cube = default_cube();
     light_cube.set_transform(translation(0.0, 2.9, -3.0) * scaling(0.1, 0.1, 0.1));

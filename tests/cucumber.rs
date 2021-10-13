@@ -75,7 +75,7 @@ impl CucumberWorld for MyWorld {
             m: Material::default(),
             w: World::default(),
             comps: prepare_computations(
-                Intersection {
+                &Intersection {
                     t: 1.0,
                     object: Rc::new(default_sphere()),
                 },
