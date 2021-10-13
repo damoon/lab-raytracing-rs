@@ -30,20 +30,6 @@ impl Tuple {
         let m = self.magnitude();
         self / m
     }
-
-    pub fn approximately(&self, other: Self) -> bool {
-        let e = 0.0001;
-        if (self.x - other.x).abs() > e {
-            return false;
-        }
-        if (self.y - other.y).abs() > e {
-            return false;
-        }
-        if (self.z - other.z).abs() > e {
-            return false;
-        }
-        true
-    }
 }
 
 impl fmt::Display for Tuple {
@@ -136,15 +122,13 @@ pub fn reflect(in_: &Tuple, normal: &Tuple) -> Tuple {
 
 impl std::cmp::PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
-        let e = 0.0001;
-        // let e = f64::EPSILON;
-        if (self.x - other.x).abs() > e {
+        if (self.x - other.x).abs() > f64::EPSILON {
             return false;
         }
-        if (self.y - other.y).abs() > e {
+        if (self.y - other.y).abs() > f64::EPSILON {
             return false;
         }
-        if (self.z - other.z).abs() > e {
+        if (self.z - other.z).abs() > f64::EPSILON {
             return false;
         }
         true

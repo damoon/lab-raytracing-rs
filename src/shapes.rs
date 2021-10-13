@@ -2,8 +2,12 @@ use std::{
     rc::Rc,
     sync::{Arc, RwLock},
 };
-
-use crate::{intersections::Intersection, materials::Material, matrices::{Matrix4x4, identity_matrix}, rays::Ray, tuples::{Tuple, color, dot, point, vector}};
+use crate::{
+    intersections::Intersection,
+    materials::Material,
+    matrices::{Matrix4x4, identity_matrix},
+    rays::Ray, tuples::{Tuple, color, dot, point, vector}
+};
 
 pub fn default_sphere() -> Object {
     let shape = Shape::Sphere;
@@ -88,8 +92,7 @@ impl Shape {
     pub fn intersect(&self, ray: &Ray) -> Vec<f64> {
         match self {
             Shape::Plane => {
-                let e = 0.0001;
-                if ray.direction.y.abs() < e {
+                if ray.direction.y.abs() < f64::EPSILON {
                     return vec![];
                 }
 
@@ -140,7 +143,7 @@ impl Shape {
 
                 let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
                 // ray is parallel to the y axis
-                if a.abs() < 0.0001 {
+                if a.abs() < f64::EPSILON {
                     intersect_caps_cylinder(min, max, closed, ray, &mut xs);
                     return xs;
                 }
@@ -183,7 +186,7 @@ impl Shape {
                     xs.push(t);
                 }
 
-                if a.abs() > 0.0001 {
+                if a.abs() > f64::EPSILON {
                     let disc = b.powi(2) - 4.0 * a * c;
                     // ray does not intersect the cylinder
                     if disc >= 0.0 {
@@ -230,25 +233,23 @@ impl Shape {
                 }
             },
             Shape::Cylinder(minimum, maximum, _closed) => {
-                let e = 0.0001;
                 // compute the square of the distance from the y axis
                 let dist = local_point.x.powi(2) + local_point.z.powi(2);
-                if dist < 1.0 && local_point.y >= maximum - e {
+                if dist < 1.0 && local_point.y >= maximum - f64::EPSILON {
                     return vector(0.0, 1.0, 0.0)
                 }
-                if dist < 1.0 && local_point.y <= minimum + e {
+                if dist < 1.0 && local_point.y <= minimum + f64::EPSILON {
                     return vector(0.0, -1.0, 0.0)
                 }
                 vector(local_point.x, 0.0, local_point.z)
             }
             Shape::Cone(minimum, maximum, _closed) => {
-                let e = 0.0001;
                 // compute the square of the distance from the y axis
                 let dist = local_point.x.powi(2) + local_point.z.powi(2);
-                if dist < maximum.powi(2) && local_point.y >= maximum - e {
+                if dist < maximum.powi(2) && local_point.y >= maximum - f64::EPSILON {
                     return vector(0.0, 1.0, 0.0)
                 }
-                if dist < minimum.powi(2) && local_point.y <= minimum + e {
+                if dist < minimum.powi(2) && local_point.y <= minimum + f64::EPSILON {
                     return vector(0.0, -1.0, 0.0)
                 }
                 let mut y = dist.sqrt();
@@ -265,7 +266,7 @@ impl Shape {
 fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
     let tmin_numerator = -1.0 - origin;
     let tmax_numerator = 1.0 - origin;
-    let (mut tmin, mut tmax) = if direction.abs() >= 0.0001 {
+    let (mut tmin, mut tmax) = if direction.abs() >= f64::EPSILON {
         (tmin_numerator / direction, tmax_numerator / direction)
     } else {
         (tmin_numerator * f64::INFINITY, tmax_numerator * f64::INFINITY)
@@ -301,7 +302,7 @@ fn check_cap(ray: &Ray, t: f64, r: f64) -> bool {
 fn intersect_caps_cylinder(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
-    if !closed || ray.direction.y.abs() < 0.0001 {
+    if !closed || ray.direction.y.abs() < f64::EPSILON {
         return
     }
 
@@ -323,7 +324,7 @@ fn intersect_caps_cylinder(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ra
 fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
-    if !closed || ray.direction.y.abs() < 0.0001 {
+    if !closed || ray.direction.y.abs() < f64::EPSILON {
         return
     }
 

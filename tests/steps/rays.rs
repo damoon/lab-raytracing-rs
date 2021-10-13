@@ -1,4 +1,4 @@
-use super::tuples::{parse_point, parse_vector};
+use super::tuples::{eq_tuples_similar, parse_point, parse_vector};
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{rays::Ray, tuples::vector};
@@ -85,7 +85,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^r.direction = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
         |world, ctx| {
             let vector = parse_vector(&ctx.matches[1..=3]);
-            assert_eq!(world.r.direction, vector);
+            eq_tuples_similar(&world.r.direction, &vector);
             world
         },
     );

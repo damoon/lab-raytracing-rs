@@ -1,4 +1,4 @@
-use super::tuples::parse_color;
+use super::tuples::{eq_tuples_similar, parse_color};
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::canvas::Canvas;
@@ -71,7 +71,7 @@ pub fn steps() -> Steps<MyWorld> {
             let h = ctx.matches[2].parse::<usize>().unwrap();
             let desired = parse_color(&ctx.matches[3..=5]);
             let color = world.image.at(w, h);
-            assert_eq!(color, &desired);
+            eq_tuples_similar(color, &desired);
             world
         },
     );

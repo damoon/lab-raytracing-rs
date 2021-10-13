@@ -138,7 +138,7 @@ pub fn steps() -> Steps<MyWorld> {
             if &ctx.matches[1] == "-" {
                 tuple = -tuple;
             }
-            assert_eq!(desired_tuple, tuple);
+            eq_tuples_similar(&desired_tuple, &tuple);
             world
         },
     );
@@ -150,7 +150,7 @@ pub fn steps() -> Steps<MyWorld> {
             let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
             let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
             let computed_tuple = tuple1 + tuple2;
-            assert_eq!(computed_tuple, desired_tuple);
+            eq_tuples_similar(&computed_tuple, &desired_tuple);
             world
         },
     );
@@ -160,7 +160,7 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let point = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_color = parse_color(&ctx.matches[2..=4]);
-            assert_eq!(point, desired_color);
+            eq_tuples_similar(&point, &desired_color);
             world
         },
     );
@@ -170,7 +170,7 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
             let desired_vector = parse_vector(&ctx.matches[2..=4]);
-            assert_eq!(tuple, desired_vector);
+            eq_tuples_similar(&tuple, &desired_vector);
             world
         },
     );
@@ -184,7 +184,7 @@ pub fn steps() -> Steps<MyWorld> {
                 3.0_f64.sqrt() / 3.0,
                 3.0_f64.sqrt() / 3.0,
             );
-            assert_eq!(tuple, desired_vector);
+            eq_tuples_similar(&tuple, &desired_vector);
             world
         },
     );
@@ -196,7 +196,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color1 = world.tuples.get(&ctx.matches[1]).unwrap();
             let color2 = world.tuples.get(&ctx.matches[2]).unwrap();
             let computed_color = color1 + color2;
-            assert_eq!(computed_color, desired_color);
+            eq_tuples_similar(&computed_color, &desired_color);
             world
         },
     );
@@ -206,7 +206,7 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let desired_color = parse_color(&ctx.matches[2..=4]);
             let color = world.tuples.get(&ctx.matches[1]).unwrap();
-            assert_eq!(color, &desired_color);
+            eq_tuples_similar(color, &desired_color);
             world
         },
     );
@@ -214,7 +214,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^(c) = (white)$"#, |world, ctx| {
         let lookup = world.tuples.get(&ctx.matches[1]).unwrap();
         let desired = world.tuples.get(&ctx.matches[2]).unwrap();
-        assert_eq!(lookup, desired);
+        eq_tuples_similar(lookup, desired);
         world
     });
 
@@ -230,7 +230,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "color" => parse_color(&ctx.matches[4..=6]),
                 _ => panic!("type not covered"),
             };
-            assert_eq!(desired_tuple, vector);
+            eq_tuples_similar(&desired_tuple, &vector);
             world
         },
     );
@@ -246,7 +246,7 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("operator not covered"),
             };
             let desired_tuple = parse_tuple(&ctx.matches[4..=7]);
-            assert_eq!(calculated, desired_tuple);
+            eq_tuples_similar(&calculated, &desired_tuple);
             world
         },
     );
@@ -258,7 +258,7 @@ pub fn steps() -> Steps<MyWorld> {
             let multiplicator = ctx.matches[2].parse::<f64>().unwrap();
             let calculated = tuple * multiplicator;
             let desired_color = parse_color(&ctx.matches[3..=5]);
-            assert_eq!(calculated, desired_color);
+            eq_tuples_similar(&calculated, &desired_color);
             world
         },
     );
@@ -270,7 +270,7 @@ pub fn steps() -> Steps<MyWorld> {
             let color2 = world.tuples.get(&ctx.matches[2]).unwrap();
             let calculated = color1 * color2;
             let desired_color = parse_color(&ctx.matches[3..=5]);
-            assert_eq!(calculated, desired_color);
+            eq_tuples_similar(&calculated, &desired_color);
             world
         },
     );
@@ -280,7 +280,7 @@ pub fn steps() -> Steps<MyWorld> {
         |world, ctx| {
             let color = world.tuples.get(&ctx.matches[1]).unwrap();
             let desired_color = parse_color(&ctx.matches[2..=4]);
-            assert_eq!(color, &desired_color);
+            eq_tuples_similar(color, &desired_color);
             world
         },
     );
@@ -304,7 +304,7 @@ pub fn steps() -> Steps<MyWorld> {
             let calculated = world.tuples.get(&ctx.matches[1]).unwrap().normalize();
             let desired = parse_vector(&ctx.matches[3..=5]);
             if ctx.matches[2] == "approximately " {
-                assert!(desired.approximately(calculated));
+                eq_tuples_similar(&desired, &calculated);
             } else {
                 assert_eq!(desired, calculated);
             }
@@ -354,4 +354,20 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps
+}
+
+pub fn eq_tuples_similar(this: &Tuple, other: &Tuple) -> bool {
+    if (this.x - other.x).abs() > 0.0001 {
+        return false;
+    }
+    if (this.y - other.y).abs() > 0.0001 {
+        return false;
+    }
+    if (this.z - other.z).abs() > 0.0001 {
+        return false;
+    }
+    if (this.w - other.w).abs() > 0.0001 {
+        return false;
+    }
+    true
 }
