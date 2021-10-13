@@ -52,7 +52,7 @@ pub fn lighting(
         let reflect_dot_eye = dot(&reflectv, eyev);
 
         if reflect_dot_eye > 0.0 {
-            let factor = f64::powf(reflect_dot_eye, material.shininess);
+            let factor = reflect_dot_eye.powf(material.shininess);
             specular = &light.intensity * material.specular * factor;
         }
     }
