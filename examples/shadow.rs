@@ -1,7 +1,9 @@
 use lab_raytracing_rs::camera::render;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
+use lab_raytracing_rs::shapes::default_plane;
 use lab_raytracing_rs::shapes::default_sphere;
+use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_z;
 use lab_raytracing_rs::transformations::scaling;
 use lab_raytracing_rs::transformations::translation;
@@ -51,8 +53,8 @@ fn main() -> io::Result<()> {
     );
     world.add_object(finger5);
 
-    let mut wall = default_sphere();
-    wall.set_transform(translation(-2.5, 0.0, -10.0) * scaling(10.0, 10.0, 0.01));
+    let mut wall = default_plane();
+    wall.set_transform(translation(0.0, 0.0, -10.0) * rotation_x(PI / 2.0));
     world.add_object(wall);
 
     let mut camera = Camera::new(800, 800, PI / 3.0);

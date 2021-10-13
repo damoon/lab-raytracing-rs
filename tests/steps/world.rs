@@ -2,7 +2,15 @@ use std::rc::Rc;
 
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{camera::RAY_RECURSION_DEPTH, intersections::{color_at, reflected_color, refracted_color, shade_hit}, lights::Pointlight, shapes::default_sphere, transformations::scaling, tuples::{color, point}, world::World};
+use lab_raytracing_rs::{
+    camera::RAY_RECURSION_DEPTH,
+    intersections::{color_at, reflected_color, refracted_color, shade_hit},
+    lights::Pointlight,
+    shapes::{default_sphere, default_testshape},
+    transformations::scaling,
+    tuples::{color, point},
+    world::World,
+};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
@@ -121,7 +129,8 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.when("c ← color_at(w, r)", |mut world, _ctx| {
-        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
+        let none = &Rc::new(default_testshape());
+        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, none);
         world.tuples.insert("c".to_string(), color);
         world
     });
@@ -129,7 +138,8 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then(
         "color_at(w, r) should terminate successfully",
         |mut world, _ctx| {
-            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
+            let none = &Rc::new(default_testshape());
+            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, none);
             world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
             world
         },
@@ -149,7 +159,9 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^is_shadowed\(w, p\) is (true|false)$"#, |world, ctx| {
         let desired = ctx.matches[1].parse().unwrap();
         let point = world.tuples.get("p").unwrap();
-        let computed = world.w.is_shadowed(point.clone());
+        let computed = world
+            .w
+            .is_shadowed(point.clone(), &Rc::new(default_testshape()));
         assert_eq!(computed, desired);
         world
     });

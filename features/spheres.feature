@@ -126,4 +126,4 @@ Feature: Spheres
         Given s ← glass_sphere()
         Then s.transform = identity_matrix
         And s.material.transparency = 1.0
-        And s.material.refractive_index = 1.5
+        And s.material.refractive_index = 1.52

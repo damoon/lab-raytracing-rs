@@ -7,7 +7,7 @@ use crate::MyWorld;
 pub fn parse_float(s: &str) -> f64 {
     match s {
         "√2" => 2.0_f64.sqrt(),
-        "-√2" => -2.0_f64.sqrt(),
+        "-√2" => -(2.0_f64.sqrt()),
         "√2/2" => 2.0_f64.sqrt() / 2.0_f64,
         "-√2/2" => -(2.0_f64.sqrt()) / 2.0_f64,
         "√3/3" => 3.0_f64.sqrt() / 3.0_f64,
@@ -312,11 +312,14 @@ pub fn steps() -> Steps<MyWorld> {
         },
     );
 
-    steps.given_regex(r#"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#, |mut world, ctx| {
-        let normalized = parse_vector(&ctx.matches[2..=4]).normalize();
-        world.tuples.insert(ctx.matches[1].clone(), normalized);
-        world
-    });
+    steps.given_regex(
+        r#"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
+        |mut world, ctx| {
+            let normalized = parse_vector(&ctx.matches[2..=4]).normalize();
+            world.tuples.insert(ctx.matches[1].clone(), normalized);
+            world
+        },
+    );
 
     steps.when_regex(r#"^(norm) ← normalize\((v)\)$"#, |mut world, ctx| {
         let normalized = world.tuples.get(&ctx.matches[2]).unwrap().normalize();

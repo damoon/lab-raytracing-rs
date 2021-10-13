@@ -32,7 +32,7 @@ impl World {
         v
     }
 
-    pub fn is_shadowed(&self, point: Tuple) -> bool {
+    pub fn is_shadowed(&self, point: Tuple, object: &Rc<Object>) -> bool {
         let v = &self.light.as_ref().unwrap().position - &point;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -43,6 +43,9 @@ impl World {
                 continue;
             }
             if i.t > distance {
+                continue;
+            }
+            if Rc::ptr_eq(object, &i.object) && i.t.abs() < 1024.0 * f64::EPSILON {
                 continue;
             }
             if i.object.throws_shaddow {
