@@ -12,7 +12,7 @@ use lab_raytracing_rs::{
     world::World,
 };
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("w ← world()", |mut world, _ctx| {
@@ -52,7 +52,8 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when("xs ← intersect_world(w, r)", |mut world, _ctx| {
-        world.xs = world.w.insersect(&world.r);
+        let xs = world.w.insersect(&world.r);
+        world.xs = xs;
         world
     });
 
@@ -178,7 +179,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps
 }
 
-pub fn default_world() -> World {
+pub fn default_world() -> World<'static> {
     let mut w = World::default();
     w.light = Some(Pointlight::new(
         point(-10.0, 10.0, -10.0),
@@ -193,6 +194,6 @@ pub fn default_world() -> World {
     let mut s2 = default_sphere();
     s2.set_transform(scaling(0.5, 0.5, 0.5));
 
-    w.objects = vec![Rc::new(s1), Rc::new(s2)];
+    w.objects = vec![s1, s2];
     w
 }

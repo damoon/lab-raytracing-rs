@@ -8,7 +8,7 @@ use lab_raytracing_rs::{
     transformations::{rotation_y, translation, view_transform},
 };
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^(hsize|vsize) ← ([-0-9.]+)$"#, |mut world, ctx| {

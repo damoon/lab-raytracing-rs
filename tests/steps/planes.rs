@@ -6,12 +6,12 @@ use lab_raytracing_rs::{intersections::Intersection, shapes::default_plane};
 
 use super::tuples::parse_point;
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("p ← plane()", |mut world, _ctx| {
         let p = default_plane();
-        world.shapes.insert("p".to_string(), Rc::new(p));
+        world.shapes.insert("p".to_string(), p);
         world
     });
 
@@ -23,7 +23,7 @@ pub fn steps() -> Steps<MyWorld> {
             .iter()
             .map(|&i| Intersection {
                 t: i,
-                object: obj.clone(),
+                object: obj,
             })
             .collect();
         world
@@ -37,7 +37,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^xs\[([-0-9.]+)\].object = p$"#, |world, ctx| {
         let desired = world.shapes.get("p").unwrap();
         let index = ctx.matches[1].parse::<usize>().unwrap();
-        let lookup = &world.xs.get(index).unwrap().object;
+        let lookup = world.xs.get(index).unwrap().object;
         assert_eq!(lookup, desired);
         world
     });
@@ -48,7 +48,7 @@ pub fn steps() -> Steps<MyWorld> {
             let point = &parse_point(&ctx.matches[3..=5]);
             let obj = world.shapes.get(&ctx.matches[2]).unwrap();
             let normal = obj.shape.normal_at(point);
-            world.tuples.insert(ctx.matches[1].to_string(), normal);
+            world.tuples.insert(ctx.matches[1].clone(), normal);
             world
         },
     );
@@ -59,7 +59,7 @@ pub fn steps() -> Steps<MyWorld> {
             let point = world.tuples.get(&ctx.matches[3]).unwrap();
             let obj = world.shapes.get(&ctx.matches[2]).unwrap();
             let normal = obj.shape.normal_at(point);
-            world.tuples.insert(ctx.matches[1].to_string(), normal);
+            world.tuples.insert(ctx.matches[1].clone(), normal);
             world
         },
     );

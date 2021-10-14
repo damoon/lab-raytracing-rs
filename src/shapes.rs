@@ -6,39 +6,38 @@ use crate::{
     tuples::{color, dot, point, vector, Tuple},
 };
 use std::{
-    rc::Rc,
     sync::{Arc, RwLock},
 };
 
-pub fn default_sphere() -> Object {
+pub fn default_sphere() -> Object<'static> {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_testshape() -> Object {
+pub fn default_testshape() -> Object<'static> {
     let shape = Shape::Testshape;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_plane() -> Object {
+pub fn default_plane() -> Object<'static> {
     let shape = Shape::Plane;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_cube() -> Object {
+pub fn default_cube() -> Object<'static> {
     let shape = Shape::Cube;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn glass_sphere() -> Object {
+pub fn glass_sphere() -> Object<'static> {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
     let mut material = Material::default();
@@ -52,27 +51,33 @@ pub fn glass_sphere() -> Object {
     Object::new(shape, transform, material)
 }
 
-pub fn default_cylinder() -> Object {
+pub fn default_cylinder() -> Object<'static> {
     let shape = Shape::Cylinder(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_cone() -> Object {
+pub fn default_cone() -> Object<'static> {
     let shape = Shape::Cone(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Object {
+#[derive(Debug, Clone)]
+pub struct Object<'a> {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
-    pub material: Material,
+    pub material: Material<'a>,
     pub shape: Shape,
     pub throws_shaddow: bool,
+}
+
+impl<'a> PartialEq for Object<'a> {
+    fn eq(&self, other: &Self) -> bool { 
+        self as *const Object == other as *const Object
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -354,19 +359,19 @@ fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, x
     }
 }
 
-pub fn intersect(obj: &Rc<Object>, world_ray: &Ray) -> Vec<Intersection> {
+pub fn intersect<'a>(obj: &'a Object, world_ray: &Ray) -> Vec<Intersection<'a>> {
     let local_ray = world_ray.transform(&obj.transform_inverse);
     obj.shape
         .intersect(&local_ray)
         .iter()
         .map(|t| Intersection {
             t: *t,
-            object: obj.clone(),
+            object: obj,
         })
         .collect()
 }
 
-impl Object {
+impl<'a> Object<'a> {
     pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
         let transform_inverse = transform.inverse().unwrap();
         Object {

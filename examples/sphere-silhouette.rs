@@ -2,12 +2,10 @@ use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::hit;
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::shapes::default_sphere;
-use lab_raytracing_rs::shapes::default_testshape;
 use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
-use std::rc::Rc;
 
 fn main() -> io::Result<()> {
     let black = color(0.1, 0.1, 0.1);
@@ -32,8 +30,8 @@ fn main() -> io::Result<()> {
 
             let position = point(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
-            let xs = intersect(&Rc::new(shape.clone()), &r);
-            let hit = hit(&xs, &Rc::new(default_testshape()));
+            let xs = intersect(&shape, &r);
+            let hit = hit(&xs, None);
             if hit.is_some() {
                 canvas.set(x, y, red.clone());
             };

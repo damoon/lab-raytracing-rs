@@ -5,20 +5,20 @@ use crate::{
     MyWorld,
 };
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber_rust::{StepContext, Steps};
 use lab_raytracing_rs::{
     intersections::{hit, prepare_computations, schlick, Intersection},
     shapes::default_testshape,
 };
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.when_regex(
         r#"^(i) ← intersection\(([-0-9.]+), s\)$"#,
         |mut world, ctx| {
             let t = ctx.matches[2].parse::<f64>().unwrap();
-            let object = world.shapes.get("s").unwrap().clone();
+            let object = world.shapes.get("s").unwrap();
             let intersection = Intersection { t, object };
             world
                 .intersections
@@ -34,7 +34,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "√2" => 2.0_f64.sqrt(),
                 s => s.parse::<f64>().unwrap(),
             };
-            let object = world.shapes.get(&ctx.matches[3]).unwrap().clone();
+            let object = world.shapes.get(&ctx.matches[3]).unwrap();
             let intersection = Intersection { t, object };
             world
                 .intersections
@@ -44,7 +44,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.then_regex(r#"^(i).object = s$"#, |world, ctx| {
-        let shape = &world.intersections.get(&ctx.matches[1]).unwrap().object;
+        let shape = world.intersections.get(&ctx.matches[1]).unwrap().object;
         let desired = world.shapes.get("s").unwrap();
         assert_eq!(shape, desired);
         world
@@ -215,27 +215,27 @@ pub fn steps() -> Steps<MyWorld> {
             world.xs = vec![
                 Intersection {
                     t: 2.0,
-                    object: world.shapes.get("A").unwrap().clone(),
+                    object: world.shapes.get("A").unwrap(),
                 },
                 Intersection {
                     t: 2.75,
-                    object: world.shapes.get("B").unwrap().clone(),
+                    object: world.shapes.get("B").unwrap(),
                 },
                 Intersection {
                     t: 3.25,
-                    object: world.shapes.get("C").unwrap().clone(),
+                    object: world.shapes.get("C").unwrap(),
                 },
                 Intersection {
                     t: 4.75,
-                    object: world.shapes.get("B").unwrap().clone(),
+                    object: world.shapes.get("B").unwrap(),
                 },
                 Intersection {
                     t: 5.25,
-                    object: world.shapes.get("C").unwrap().clone(),
+                    object: world.shapes.get("C").unwrap(),
                 },
                 Intersection {
                     t: 6.0,
-                    object: world.shapes.get("A").unwrap().clone(),
+                    object: world.shapes.get("A").unwrap(),
                 },
             ];
             world
@@ -248,19 +248,19 @@ pub fn steps() -> Steps<MyWorld> {
             world.xs = vec![
                 Intersection {
                     t: parse_float(&ctx.matches[1]),
-                    object: world.shapes.get(&ctx.matches[2]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[2]).unwrap(),
                 },
                 Intersection {
                     t: parse_float(&ctx.matches[3]),
-                    object: world.shapes.get(&ctx.matches[4]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[4]).unwrap(),
                 },
                 Intersection {
                     t: parse_float(&ctx.matches[5]),
-                    object: world.shapes.get(&ctx.matches[6]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[6]).unwrap(),
                 },
                 Intersection {
                     t: parse_float(&ctx.matches[7]),
-                    object: world.shapes.get(&ctx.matches[8]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[8]).unwrap(),
                 },
             ];
             world
@@ -273,11 +273,11 @@ pub fn steps() -> Steps<MyWorld> {
             world.xs = vec![
                 Intersection {
                     t: parse_float(&ctx.matches[1]),
-                    object: world.shapes.get(&ctx.matches[2]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[2]).unwrap(),
                 },
                 Intersection {
                     t: parse_float(&ctx.matches[3]),
-                    object: world.shapes.get(&ctx.matches[4]).unwrap().clone(),
+                    object: world.shapes.get(&ctx.matches[4]).unwrap(),
                 },
             ];
             world
@@ -286,10 +286,10 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.given_regex(
         r#"xs ← intersections\(([-√/0-9\.]+):(floor|shape)\)"#,
-        |mut world, ctx| {
+        |mut world: MyWorld, ctx| {
             world.xs = vec![Intersection {
                 t: parse_float(&ctx.matches[1]),
-                object: world.shapes.get(&ctx.matches[2]).unwrap().clone(),
+                object: world.shapes.get(&ctx.matches[2]).unwrap(),
             }];
             world
         },

@@ -6,26 +6,26 @@ use crate::{
 use noise::{NoiseFn, Perlin, Seedable};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Pattern {
+pub struct Pattern<'a> {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
-    pub renderer: Renderer,
+    pub renderer: Renderer<'a>,
 }
 
 #[derive(Debug, Clone)]
-pub enum Renderer {
-    Stripes(Box<Pattern>, Box<Pattern>),
-    Gradient(Box<Pattern>, Box<Pattern>),
-    Ring(Box<Pattern>, Box<Pattern>),
-    Checkers(Box<Pattern>, Box<Pattern>),
-    RadialGradient(Box<Pattern>, Box<Pattern>),
-    Blended(Box<Pattern>, Box<Pattern>),
-    Perturbed(f64, Box<Perlin>, Box<Perlin>, Box<Perlin>, Box<Pattern>),
+pub enum Renderer<'a> {
+    Stripes(&'a Pattern<'a>, &'a Pattern<'a>),
+    Gradient(&'a Pattern<'a>, &'a Pattern<'a>),
+    Ring(&'a Pattern<'a>, &'a Pattern<'a>),
+    Checkers(&'a Pattern<'a>, &'a Pattern<'a>),
+    RadialGradient(&'a Pattern<'a>, &'a Pattern<'a>),
+    Blended(&'a Pattern<'a>, &'a Pattern<'a>),
+    Perturbed(f64, &'a Perlin, &'a Perlin, &'a Perlin, &'a Pattern<'a>),
     Solid(Tuple),
     Test(),
 }
 
-impl PartialEq for Renderer {
+impl<'a> PartialEq for Renderer<'a> {
     fn eq(&self, other: &Renderer) -> bool {
         match (self, other) {
             (Renderer::Stripes(a1, b1), Renderer::Stripes(a2, b2)) => a1 == a2 && b1 == b2,
@@ -53,7 +53,7 @@ impl PartialEq for Renderer {
     }
 }
 
-impl Pattern {
+impl<'a> Pattern<'a> {
     pub fn new(transform: Matrix4x4, renderer: Renderer) -> Pattern {
         let transform_inverse = transform.inverse().unwrap();
         Pattern {
@@ -77,7 +77,7 @@ impl Pattern {
     }
 }
 
-impl Renderer {
+impl<'a> Renderer<'a> {
     fn color_at(&self, p: &Tuple) -> Tuple {
         match self {
             Renderer::Stripes(a, b) => {
@@ -132,7 +132,7 @@ impl Renderer {
     }
 }
 
-pub fn solid_pattern(color: Tuple) -> Pattern {
+pub fn solid_pattern(color: Tuple) -> Pattern<'static> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -140,47 +140,47 @@ pub fn solid_pattern(color: Tuple) -> Pattern {
     }
 }
 
-pub fn stripe_pattern(a: Tuple, b: Tuple) -> Pattern {
+pub fn stripe_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::Stripes(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
+        renderer: Renderer::Stripes(a, b),
     }
 }
 
-pub fn gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
+pub fn gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::Gradient(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
+        renderer: Renderer::Gradient(a, b),
     }
 }
 
-pub fn ring_pattern(a: Tuple, b: Tuple) -> Pattern {
+pub fn ring_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::Ring(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
+        renderer: Renderer::Ring(a, b),
     }
 }
 
-pub fn checkers_pattern(a: Tuple, b: Tuple) -> Pattern {
+pub fn checkers_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::Checkers(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
+        renderer: Renderer::RadialGradient(a, b),
     }
 }
 
-pub fn radial_gradient_pattern(a: Tuple, b: Tuple) -> Pattern {
+pub fn radial_gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::RadialGradient(Box::new(solid_pattern(a)), Box::new(solid_pattern(b))),
+        renderer: Renderer::RadialGradient(a, b),
     }
 }
 
-pub fn test_pattern() -> Pattern {
+pub fn test_pattern() -> Pattern<'static> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),

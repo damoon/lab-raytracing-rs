@@ -5,7 +5,7 @@ use crate::MyWorld;
 
 use super::tuples::parse_point;
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.when(
@@ -86,7 +86,7 @@ pub fn steps() -> Steps<MyWorld> {
             let normalv = world.tuples.get("normalv").unwrap();
             let in_shadow = false;
             let result = lighting(material, &object, light, &position, eyev, normalv, in_shadow);
-            world.tuples.insert(ctx.matches[1].to_string(), result);
+            world.tuples.insert(ctx.matches[1].clone(), result);
             world
         },
     );

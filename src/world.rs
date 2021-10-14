@@ -3,14 +3,13 @@ use crate::lights::Pointlight;
 use crate::rays::Ray;
 use crate::shapes::{intersect, Object};
 use crate::tuples::Tuple;
-use std::rc::Rc;
 
-pub struct World {
-    pub objects: Vec<Rc<Object>>,
+pub struct World<'a> {
+    pub objects: Vec<Object<'a>>,
     pub light: Option<Pointlight>,
 }
 
-impl World {
+impl<'a> World<'a> {
     pub fn default() -> Self {
         World {
             objects: Vec::new(),
@@ -18,8 +17,8 @@ impl World {
         }
     }
 
-    pub fn add_object(&mut self, obj: Object) {
-        self.objects.push(Rc::new(obj));
+    pub fn add_object(&mut self, obj: Object<'a>) {
+        self.objects.push(obj);
     }
 
     pub fn insersect(&self, r: &Ray) -> Vec<Intersection> {
@@ -32,7 +31,7 @@ impl World {
         v
     }
 
-    pub fn is_shadowed(&self, point: Tuple, object: &Rc<Object>) -> bool {
+    pub fn is_shadowed(&self, point: Tuple, object: &Object) -> bool {
         let v = &self.light.as_ref().unwrap().position - &point;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -45,7 +44,7 @@ impl World {
             if i.t > distance {
                 continue;
             }
-            if Rc::ptr_eq(object, &i.object) && i.t.abs() < 1024.0 * f64::EPSILON {
+            if object == i.object && i.t.abs() < 1024.0 * f64::EPSILON {
                 continue;
             }
             if i.object.throws_shaddow {

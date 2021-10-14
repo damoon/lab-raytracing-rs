@@ -3,7 +3,7 @@ use cucumber_rust::Steps;
 use lab_raytracing_rs::shapes::Shape;
 use std::{ops::Deref, rc::Rc};
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.then_regex(r#"cyl.(minimum|maximum) = (-?infinity)"#, |world, ctx| {
@@ -67,7 +67,7 @@ pub fn steps() -> Steps<MyWorld> {
             };
             world
                 .shapes
-                .insert(ctx.matches[1].to_string(), Rc::new(obj));
+                .insert(ctx.matches[1].clone(), obj);
             world
         },
     );
@@ -94,7 +94,7 @@ pub fn steps() -> Steps<MyWorld> {
             };
             world
                 .shapes
-                .insert(ctx.matches[1].to_string(), Rc::new(obj));
+                .insert(ctx.matches[1].clone(), obj);
             world
         },
     );
