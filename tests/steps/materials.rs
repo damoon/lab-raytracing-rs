@@ -6,7 +6,7 @@ use lab_raytracing_rs::materials::Material;
 
 use crate::{steps::tuples::parse_color, MyWorld};
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("m ← material()", |mut world, _ctx| {
@@ -72,7 +72,7 @@ pub fn steps() -> Steps<MyWorld> {
             let value = ctx.matches[2].parse::<f64>().unwrap();
             let mut object = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
             object.material.ambient = value;
-            world.shapes.insert(ctx.matches[1].clone(), Rc::new(object));
+            world.shapes.insert(ctx.matches[1].clone(), object);
             world
         },
     );

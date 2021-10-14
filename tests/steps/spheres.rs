@@ -9,7 +9,7 @@ use lab_raytracing_rs::{matrices::Matrix4x4, patterns::test_pattern, shapes::{de
 use regex::Regex;
 use std::{ops::Deref, rc::Rc};
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
@@ -24,7 +24,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "cone" => default_cone(),
                 _ => panic!("object kind not covered"),
             };
-            world.shapes.insert(ctx.matches[1].clone(), Rc::new(s));
+            world.shapes.insert(ctx.matches[1].clone(), s);
             world
         },
     );
@@ -57,7 +57,7 @@ pub fn steps() -> Steps<MyWorld> {
                     _ => panic!("object property not covered"),
                 }
             }
-            world.shapes.insert(ctx.matches[1].to_string(), Rc::new(s));
+            world.shapes.insert(ctx.matches[1].clone(), s);
             world
         },
     );
@@ -69,7 +69,7 @@ pub fn steps() -> Steps<MyWorld> {
             let value = row.get(1).unwrap();
             match (key.as_str(), value.as_str()) {
                 ("material.ambient", value) => s.material.ambient = value.parse::<f64>().unwrap(),
-                ("material.pattern", "test_pattern()") => s.material.pattern = Some(test_pattern()),
+                // TODO ("material.pattern", "test_pattern()") => s.material.pattern = Some(test_pattern()),
                 ("material.transparency", value) => {
                     s.material.transparency = value.parse::<f64>().unwrap()
                 }
@@ -79,7 +79,7 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("object property not covered"),
             }
         }
-        world.shapes.insert(ctx.matches[1].to_string(), Rc::new(s));
+        world.shapes.insert(ctx.matches[1].clone(), s);
         world
     });
 
@@ -91,7 +91,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.when("s.material ← m", |mut world, _ctx| {
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.material = world.m.clone();
-        world.shapes.insert("s".to_string(), Rc::new(obj));
+        world.shapes.insert("s".to_string(), obj);
         world
     });
 
@@ -114,7 +114,7 @@ pub fn steps() -> Steps<MyWorld> {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.set_transform(transformation);
-        world.shapes.insert("s".to_string(), Rc::new(obj));
+        world.shapes.insert("s".to_string(), obj);
         world
     });
 
@@ -122,7 +122,7 @@ pub fn steps() -> Steps<MyWorld> {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.set_transform(transformation);
-        world.shapes.insert("s".to_string(), Rc::new(obj));
+        world.shapes.insert("s".to_string(), obj);
         world
     });
 
@@ -136,7 +136,7 @@ pub fn steps() -> Steps<MyWorld> {
             };
             let mut obj = world.shapes.get_mut(&ctx.matches[1]).unwrap().deref().deref().clone();
             obj.set_transform(transformation);
-            world.shapes.insert(ctx.matches[1].to_string(), Rc::new(obj));
+            world.shapes.insert(ctx.matches[1].clone(), obj);
             world
         },
     );
@@ -151,7 +151,7 @@ pub fn steps() -> Steps<MyWorld> {
             };
             let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
             obj.set_transform(transformation);
-            world.shapes.insert("s".to_string(), Rc::new(obj));
+            world.shapes.insert("s".to_string(), obj);
             world
         },
     );

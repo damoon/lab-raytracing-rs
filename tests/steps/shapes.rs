@@ -7,13 +7,13 @@ use crate::{
 use cucumber_rust::Steps;
 use lab_raytracing_rs::shapes::default_testshape;
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^(s) ← test_shape\(\)$"#, |mut world, ctx| {
         world
             .shapes
-            .insert(ctx.matches[1].clone(), Rc::new(default_testshape()));
+            .insert(ctx.matches[1].clone(), default_testshape());
         world
     });
 

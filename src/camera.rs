@@ -1,5 +1,11 @@
-use std::rc::Rc;
-use crate::{canvas::Canvas, intersections::color_at, matrices::{identity_matrix, Matrix4x4}, rays::Ray, shapes::default_testshape, tuples::point, world::World};
+use crate::{
+    canvas::Canvas,
+    intersections::color_at,
+    matrices::{identity_matrix, Matrix4x4},
+    rays::Ray,
+    tuples::point,
+    world::World,
+};
 pub const RAY_RECURSION_DEPTH: usize = 5;
 
 pub struct Camera {
@@ -74,8 +80,7 @@ pub fn render(camera: &Camera, world: &World) -> Canvas {
     for y in 0..camera.vsize {
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
-            let none = &Rc::new(default_testshape());
-            let color = color_at(world, &ray, camera.ray_recursion_depth, none);
+            let color = color_at(world, &ray, camera.ray_recursion_depth, None);
             image.set(x, y, color);
         }
     }

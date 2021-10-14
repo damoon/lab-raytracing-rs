@@ -8,7 +8,7 @@ clean:
 #	echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
 #	cargo flamegraph --output flamegraph-cargo.svg --example refraction | convert /dev/stdin /dev/null
 
-export EXAMPLE=cylinders-cones
+export EXAMPLE=refraction
 
 profile:
 	PROFILE_CPU=1 cargo run --release --example $(EXAMPLE) | convert /dev/stdin $(EXAMPLE).png

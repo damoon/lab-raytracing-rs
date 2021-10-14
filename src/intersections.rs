@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::{
     lights::lighting,
     rays::Ray,
@@ -8,26 +6,25 @@ use crate::{
     world::World,
 };
 
-#[derive(Debug, Clone)]
-pub struct Intersection {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Intersection<'a> {
     pub t: f64,
-    pub object: Rc<Object>,
+    pub object: &'a Object<'a>,
 }
 
-impl PartialEq for Intersection {
-    fn eq(&self, other: &Intersection) -> bool {
-        self.t.eq(&other.t) && Rc::ptr_eq(&self.object, &other.object)
-    }
-}
-
-pub fn hit(xs: &[Intersection], object: &Rc<Object>) -> Option<Intersection> {
+pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<Intersection<'a>> {
     let mut r = None;
-    for current in xs.iter() {
+    for current in xs.into_iter() {
         if current.t < 0.0 {
             continue;
         }
-        if Rc::ptr_eq(object, &current.object) && current.t < 1024.0 * f64::EPSILON {
-            continue;
+        match skip_object {
+            None => {},
+            Some(object) => {
+                if object == current.object && current.t < 1024.0 * f64::EPSILON {
+                    continue;
+                }
+            }
         }
         r = match r {
             None => Some(current),
@@ -43,9 +40,9 @@ pub fn hit(xs: &[Intersection], object: &Rc<Object>) -> Option<Intersection> {
     r.cloned()
 }
 
-pub struct IntersectionPrecomputations {
+pub struct IntersectionPrecomputations<'a> {
     pub t: f64,
-    pub object: Rc<Object>,
+    pub object: &'a Object<'a>,
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
@@ -55,12 +52,12 @@ pub struct IntersectionPrecomputations {
     pub n2: f64,
 }
 
-pub fn prepare_computations(
-    intersection: &Intersection,
+pub fn prepare_computations<'a>(
+    intersection: &'a Intersection,
     ray: &Ray,
     xs: &[Intersection],
-) -> IntersectionPrecomputations {
-    let mut containers: Vec<Rc<Object>> = Vec::with_capacity(xs.len());
+) -> IntersectionPrecomputations<'a> {
+    let mut containers: Vec<Object> = Vec::with_capacity(xs.len());
     let mut n1 = 0.0;
     let mut n2 = 0.0;
     for i in xs.iter() {
@@ -72,7 +69,7 @@ pub fn prepare_computations(
             }
         }
 
-        match containers.iter().position(|x| Rc::ptr_eq(x, &i.object)) {
+        match containers.iter().position(|x| x == i.object) {
             Some(index) => {
                 containers.remove(index);
             }
@@ -91,7 +88,7 @@ pub fn prepare_computations(
     }
 
     let t = intersection.t;
-    let object = &intersection.object;
+    let object = intersection.object;
     let point = ray.position(t);
     let eyev = -&ray.direction;
     let mut normalv = object.normal_at(&point);
@@ -104,7 +101,7 @@ pub fn prepare_computations(
 
     IntersectionPrecomputations {
         t,
-        object: object.clone(),
+        object,
         point,
         eyev,
         normalv,
@@ -115,7 +112,7 @@ pub fn prepare_computations(
     }
 }
 
-pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: &Rc<Object>) -> Tuple {
+pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: Option<&Object>) -> Tuple {
     let intersections = world.insersect(ray);
     let hit = hit(&intersections, object);
     match hit {
@@ -162,7 +159,7 @@ pub fn reflected_color(
         return color(0.0, 0.0, 0.0);
     }
     let reflect_ray = Ray::new(comps.point.clone(), comps.reflectv.clone());
-    let color = color_at(world, &reflect_ray, remaining - 1, &comps.object);
+    let color = color_at(world, &reflect_ray, remaining - 1, Some(&comps.object));
     color * comps.object.material.reflective
 }
 
@@ -198,7 +195,7 @@ pub fn refracted_color(
     let refract_ray = Ray::new(comps.point.clone(), direction);
     // Find the color of the refracted ray, making sure to multiply
     // by the transparency value to account for any opacity
-    color_at(world, &refract_ray, remaining - 1, &comps.object) * comps.object.material.transparency
+    color_at(world, &refract_ray, remaining - 1, Some(&comps.object)) * comps.object.material.transparency
 }
 
 pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {

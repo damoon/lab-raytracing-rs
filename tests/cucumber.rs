@@ -18,7 +18,7 @@ use std::rc::Rc;
 
 mod steps;
 
-pub struct MyWorld {
+pub struct MyWorld<'a> {
     tuples: HashMap<String, Tuple>,
     floats: HashMap<String, f64>,
     usizes: HashMap<String, usize>,
@@ -28,16 +28,16 @@ pub struct MyWorld {
     ppm: String,
     in_shadow: bool,
     matrices: HashMap<String, Matrix>,
-    intersections: HashMap<String, Intersection>,
+    intersections: HashMap<String, Intersection<'a>>,
     r: Ray,
     r2: Ray,
-    shapes: HashMap<String, Rc<Object>>,
-    xs: Vec<Intersection>,
+    shapes: HashMap<String, Object<'a>>,
+    xs: Vec<Intersection<'a>>,
     light: Pointlight,
-    m: Material,
-    w: World,
-    comps: IntersectionPrecomputations,
-    pattern: Pattern,
+    m: Material<'a>,
+    w: World<'a>,
+    comps: IntersectionPrecomputations<'a>,
+    pattern: Pattern<'a>,
 }
 enum Matrix {
     M2x2(Matrix2x2),
@@ -46,10 +46,23 @@ enum Matrix {
 }
 
 #[async_trait(?Send)]
-impl CucumberWorld for MyWorld {
+impl CucumberWorld for MyWorld<'static> {
     type Error = Infallible;
 
     async fn new() -> Result<Self, Infallible> {
+        let s = default_sphere();
+        let i = Intersection {
+            t: 1.0,
+            object: &s,
+        };
+        let comps = prepare_computations(
+            &i,
+            &Ray {
+                origin: point(2.0, 0.0, 0.0),
+                direction: vector(1.0, 0.0, 0.0),
+            },
+            &Vec::new(),
+        );
         let mut world = Self {
             tuples: HashMap::new(),
             floats: HashMap::new(),
@@ -74,17 +87,7 @@ impl CucumberWorld for MyWorld {
             light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
             m: Material::default(),
             w: World::default(),
-            comps: prepare_computations(
-                &Intersection {
-                    t: 1.0,
-                    object: Rc::new(default_sphere()),
-                },
-                &Ray {
-                    origin: point(2.0, 0.0, 0.0),
-                    direction: vector(1.0, 0.0, 0.0),
-                },
-                &Vec::new(),
-            ),
+            comps,
             pattern: test_pattern(),
         };
         world.insert4x4("identity_matrix".to_string(), identity_matrix());
@@ -92,7 +95,7 @@ impl CucumberWorld for MyWorld {
     }
 }
 
-impl MyWorld {
+impl<'a> MyWorld<'a> {
     pub fn get4x4(&self, name: &str) -> &Matrix4x4 {
         match &self.matrices.get(name).unwrap() {
             Matrix::M4x4(m) => m,

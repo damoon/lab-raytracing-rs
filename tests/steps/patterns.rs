@@ -15,7 +15,7 @@ use crate::{
     MyWorld,
 };
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
@@ -24,10 +24,11 @@ pub fn steps() -> Steps<MyWorld> {
             let white = world.tuples.get("white").unwrap().clone();
             let black = world.tuples.get("black").unwrap().clone();
             world.pattern = match ctx.matches[1].as_str() {
-                "stripe_pattern" => stripe_pattern(white, black),
-                "gradient_pattern" => gradient_pattern(white, black),
-                "ring_pattern" => ring_pattern(white, black),
-                "checkers_pattern" => checkers_pattern(white, black),
+                // TODO
+                // "stripe_pattern" => stripe_pattern(white, black),
+                // "gradient_pattern" => gradient_pattern(white, black),
+                // "ring_pattern" => ring_pattern(white, black),
+                // "checkers_pattern" => checkers_pattern(white, black),
                 _ => panic!("pattern not covered"),
             };
             world
@@ -73,7 +74,8 @@ pub fn steps() -> Steps<MyWorld> {
         |mut world, ctx| {
             let color_a = parse_point(&ctx.matches[1..=3]);
             let color_b = parse_point(&ctx.matches[4..=6]);
-            world.m.pattern = Some(stripe_pattern(color_a, color_b));
+            // TODO
+            // world.m.pattern = Some(stripe_pattern(color_a, color_b));
             world
         },
     );

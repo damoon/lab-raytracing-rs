@@ -3,7 +3,7 @@ use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{rays::Ray, tuples::vector};
 
-pub fn steps() -> Steps<MyWorld> {
+pub fn steps() -> Steps<MyWorld<'static>> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), direction\)$"#, |mut world, ctx| {
