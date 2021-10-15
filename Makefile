@@ -1,4 +1,6 @@
-all: clock.png projectile.png scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png cylinders-cones.png
+all: images clock.png projectile.png
+
+images: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png cylinders-cones.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg

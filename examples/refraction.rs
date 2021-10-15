@@ -51,10 +51,7 @@ fn main() -> io::Result<()> {
     stripes1.set_transform(rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2));
     let mut stripes2 = stripe_pattern(&white, &blue);
     stripes2.set_transform(rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2));
-    let merged_stripes = Pattern::new(
-        identity_matrix(),
-        Renderer::Checkers(&stripes1, &stripes2),
-    );
+    let merged_stripes = Pattern::new(identity_matrix(), Renderer::Checkers(&stripes1, &stripes2));
 
     let mut floor = default_plane();
     // floor.material.pattern = Some(ring_pattern(red, grey));
@@ -94,13 +91,7 @@ fn main() -> io::Result<()> {
     pz.set_seed(1);
     let perlin_pattern = Pattern::new(
         identity_matrix(),
-        Renderer::Perturbed(
-            0.5,
-            &px,
-            &py,
-            &pz,
-            &right_pattern,
-        ),
+        Renderer::Perturbed(0.5, &px, &py, &pz, &right_pattern),
     );
     right.material.pattern = Some(&perlin_pattern);
     right.material.diffuse = 0.7;

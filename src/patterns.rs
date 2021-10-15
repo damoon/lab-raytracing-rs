@@ -132,7 +132,7 @@ impl<'a> Renderer<'a> {
     }
 }
 
-pub fn solid_pattern(color: Tuple) -> Pattern<'static> {
+pub fn solid_pattern<'a>(color: Tuple) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -168,7 +168,7 @@ pub fn checkers_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
-        renderer: Renderer::RadialGradient(a, b),
+        renderer: Renderer::Checkers(a, b),
     }
 }
 
@@ -180,7 +180,7 @@ pub fn radial_gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a
     }
 }
 
-pub fn test_pattern() -> Pattern<'static> {
+pub fn test_pattern<'a>() -> Pattern<'a> {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),

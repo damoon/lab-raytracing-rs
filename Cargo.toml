@@ -11,6 +11,9 @@ harness = false
 auto_ops = "0.3.0"
 noise = "0.7.0"
 pprof = { version = "0.5.0", features = ["flamegraph", "protobuf", ] }
+crossbeam = "0.8.1"
+crossbeam-channel = "0.5.1"
+num_cpus = "1.13.0"
 
 [dev-dependencies]
 cucumber_rust = "0.9"
