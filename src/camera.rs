@@ -3,10 +3,12 @@ use crate::{
     intersections::color_at,
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
-    tuples::point,
+    tuples::{color, point},
     world::World,
 };
+use crossbeam_channel::bounded;
 pub const RAY_RECURSION_DEPTH: usize = 5;
+use std::env;
 
 pub struct Camera {
     pub hsize: usize,
@@ -76,6 +78,28 @@ impl Camera {
 }
 
 pub fn render(camera: &Camera, world: &World) -> Canvas {
+    let cores = get_number_of_cores();
+    if cores == 1 {
+        render_singlethreaded(camera, world)
+    } else {
+        render_multithreaded(camera, world, cores)
+    }
+}
+
+fn get_number_of_cores() -> usize {
+    match env::var("CORES") {
+        Err(_) => num_cpus::get(),
+        Ok(cores) => {
+            if cores.is_empty() {
+                num_cpus::get()
+            } else {
+                cores.parse::<usize>().unwrap()
+            }
+        }
+    }
+}
+
+pub fn render_singlethreaded(camera: &Camera, world: &World) -> Canvas {
     let mut image = Canvas::new(camera.hsize, camera.vsize);
     for y in 0..camera.vsize {
         for x in 0..camera.hsize {
@@ -83,6 +107,64 @@ pub fn render(camera: &Camera, world: &World) -> Canvas {
             let color = color_at(world, &ray, camera.ray_recursion_depth, None);
             image.set(x, y, color);
         }
+    }
+    image
+}
+
+pub fn render_multithreaded(camera: &Camera, world: &World, cores: usize) -> Canvas {
+    let (sender, receiver) = bounded::<(usize, Canvas)>(10);
+    let (sender_row, receiver_row) = bounded::<usize>(camera.vsize);
+
+    let image = crossbeam::scope(|scope| {
+        scope.spawn(move |_| {
+            for y in 0..camera.vsize {
+                sender_row.send(y).unwrap();
+            }
+        });
+
+        for _ in 0..cores {
+            let thread_receiver = receiver_row.clone();
+            let thread_sender = sender.clone();
+            let thread_camera = &camera;
+            let thread_world = &world;
+            scope.spawn(move |_| {
+                for row_id in thread_receiver {
+                    //let canvas = Canvas::new(camera.hsize, 1);
+                    let canvas = render_row(thread_camera, thread_world, row_id);
+                    thread_sender.send((row_id, canvas)).unwrap();
+                }
+            });
+        }
+        drop(sender);
+
+        let image = scope
+            .spawn(move |_| {
+                let mut image = Canvas::new(camera.hsize, camera.vsize);
+                for (row_id, row) in receiver {
+                    for x in 0..camera.hsize {
+                        let c = row.at(x, 0);
+                        image.set(x, row_id, color(c.x, c.y, c.z));
+                    }
+                }
+                image
+            })
+            .join()
+            .unwrap();
+
+        image
+    })
+    .unwrap();
+
+    image
+}
+
+pub fn render_row(camera: &Camera, world: &World, row: usize) -> Canvas {
+    let y = row;
+    let mut image = Canvas::new(camera.hsize, 1);
+    for x in 0..camera.hsize {
+        let ray = camera.ray_for_pixel(x, y);
+        let color = color_at(world, &ray, camera.ray_recursion_depth, None);
+        image.set(x, 0, color);
     }
     image
 }

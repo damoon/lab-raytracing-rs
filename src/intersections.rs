@@ -12,7 +12,7 @@ pub struct Intersection<'a> {
     pub object: &'a Object<'a>,
 }
 
-pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<Intersection<'a>> {
+pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<&'a Intersection<'a>> {
     let mut r = None;
     for current in xs.into_iter() {
         if current.t < 0.0 {
@@ -37,7 +37,7 @@ pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<In
             }
         }
     }
-    r.cloned()
+    r
 }
 
 pub struct IntersectionPrecomputations<'a> {
@@ -57,7 +57,7 @@ pub fn prepare_computations<'a>(
     ray: &Ray,
     xs: &[Intersection],
 ) -> IntersectionPrecomputations<'a> {
-    let mut containers: Vec<Object> = Vec::with_capacity(xs.len());
+    let mut containers: Vec<&Object> = Vec::with_capacity(xs.len());
     let mut n1 = 0.0;
     let mut n2 = 0.0;
     for i in xs.iter() {
@@ -69,12 +69,12 @@ pub fn prepare_computations<'a>(
             }
         }
 
-        match containers.iter().position(|x| x == i.object) {
+        match containers.iter().position(|x| x == &i.object) {
             Some(index) => {
                 containers.remove(index);
             }
             None => {
-                containers.push(i.object.clone());
+                containers.push(i.object);
             }
         }
 

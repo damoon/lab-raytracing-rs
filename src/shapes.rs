@@ -9,35 +9,35 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-pub fn default_sphere() -> Object<'static> {
+pub fn default_sphere<'a>() -> Object<'a> {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_testshape() -> Object<'static> {
+pub fn default_testshape<'a>() -> Object<'a> {
     let shape = Shape::Testshape;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_plane() -> Object<'static> {
+pub fn default_plane<'a>() -> Object<'a> {
     let shape = Shape::Plane;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_cube() -> Object<'static> {
+pub fn default_cube<'a>() -> Object<'a> {
     let shape = Shape::Cube;
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn glass_sphere() -> Object<'static> {
+pub fn glass_sphere<'a>() -> Object<'a> {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
     let mut material = Material::default();
@@ -51,21 +51,21 @@ pub fn glass_sphere() -> Object<'static> {
     Object::new(shape, transform, material)
 }
 
-pub fn default_cylinder() -> Object<'static> {
+pub fn default_cylinder<'a>() -> Object<'a> {
     let shape = Shape::Cylinder(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-pub fn default_cone() -> Object<'static> {
+pub fn default_cone<'a>() -> Object<'a> {
     let shape = Shape::Cone(f64::NEG_INFINITY, f64::INFINITY, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Object<'a> {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
@@ -74,11 +74,21 @@ pub struct Object<'a> {
     pub throws_shaddow: bool,
 }
 
-impl<'a> PartialEq for Object<'a> {
+impl<'a> PartialEq for &Object<'a> {
     fn eq(&self, other: &Self) -> bool { 
-        self as *const Object == other as *const Object
+        *self as *const Object == *other as *const Object
     }
 }
+//impl<'a> PartialEq for Object<'a> {
+//    fn eq(&self, other: &Self) -> bool { 
+//        self as *const Object == other as *const Object
+//    }
+//}
+//impl<'a> PartialEq for Object<'a> {
+//    fn eq(&self, other: &Self) -> bool { 
+//        self.id.eq(&other.id)
+//    }
+//}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
