@@ -5,11 +5,20 @@ use super::{
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{matrices::Matrix4x4, patterns::test_pattern, shapes::{default_cone, default_cube, default_cylinder, default_plane, default_sphere, glass_sphere, intersect}, transformations::{scaling, translation}, tuples::{color, Tuple}};
+use lab_raytracing_rs::{
+    matrices::Matrix4x4,
+    patterns::test_pattern,
+    shapes::{
+        default_cone, default_cube, default_cylinder, default_plane, default_sphere, glass_sphere,
+        intersect,
+    },
+    transformations::{scaling, translation},
+    tuples::{color, Tuple},
+};
 use regex::Regex;
-use std::{ops::Deref, rc::Rc};
+use std::{ops::Deref, sync::Arc};
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
@@ -24,7 +33,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
                 "cone" => default_cone(),
                 _ => panic!("object kind not covered"),
             };
-            world.shapes.insert(ctx.matches[1].clone(), s);
+            world.shapes.insert(ctx.matches[1].clone(), Arc::new(s));
             world
         },
     );
@@ -57,7 +66,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
                     _ => panic!("object property not covered"),
                 }
             }
-            world.shapes.insert(ctx.matches[1].clone(), s);
+            world.shapes.insert(ctx.matches[1].clone(), Arc::new(s));
             world
         },
     );
@@ -69,7 +78,9 @@ pub fn steps() -> Steps<MyWorld<'static>> {
             let value = row.get(1).unwrap();
             match (key.as_str(), value.as_str()) {
                 ("material.ambient", value) => s.material.ambient = value.parse::<f64>().unwrap(),
-                // TODO ("material.pattern", "test_pattern()") => s.material.pattern = Some(test_pattern()),
+                ("material.pattern", "test_pattern()") => {
+                    s.material.pattern = Some(Box::new(test_pattern()))
+                }
                 ("material.transparency", value) => {
                     s.material.transparency = value.parse::<f64>().unwrap()
                 }
@@ -79,7 +90,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
                 _ => panic!("object property not covered"),
             }
         }
-        world.shapes.insert(ctx.matches[1].clone(), s);
+        world.shapes.insert(ctx.matches[1].clone(), Arc::new(s));
         world
     });
 
@@ -91,7 +102,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps.when("s.material ← m", |mut world, _ctx| {
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.material = world.m.clone();
-        world.shapes.insert("s".to_string(), obj);
+        world.shapes.insert("s".to_string(), Arc::new(obj));
         world
     });
 
@@ -114,7 +125,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.set_transform(transformation);
-        world.shapes.insert("s".to_string(), obj);
+        world.shapes.insert("s".to_string(), Arc::new(obj));
         world
     });
 
@@ -122,7 +133,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
         let transformation = world.get4x4(&ctx.matches[1]).clone();
         let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
         obj.set_transform(transformation);
-        world.shapes.insert("s".to_string(), obj);
+        world.shapes.insert("s".to_string(), Arc::new(obj));
         world
     });
 
@@ -136,7 +147,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
             };
             let mut obj = world.shapes.get_mut(&ctx.matches[1]).unwrap().deref().deref().clone();
             obj.set_transform(transformation);
-            world.shapes.insert(ctx.matches[1].clone(), obj);
+            world.shapes.insert(ctx.matches[1].clone(), Arc::new(obj));
             world
         },
     );
@@ -151,7 +162,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
             };
             let mut obj = world.shapes.get_mut("s").unwrap().deref().deref().clone();
             obj.set_transform(transformation);
-            world.shapes.insert("s".to_string(), obj);
+            world.shapes.insert("s".to_string(), Arc::new(obj));
             world
         },
     );

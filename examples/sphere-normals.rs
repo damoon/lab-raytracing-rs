@@ -6,6 +6,7 @@ use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
+use std::sync::Arc;
 
 fn main() -> io::Result<()> {
     let black = color(0.1, 0.1, 0.1);
@@ -17,7 +18,7 @@ fn main() -> io::Result<()> {
     let pixel_size = wall_size / canvas_pixels as f64;
     let half_wall_size = wall_size / 2.0;
     let half_pixel_size = pixel_size / 2.0;
-    let shape = default_sphere();
+    let shape = Arc::new(default_sphere());
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
     canvas.fill(black);

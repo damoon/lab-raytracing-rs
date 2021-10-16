@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::MyWorld;
 use cucumber_rust::Steps;
@@ -6,13 +6,13 @@ use lab_raytracing_rs::{
     camera::RAY_RECURSION_DEPTH,
     intersections::{color_at, reflected_color, refracted_color, shade_hit},
     lights::Pointlight,
-    shapes::{default_sphere, default_testshape},
+    shapes::default_sphere,
     transformations::scaling,
     tuples::{color, point},
     world::World,
 };
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("w ← world()", |mut world, _ctx| {
@@ -46,8 +46,8 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     });
 
     steps.then_regex(r#"^w contains (s1|s2)$"#, |world, ctx| {
-        let object = world.shapes.get(&ctx.matches[1]).unwrap();
-        assert!(world.w.objects.contains(object));
+        let object = world.shapes.get(&ctx.matches[1]).unwrap().clone();
+        assert!(world.w.objects.contains(&object));
         world
     });
 
@@ -130,8 +130,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     );
 
     steps.when("c ← color_at(w, r)", |mut world, _ctx| {
-        let none = &Rc::new(default_testshape());
-        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, none);
+        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
         world.tuples.insert("c".to_string(), color);
         world
     });
@@ -139,8 +138,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps.then(
         "color_at(w, r) should terminate successfully",
         |mut world, _ctx| {
-            let none = &Rc::new(default_testshape());
-            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, none);
+            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
             world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
             world
         },
@@ -160,9 +158,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps.then_regex(r#"^is_shadowed\(w, p\) is (true|false)$"#, |world, ctx| {
         let desired = ctx.matches[1].parse().unwrap();
         let point = world.tuples.get("p").unwrap();
-        let computed = world
-            .w
-            .is_shadowed(point.clone(), &Rc::new(default_testshape()));
+        let computed = world.w.is_shadowed(point.clone(), None);
         assert_eq!(computed, desired);
         world
     });
@@ -179,7 +175,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps
 }
 
-pub fn default_world() -> World<'static> {
+pub fn default_world() -> World {
     let mut w = World::default();
     w.light = Some(Pointlight::new(
         point(-10.0, 10.0, -10.0),
@@ -194,6 +190,6 @@ pub fn default_world() -> World<'static> {
     let mut s2 = default_sphere();
     s2.set_transform(scaling(0.5, 0.5, 0.5));
 
-    w.objects = vec![s1, s2];
+    w.objects = vec![Arc::new(s1), Arc::new(s2)];
     w
 }

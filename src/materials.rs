@@ -10,7 +10,7 @@ pub const REFRACTIVE_INDEX_GLASS: f64 = 1.52;
 pub const REFRACTIVE_INDEX_DIAMOND: f64 = 2.417;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Material<'a> {
+pub struct Material {
     pub color: Tuple,
     pub ambient: f64,
     pub diffuse: f64,
@@ -19,10 +19,10 @@ pub struct Material<'a> {
     pub reflective: f64,
     pub transparency: f64,
     pub refractive_index: f64,
-    pub pattern: Option<&'a Pattern<'a>>,
+    pub pattern: Option<Box<Pattern>>,
 }
 
-impl<'a> Material<'a> {
+impl Material {
     pub fn default() -> Self {
         Self {
             color: color(1.0, 1.0, 1.0),

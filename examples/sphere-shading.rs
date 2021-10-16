@@ -8,6 +8,7 @@ use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
+use std::sync::Arc;
 
 fn main() -> io::Result<()> {
     let black = color(0.1, 0.1, 0.1);
@@ -22,6 +23,7 @@ fn main() -> io::Result<()> {
 
     let mut shape = default_sphere();
     shape.material.color = color(1.0, 0.2, 1.0);
+    let shape = Arc::new(shape);
 
     let light_position = point(-10.0, 10.0, -10.0);
     let light_color = color(1.0, 1.0, 1.0);

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     materials::Material,
     patterns::pattern_at_shape,
@@ -22,7 +24,7 @@ impl Pointlight {
 
 pub fn lighting(
     material: &Material,
-    object: &Object,
+    object: &Arc<Object>,
     light: &Pointlight,
     point: &Tuple,
     eyev: &Tuple,

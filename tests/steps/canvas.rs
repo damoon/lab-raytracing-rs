@@ -3,7 +3,7 @@ use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::canvas::Canvas;
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(

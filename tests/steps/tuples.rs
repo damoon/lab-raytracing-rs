@@ -45,7 +45,7 @@ pub fn parse_color(ss: &[String]) -> Tuple {
     color(r, g, b)
 }
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(

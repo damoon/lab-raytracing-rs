@@ -25,29 +25,29 @@ use std::f64::consts::PI;
 use std::io;
 
 fn main() -> io::Result<()> {
-    let black = solid_pattern(color(0.0, 0.0, 0.0));
-    let red = solid_pattern(color(1.0, 0.0, 0.0));
-    let green = solid_pattern(color(0.0, 1.0, 0.0));
-    let blue = solid_pattern(color(0.0, 0.0, 1.0));
-    let grey = solid_pattern(color(0.8, 0.8, 0.8));
-    let white = solid_pattern(color(1.0, 1.0, 1.0));
+    let black = Box::new(solid_pattern(color(0.0, 0.0, 0.0)));
+    let red = Box::new(solid_pattern(color(1.0, 0.0, 0.0)));
+    let green = Box::new(solid_pattern(color(0.0, 1.0, 0.0)));
+    let blue = Box::new(solid_pattern(color(0.0, 0.0, 1.0)));
+    let grey = Box::new(solid_pattern(color(0.8, 0.8, 0.8)));
+    let white = Box::new(solid_pattern(color(1.0, 1.0, 1.0)));
     let white_color = color(1.0, 1.0, 1.0);
 
     let mut world = World::default();
     world.light = Some(Pointlight::new(point(-10.0, 10.0, -10.0), white_color));
 
-    let mut stripes1 = stripe_pattern(&black, &green);
+    let mut stripes1 = Box::new(stripe_pattern(black.clone(), green));
     stripes1.set_transform(rotation_y(PI / 3.0) * scaling(0.2, 0.2, 0.2));
-    let mut stripes2 = stripe_pattern(&white, &blue);
+    let mut stripes2 = Box::new(stripe_pattern(white.clone(), blue));
     stripes2.set_transform(rotation_y(-PI / 3.0) * scaling(0.2, 0.2, 0.2));
-    let merged_stripes = Pattern::new(
+    let merged_stripes = Box::new(Pattern::new(
         identity_matrix(),
-        Renderer::Checkers(&stripes1, &stripes2),
-    );
+        Renderer::Checkers(stripes1, stripes2),
+    ));
 
     let mut floor = default_plane();
     // floor.material.pattern = Some(ring_pattern(red, grey));
-    floor.material.pattern = Some(&merged_stripes);
+    floor.material.pattern = Some(merged_stripes);
     floor.material.specular = 0.0;
     world.add_object(floor);
 
@@ -60,14 +60,12 @@ fn main() -> io::Result<()> {
     mirror.material.reflective = 0.7;
     world.add_object(mirror);
 
-    let wall_pattern = ring_pattern(&red, &grey);
+    let wall_pattern = Box::new(ring_pattern(red.clone(), grey.clone()));
     let mut wall = default_plane();
     wall.set_transform(translation(0.0, 0.0, 8.0) * rotation_x(PI / 2.0));
-    wall.material.pattern = Some(&wall_pattern);
+    wall.material.pattern = Some(wall_pattern);
     world.add_object(wall);
 
-    let mut pattern = checkers_pattern(&black, &white);
-    pattern.set_transform(scaling(0.25, 0.25, 0.25));
     let mut middle = default_sphere();
     middle.set_transform(translation(-0.5, 1.0, 0.5));
     middle.material.color = color(1.0, 1.0, 1.0);
@@ -77,30 +75,26 @@ fn main() -> io::Result<()> {
     middle.material.reflective = 0.7;
     world.add_object(middle);
 
-    let right_pattern = stripe_pattern(&red, &grey);
+    let right_pattern = Box::new(stripe_pattern(red, grey));
     let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
-    let px = Perlin::new();
+    let px = Box::new(Perlin::new());
     px.set_seed(1);
-    let py = Perlin::new();
+    let py = Box::new(Perlin::new());
     py.set_seed(1);
-    let pz = Perlin::new();
+    let pz = Box::new(Perlin::new());
     pz.set_seed(1);
-    let perlin_pattern = Pattern::new(
+    let perlin_pattern = Box::new(Pattern::new(
         identity_matrix(),
-        Renderer::Perturbed(
-            0.5,
-            &px,
-            &py,
-            &pz,
-            &right_pattern,
-        ),
-    );
-    right.material.pattern = Some(&perlin_pattern);
+        Renderer::Perturbed(0.5, px, py, pz, right_pattern),
+    ));
+    right.material.pattern = Some(perlin_pattern);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
     world.add_object(right);
 
+    let mut pattern = Box::new(checkers_pattern(black, white));
+    pattern.set_transform(scaling(0.25, 0.25, 0.25));
     let mut left = default_sphere();
     left.set_transform(
         translation(-1.5, 0.33, -0.75)
@@ -109,7 +103,7 @@ fn main() -> io::Result<()> {
             * rotation_y(PI / 4.0)
             * rotation_z(PI / 4.0),
     );
-    left.material.pattern = Some(&pattern);
+    left.material.pattern = Some(pattern);
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
     world.add_object(left);

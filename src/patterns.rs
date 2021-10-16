@@ -4,28 +4,29 @@ use crate::{
     tuples::{point, Tuple},
 };
 use noise::{NoiseFn, Perlin, Seedable};
+use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Pattern<'a> {
+pub struct Pattern {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
-    pub renderer: Renderer<'a>,
+    pub renderer: Renderer,
 }
 
 #[derive(Debug, Clone)]
-pub enum Renderer<'a> {
-    Stripes(&'a Pattern<'a>, &'a Pattern<'a>),
-    Gradient(&'a Pattern<'a>, &'a Pattern<'a>),
-    Ring(&'a Pattern<'a>, &'a Pattern<'a>),
-    Checkers(&'a Pattern<'a>, &'a Pattern<'a>),
-    RadialGradient(&'a Pattern<'a>, &'a Pattern<'a>),
-    Blended(&'a Pattern<'a>, &'a Pattern<'a>),
-    Perturbed(f64, &'a Perlin, &'a Perlin, &'a Perlin, &'a Pattern<'a>),
+pub enum Renderer {
+    Stripes(Box<Pattern>, Box<Pattern>),
+    Gradient(Box<Pattern>, Box<Pattern>),
+    Ring(Box<Pattern>, Box<Pattern>),
+    Checkers(Box<Pattern>, Box<Pattern>),
+    RadialGradient(Box<Pattern>, Box<Pattern>),
+    Blended(Box<Pattern>, Box<Pattern>),
+    Perturbed(f64, Box<Perlin>, Box<Perlin>, Box<Perlin>, Box<Pattern>),
     Solid(Tuple),
     Test(),
 }
 
-impl<'a> PartialEq for Renderer<'a> {
+impl PartialEq for Renderer {
     fn eq(&self, other: &Renderer) -> bool {
         match (self, other) {
             (Renderer::Stripes(a1, b1), Renderer::Stripes(a2, b2)) => a1 == a2 && b1 == b2,
@@ -53,7 +54,7 @@ impl<'a> PartialEq for Renderer<'a> {
     }
 }
 
-impl<'a> Pattern<'a> {
+impl Pattern {
     pub fn new(transform: Matrix4x4, renderer: Renderer) -> Pattern {
         let transform_inverse = transform.inverse().unwrap();
         Pattern {
@@ -77,7 +78,7 @@ impl<'a> Pattern<'a> {
     }
 }
 
-impl<'a> Renderer<'a> {
+impl Renderer {
     fn color_at(&self, p: &Tuple) -> Tuple {
         match self {
             Renderer::Stripes(a, b) => {
@@ -132,7 +133,7 @@ impl<'a> Renderer<'a> {
     }
 }
 
-pub fn solid_pattern<'a>(color: Tuple) -> Pattern<'a> {
+pub fn solid_pattern(color: Tuple) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -140,7 +141,7 @@ pub fn solid_pattern<'a>(color: Tuple) -> Pattern<'a> {
     }
 }
 
-pub fn stripe_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
+pub fn stripe_pattern(a: Box<Pattern>, b: Box<Pattern>) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -148,7 +149,7 @@ pub fn stripe_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     }
 }
 
-pub fn gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
+pub fn gradient_pattern(a: Box<Pattern>, b: Box<Pattern>) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -156,7 +157,7 @@ pub fn gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     }
 }
 
-pub fn ring_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
+pub fn ring_pattern(a: Box<Pattern>, b: Box<Pattern>) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -164,7 +165,7 @@ pub fn ring_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     }
 }
 
-pub fn checkers_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
+pub fn checkers_pattern(a: Box<Pattern>, b: Box<Pattern>) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -172,7 +173,7 @@ pub fn checkers_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
     }
 }
 
-pub fn radial_gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a> {
+pub fn radial_gradient_pattern(a: Box<Pattern>, b: Box<Pattern>) -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -180,7 +181,7 @@ pub fn radial_gradient_pattern<'a>(a: &'a Pattern, b: &'a Pattern) -> Pattern<'a
     }
 }
 
-pub fn test_pattern<'a>() -> Pattern<'a> {
+pub fn test_pattern() -> Pattern {
     Pattern {
         transform: identity_matrix(),
         transform_inverse: identity_matrix().inverse().unwrap(),
@@ -188,7 +189,7 @@ pub fn test_pattern<'a>() -> Pattern<'a> {
     }
 }
 
-pub fn pattern_at_shape(pattern: &Pattern, object: &Object, world_point: &Tuple) -> Tuple {
+pub fn pattern_at_shape(pattern: &Pattern, object: &Arc<Object>, world_point: &Tuple) -> Tuple {
     let object_point = object.transform_inverse() * world_point;
     let pattern_point = &pattern.transform_inverse * object_point;
     pattern.color_at(&pattern_point)
