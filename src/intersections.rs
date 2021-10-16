@@ -5,23 +5,27 @@ use crate::{
     tuples::{color, dot, reflect, Tuple},
     world::World,
 };
+use std::sync::Arc;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Intersection<'a> {
+#[derive(Debug, PartialEq, Clone)]
+pub struct Intersection {
     pub t: f64,
-    pub object: &'a Object<'a>,
+    pub object: Arc<Object>,
 }
 
-pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<&'a Intersection<'a>> {
+pub fn hit<'a>(
+    xs: &'a [Intersection],
+    skip_object: Option<&Arc<Object>>,
+) -> Option<&'a Intersection> {
     let mut r = None;
-    for current in xs.into_iter() {
+    for current in xs.iter() {
         if current.t < 0.0 {
             continue;
         }
         match skip_object {
-            None => {},
+            None => {}
             Some(object) => {
-                if object == current.object && current.t < 1024.0 * f64::EPSILON {
+                if object == &current.object && current.t < 1024.0 * f64::EPSILON {
                     continue;
                 }
             }
@@ -40,9 +44,9 @@ pub fn hit<'a>(xs: &'a[Intersection], skip_object: Option<&Object>) -> Option<&'
     r
 }
 
-pub struct IntersectionPrecomputations<'a> {
+pub struct IntersectionPrecomputations {
     pub t: f64,
-    pub object: &'a Object<'a>,
+    pub object: Arc<Object>,
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
@@ -52,12 +56,12 @@ pub struct IntersectionPrecomputations<'a> {
     pub n2: f64,
 }
 
-pub fn prepare_computations<'a>(
-    intersection: &'a Intersection,
+pub fn prepare_computations(
+    intersection: &Intersection,
     ray: &Ray,
     xs: &[Intersection],
-) -> IntersectionPrecomputations<'a> {
-    let mut containers: Vec<&Object> = Vec::with_capacity(xs.len());
+) -> IntersectionPrecomputations {
+    let mut containers: Vec<Arc<Object>> = Vec::with_capacity(xs.len());
     let mut n1 = 0.0;
     let mut n2 = 0.0;
     for i in xs.iter() {
@@ -74,7 +78,7 @@ pub fn prepare_computations<'a>(
                 containers.remove(index);
             }
             None => {
-                containers.push(i.object);
+                containers.push(i.object.clone());
             }
         }
 
@@ -88,7 +92,7 @@ pub fn prepare_computations<'a>(
     }
 
     let t = intersection.t;
-    let object = intersection.object;
+    let object = intersection.object.clone();
     let point = ray.position(t);
     let eyev = -&ray.direction;
     let mut normalv = object.normal_at(&point);
@@ -112,20 +116,20 @@ pub fn prepare_computations<'a>(
     }
 }
 
-pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: Option<&Object>) -> Tuple {
+pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: Option<&Arc<Object>>) -> Tuple {
     let intersections = world.insersect(ray);
     let hit = hit(&intersections, object);
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
-            let precomputations = prepare_computations(&intersection, ray, &intersections);
+            let precomputations = prepare_computations(intersection, ray, &intersections);
             shade_hit(world, &precomputations, remaining)
         }
     }
 }
 
 pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations, remaining: usize) -> Tuple {
-    let in_shadow = world.is_shadowed(comps.point.clone(), &comps.object);
+    let in_shadow = world.is_shadowed(comps.point.clone(), Some(&comps.object.clone()));
     let surface = lighting(
         &comps.object.material,
         &comps.object,
@@ -195,7 +199,8 @@ pub fn refracted_color(
     let refract_ray = Ray::new(comps.point.clone(), direction);
     // Find the color of the refracted ray, making sure to multiply
     // by the transparency value to account for any opacity
-    color_at(world, &refract_ray, remaining - 1, Some(&comps.object)) * comps.object.material.transparency
+    color_at(world, &refract_ray, remaining - 1, Some(&comps.object))
+        * comps.object.material.transparency
 }
 
 pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {

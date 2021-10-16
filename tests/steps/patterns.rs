@@ -1,8 +1,8 @@
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     patterns::{
-        checkers_pattern, gradient_pattern, pattern_at_shape, ring_pattern, stripe_pattern,
-        test_pattern, Renderer,
+        checkers_pattern, gradient_pattern, pattern_at_shape, ring_pattern, solid_pattern,
+        stripe_pattern, test_pattern, Renderer,
     },
     tuples::point,
 };
@@ -15,20 +15,19 @@ use crate::{
     MyWorld,
 };
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(
         r#"^pattern ← (stripe_pattern|gradient_pattern|ring_pattern|checkers_pattern)\(white, black\)$"#,
         |mut world, ctx| {
-            let white = world.tuples.get("white").unwrap().clone();
-            let black = world.tuples.get("black").unwrap().clone();
+            let white = Box::new(solid_pattern(world.tuples.get("white").unwrap().clone()));
+            let black = Box::new(solid_pattern(world.tuples.get("black").unwrap().clone()));
             world.pattern = match ctx.matches[1].as_str() {
-                // TODO
-                // "stripe_pattern" => stripe_pattern(white, black),
-                // "gradient_pattern" => gradient_pattern(white, black),
-                // "ring_pattern" => ring_pattern(white, black),
-                // "checkers_pattern" => checkers_pattern(white, black),
+                "stripe_pattern" => stripe_pattern(white, black),
+                "gradient_pattern" => gradient_pattern(white, black),
+                "ring_pattern" => ring_pattern(white, black),
+                "checkers_pattern" => checkers_pattern(white, black),
                 _ => panic!("pattern not covered"),
             };
             world
@@ -72,10 +71,10 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps.given_regex(
         r#"^m.pattern ← stripe_pattern\(color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
-            let color_a = parse_point(&ctx.matches[1..=3]);
-            let color_b = parse_point(&ctx.matches[4..=6]);
-            // TODO
-            // world.m.pattern = Some(stripe_pattern(color_a, color_b));
+            let color_a = Box::new(solid_pattern(parse_color(&ctx.matches[1..=3])));
+            let color_b = Box::new(solid_pattern(parse_color(&ctx.matches[4..=6])));
+            let pattern = Box::new(stripe_pattern(color_a, color_b));
+            world.m.pattern = Some(pattern);
             world
         },
     );

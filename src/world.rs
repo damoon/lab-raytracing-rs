@@ -3,13 +3,14 @@ use crate::lights::Pointlight;
 use crate::rays::Ray;
 use crate::shapes::{intersect, Object};
 use crate::tuples::Tuple;
+use std::sync::Arc;
 
-pub struct World<'a> {
-    pub objects: Vec<Object<'a>>,
+pub struct World {
+    pub objects: Vec<Arc<Object>>,
     pub light: Option<Pointlight>,
 }
 
-impl<'a> World<'a> {
+impl World {
     pub fn default() -> Self {
         World {
             objects: Vec::new(),
@@ -17,8 +18,8 @@ impl<'a> World<'a> {
         }
     }
 
-    pub fn add_object(&mut self, obj: Object<'a>) {
-        self.objects.push(obj);
+    pub fn add_object(&mut self, obj: Object) {
+        self.objects.push(Arc::new(obj));
     }
 
     pub fn insersect(&self, r: &Ray) -> Vec<Intersection> {
@@ -31,7 +32,7 @@ impl<'a> World<'a> {
         v
     }
 
-    pub fn is_shadowed(&self, point: Tuple, object: &Object) -> bool {
+    pub fn is_shadowed(&self, point: Tuple, object: Option<&Arc<Object>>) -> bool {
         let v = &self.light.as_ref().unwrap().position - &point;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -44,8 +45,13 @@ impl<'a> World<'a> {
             if i.t > distance {
                 continue;
             }
-            if object == i.object && i.t.abs() < 1024.0 * f64::EPSILON {
-                continue;
+            match object {
+                None => {}
+                Some(object) => {
+                    if object == &i.object && i.t.abs() < 1024.0 * f64::EPSILON {
+                        continue;
+                    }
+                }
             }
             if i.object.throws_shaddow {
                 return true;

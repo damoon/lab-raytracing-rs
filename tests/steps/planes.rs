@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::MyWorld;
 use cucumber_rust::Steps;
@@ -6,28 +6,31 @@ use lab_raytracing_rs::{intersections::Intersection, shapes::default_plane};
 
 use super::tuples::parse_point;
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("p ← plane()", |mut world, _ctx| {
         let p = default_plane();
-        world.shapes.insert("p".to_string(), p);
+        world.shapes.insert("p".to_string(), Arc::new(p));
         world
     });
 
-    steps.when_regex(r#"xs ← local_intersect\((p|c|cyl|shape), r\)"#, |mut world, ctx| {
-        let obj = world.shapes.get(&ctx.matches[1]).unwrap();
-        world.xs = obj
-            .shape
-            .intersect(&world.r)
-            .iter()
-            .map(|&i| Intersection {
-                t: i,
-                object: obj,
-            })
-            .collect();
-        world
-    });
+    steps.when_regex(
+        r#"xs ← local_intersect\((p|c|cyl|shape), r\)"#,
+        |mut world, ctx| {
+            let obj = world.shapes.get(&ctx.matches[1]).unwrap();
+            world.xs = obj
+                .shape
+                .intersect(&world.r)
+                .iter()
+                .map(|&i| Intersection {
+                    t: i,
+                    object: obj.clone(),
+                })
+                .collect();
+            world
+        },
+    );
 
     steps.then("xs is empty", |world, _ctx| {
         assert_eq!(world.xs.len(), 0);
@@ -37,7 +40,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
     steps.then_regex(r#"^xs\[([-0-9.]+)\].object = p$"#, |world, ctx| {
         let desired = world.shapes.get("p").unwrap();
         let index = ctx.matches[1].parse::<usize>().unwrap();
-        let lookup = world.xs.get(index).unwrap().object;
+        let lookup = &world.xs.get(index).unwrap().object;
         assert_eq!(lookup, desired);
         world
     });

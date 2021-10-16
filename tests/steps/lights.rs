@@ -1,11 +1,16 @@
+use std::sync::Arc;
+
 use cucumber_rust::Steps;
-use lab_raytracing_rs::{lights::{lighting, Pointlight}, shapes::default_sphere};
+use lab_raytracing_rs::{
+    lights::{lighting, Pointlight},
+    shapes::default_sphere,
+};
 
 use crate::MyWorld;
 
 use super::tuples::parse_point;
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.when(
@@ -48,7 +53,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
         "result ← lighting(m, light, position, eyev, normalv)",
         |mut world, _ctx| {
             let material = &world.m;
-            let object = default_sphere();
+            let object = Arc::new(default_sphere());
             let light = &world.light;
             let position = world.tuples.get("position").unwrap();
             let eyev = world.tuples.get("eyev").unwrap();
@@ -63,7 +68,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
         "result ← lighting(m, light, position, eyev, normalv, in_shadow)",
         |mut world, _ctx| {
             let material = &world.m;
-            let object = default_sphere();
+            let object = Arc::new(default_sphere());
             let light = &world.light;
             let position = world.tuples.get("position").unwrap();
             let eyev = world.tuples.get("eyev").unwrap();
@@ -79,7 +84,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
         r#"^(c1|c2) ← lighting\(m, light, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), eyev, normalv, false\)$"#,
         |mut world, ctx| {
             let material = &world.m;
-            let object = default_sphere();
+            let object = Arc::new(default_sphere());
             let light = &world.light;
             let position = parse_point(&ctx.matches[2..=4]);
             let eyev = world.tuples.get("eyev").unwrap();

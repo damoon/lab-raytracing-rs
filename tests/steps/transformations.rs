@@ -32,7 +32,7 @@ pub fn parse_shearing(ss: &[String]) -> Matrix4x4 {
     shearing(xy, xz, yx, yz, zx, zy)
 }
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(

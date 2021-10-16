@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     steps::tuples::{parse_point, parse_vector},
@@ -7,13 +7,13 @@ use crate::{
 use cucumber_rust::Steps;
 use lab_raytracing_rs::shapes::default_testshape;
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^(s) ← test_shape\(\)$"#, |mut world, ctx| {
         world
             .shapes
-            .insert(ctx.matches[1].clone(), default_testshape());
+            .insert(ctx.matches[1].clone(), Arc::new(default_testshape()));
         world
     });
 

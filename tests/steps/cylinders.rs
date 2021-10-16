@@ -1,9 +1,9 @@
 use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::shapes::Shape;
-use std::{ops::Deref, rc::Rc};
+use std::{ops::Deref, sync::Arc};
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.then_regex(r#"cyl.(minimum|maximum) = (-?infinity)"#, |world, ctx| {
@@ -65,9 +65,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
                 },
                 _ => panic!("expected shape of kind cylinder"),
             };
-            world
-                .shapes
-                .insert(ctx.matches[1].clone(), obj);
+            world.shapes.insert(ctx.matches[1].clone(), Arc::new(obj));
             world
         },
     );
@@ -92,9 +90,7 @@ pub fn steps() -> Steps<MyWorld<'static>> {
                 },
                 _ => panic!("expected shape of kind cylinder"),
             };
-            world
-                .shapes
-                .insert(ctx.matches[1].clone(), obj);
+            world.shapes.insert(ctx.matches[1].clone(), Arc::new(obj));
             world
         },
     );

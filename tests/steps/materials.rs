@@ -1,4 +1,4 @@
-use std::{ops::Deref, rc::Rc};
+use std::{ops::Deref, sync::Arc};
 
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
@@ -6,7 +6,7 @@ use lab_raytracing_rs::materials::Material;
 
 use crate::{steps::tuples::parse_color, MyWorld};
 
-pub fn steps() -> Steps<MyWorld<'static>> {
+pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given("m ← material()", |mut world, _ctx| {
@@ -72,7 +72,9 @@ pub fn steps() -> Steps<MyWorld<'static>> {
             let value = ctx.matches[2].parse::<f64>().unwrap();
             let mut object = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
             object.material.ambient = value;
-            world.shapes.insert(ctx.matches[1].clone(), object);
+            world
+                .shapes
+                .insert(ctx.matches[1].clone(), Arc::new(object));
             world
         },
     );
