@@ -4,7 +4,7 @@ use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
-    camera::{render, Camera},
+    camera::Camera,
     transformations::{rotation_y, translation, view_transform},
 };
 
@@ -108,7 +108,7 @@ pub fn steps() -> Steps<MyWorld> {
     );
 
     steps.when("image ← render(c, w)", |mut world, _ctx| {
-        world.image = render(&world.camera, &world.w);
+        world.image = world.camera.render(&world.w);
         world
     });
 
