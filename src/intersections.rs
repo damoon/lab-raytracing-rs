@@ -7,10 +7,16 @@ use crate::{
 };
 use std::sync::Arc;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f64,
     pub object: Arc<Object>,
+}
+
+impl PartialEq for Intersection {
+    fn eq(&self, other: &Self) -> bool {
+        self.t == other.t && Arc::ptr_eq(&self.object, &other.object)
+    }
 }
 
 pub fn hit<'a>(
@@ -25,7 +31,7 @@ pub fn hit<'a>(
         match skip_object {
             None => {}
             Some(object) => {
-                if object == &current.object && current.t < 1024.0 * f64::EPSILON {
+                if Arc::ptr_eq(object, &current.object) && current.t < 1024.0 * f64::EPSILON {
                     continue;
                 }
             }
@@ -73,7 +79,7 @@ pub fn prepare_computations(
             }
         }
 
-        match containers.iter().position(|x| x == &i.object) {
+        match containers.iter().position(|x| Arc::ptr_eq(x, &i.object)) {
             Some(index) => {
                 containers.remove(index);
             }
