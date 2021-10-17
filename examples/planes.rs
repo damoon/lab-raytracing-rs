@@ -1,4 +1,3 @@
-use lab_raytracing_rs::camera::render;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
@@ -79,7 +78,7 @@ fn main() -> io::Result<()> {
         world.add_object(wall);
     }
 
-    let canvas = render(&camera, &world);
+    let canvas = camera.render(&world);
 
     let file = &mut io::stdout();
     let writer = &mut io::BufWriter::with_capacity(1024 * 128, file);
