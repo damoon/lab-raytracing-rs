@@ -249,7 +249,6 @@ impl Renderer {
     fn render_singlethreaded(camera: &Camera, world: &World) -> Canvas {
         let mut image = Canvas::new(camera.hsize, camera.vsize);
         for row in 0..camera.vsize {
-            dbg!(row);
             for x in 0..camera.hsize {
                 let color = camera.color_at_pixel(world, x, row);
                 image.set(x, row, color);
@@ -312,7 +311,6 @@ impl Renderer {
             let color = camera.color_at_pixel(world, x, y);
             image.set(x, 0, color);
         }
-        dbg!(row);
         image
     }
 }

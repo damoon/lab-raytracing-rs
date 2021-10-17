@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     steps::tuples::{parse_float, parse_point, parse_vector},
     MyWorld,
@@ -41,7 +43,7 @@ pub fn steps() -> Steps<MyWorld> {
     steps.then_regex(r#"^(i).object = s$"#, |world, ctx| {
         let shape = &world.intersections.get(&ctx.matches[1]).unwrap().object;
         let desired = world.shapes.get("s").unwrap();
-        assert_eq!(shape, desired);
+        assert!(Arc::ptr_eq(shape, desired));
         world
     });
 
