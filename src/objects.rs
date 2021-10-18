@@ -1,5 +1,4 @@
 use crate::{
-    intersections::Intersection,
     materials::{Material, REFRACTIVE_INDEX_GLASS},
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
@@ -70,6 +69,49 @@ pub struct Object {
     pub material: Material,
     pub shape: Shape,
     pub throws_shaddow: bool,
+}
+
+impl Object {
+    pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
+        let transform_inverse = transform.inverse().unwrap();
+        Object {
+            transform,
+            transform_inverse,
+            material,
+            shape,
+            throws_shaddow: true,
+        }
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix4x4) {
+        self.transform = transform;
+        self.transform_inverse = self.transform.inverse().unwrap();
+    }
+
+    pub fn transform(&self) -> &Matrix4x4 {
+        &self.transform
+    }
+
+    pub fn transform_inverse(&self) -> &Matrix4x4 {
+        &self.transform_inverse
+    }
+
+    pub fn intersect_local(&self, ray: &Ray) -> Vec<f64> {
+        self.shape.intersect(ray)
+    }
+
+    pub fn intersect(&self, world_ray: &Ray) -> Vec<f64> {
+        let local_ray = world_ray.transform(&self.transform_inverse);
+        self.intersect_local(&local_ray)
+    }
+
+    pub fn normal_at(&self, world_point: &Tuple) -> Tuple {
+        let local_point = &self.transform_inverse * world_point;
+        let local_normal = self.shape.normal_at(&local_point);
+        let mut world_normal = self.transform_inverse.transpose() * local_normal;
+        world_normal.w = 0.0;
+        world_normal.normalize()
+    }
 }
 
 //impl<'a> PartialEq for &Object<'a> {
@@ -364,51 +406,5 @@ fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, x
     let t = (maximum - ray.origin.y) / ray.direction.y;
     if check_cap(ray, t, *maximum) {
         xs.push(t);
-    }
-}
-
-pub fn intersect(obj: &Arc<Object>, world_ray: &Ray) -> Vec<Intersection> {
-    let local_ray = world_ray.transform(&obj.transform_inverse);
-    obj.shape
-        .intersect(&local_ray)
-        .iter()
-        .map(|t| Intersection {
-            t: *t,
-            object: obj.clone(),
-        })
-        .collect()
-}
-
-impl Object {
-    pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
-        let transform_inverse = transform.inverse().unwrap();
-        Object {
-            transform,
-            transform_inverse,
-            material,
-            shape,
-            throws_shaddow: true,
-        }
-    }
-
-    pub fn set_transform(&mut self, transform: Matrix4x4) {
-        self.transform = transform;
-        self.transform_inverse = self.transform.inverse().unwrap();
-    }
-
-    pub fn transform(&self) -> &Matrix4x4 {
-        &self.transform
-    }
-
-    pub fn transform_inverse(&self) -> &Matrix4x4 {
-        &self.transform_inverse
-    }
-
-    pub fn normal_at(&self, world_point: &Tuple) -> Tuple {
-        let local_point = &self.transform_inverse * world_point;
-        let local_normal = self.shape.normal_at(&local_point);
-        let mut world_normal = self.transform_inverse.transpose() * local_normal;
-        world_normal.w = 0.0;
-        world_normal.normalize()
     }
 }

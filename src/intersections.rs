@@ -1,7 +1,7 @@
 use crate::{
     lights::lighting,
+    objects::Object,
     rays::Ray,
-    shapes::Object,
     tuples::{color, dot, reflect, Tuple},
     world::World,
 };

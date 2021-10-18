@@ -3,7 +3,7 @@ use std::sync::Arc;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     lights::{lighting, Pointlight},
-    shapes::default_sphere,
+    objects::default_sphere,
 };
 
 use crate::MyWorld;

@@ -4,9 +4,10 @@ use crate::MyWorld;
 use cucumber_rust::Steps;
 use lab_raytracing_rs::{
     camera::RAY_RECURSION_DEPTH,
+    groups::GroupMember,
     intersections::{color_at, reflected_color, refracted_color, shade_hit},
     lights::Pointlight,
-    shapes::default_sphere,
+    objects::default_sphere,
     transformations::scaling,
     tuples::{color, point},
     world::World,
@@ -46,8 +47,13 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.then_regex(r#"^w contains (s1|s2)$"#, |world, ctx| {
-        let object = world.shapes.get(&ctx.matches[1]).unwrap().clone();
-        assert!(world.w.objects.contains(&object));
+        let object = world.objects.get(&ctx.matches[1]).unwrap().as_ref().clone();
+        assert!(world.w.objects.iter().any(|i| {
+            match i {
+                GroupMember::Object(o) => object == o.as_ref().clone(),
+                GroupMember::SubGroup(_) => panic!("matching groups is not supported"),
+            }
+        }));
         world
     });
 
@@ -66,7 +72,12 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("position not covered"),
             };
             let shape = world.w.objects.get(index).unwrap();
-            world.shapes.insert(ctx.matches[1].clone(), shape.clone());
+            match shape {
+                GroupMember::Object(o) => world
+                    .objects
+                    .insert(ctx.matches[1].clone(), Arc::new(o.as_ref().clone())),
+                GroupMember::SubGroup(_) => panic!("only objects are supported"),
+            };
             world
         },
     );
@@ -79,8 +90,8 @@ pub fn steps() -> Steps<MyWorld> {
                 "second" => 1,
                 _ => panic!("position not covered"),
             };
-            let object = world.shapes.get(&ctx.matches[1]).unwrap();
-            world.w.objects[index] = object.clone();
+            let object = world.objects.get(&ctx.matches[1]).unwrap();
+            world.w.objects[index] = GroupMember::Object(Arc::new(object.as_ref().clone()));
             world
         },
     );
@@ -146,7 +157,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps.then("c = inner.material.color", |world, _ctx| {
         let c = world.tuples.get("c").unwrap();
-        assert_eq!(c, &world.shapes.get("inner").unwrap().material.color);
+        assert_eq!(c, &world.objects.get("inner").unwrap().material.color);
         world
     });
 
@@ -166,8 +177,8 @@ pub fn steps() -> Steps<MyWorld> {
     steps.given_regex(
         r#"^(s1|s2|shape|lower|upper|floor|ball) is added to w$"#,
         |mut world, ctx| {
-            let shape = world.shapes.get(&ctx.matches[1]).unwrap();
-            world.w.objects.push(shape.clone());
+            let shape = world.objects.get(&ctx.matches[1]).unwrap();
+            world.w.add_object(shape.as_ref().clone());
             world
         },
     );
@@ -190,6 +201,8 @@ pub fn default_world() -> World {
     let mut s2 = default_sphere();
     s2.set_transform(scaling(0.5, 0.5, 0.5));
 
-    w.objects = vec![Arc::new(s1), Arc::new(s2)];
+    w.add_object(s1);
+    w.add_object(s2);
+
     w
 }

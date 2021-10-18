@@ -1,6 +1,6 @@
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
-use lab_raytracing_rs::shapes::default_cube;
+use lab_raytracing_rs::objects::default_cube;
 use lab_raytracing_rs::transformations::rotation_y;
 use lab_raytracing_rs::transformations::scaling;
 use lab_raytracing_rs::transformations::translation;

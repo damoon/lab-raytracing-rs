@@ -1,15 +1,16 @@
 use cucumber_rust::{async_trait, Cucumber, World as CucumberWorld};
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::canvas::Canvas;
+use lab_raytracing_rs::groups::Group;
 use lab_raytracing_rs::intersections::{
     prepare_computations, Intersection, IntersectionPrecomputations,
 };
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
+use lab_raytracing_rs::objects::{default_sphere, Object};
 use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
-use lab_raytracing_rs::shapes::{default_sphere, Object};
 use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
 use lab_raytracing_rs::world::World;
 use std::collections::HashMap;
@@ -31,13 +32,16 @@ pub struct MyWorld {
     intersections: HashMap<String, Intersection>,
     r: Ray,
     r2: Ray,
-    shapes: HashMap<String, Arc<Object>>,
+    objects: HashMap<String, Arc<Object>>,
     xs: Vec<Intersection>,
     light: Pointlight,
     m: Material,
     w: World,
     comps: IntersectionPrecomputations,
     pattern: Pattern,
+    g: Group,
+    g1: Group,
+    g2: Group,
 }
 enum Matrix {
     M2x2(Matrix2x2),
@@ -69,7 +73,7 @@ impl CucumberWorld for MyWorld {
                 origin: point(0.0, 0.0, 0.0),
                 direction: vector(1.0, 1.0, 1.0),
             },
-            shapes: HashMap::new(),
+            objects: HashMap::new(),
             xs: Vec::new(),
             light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
             m: Material::default(),
@@ -86,6 +90,9 @@ impl CucumberWorld for MyWorld {
                 &Vec::new(),
             ),
             pattern: test_pattern(),
+            g: Group::default(),
+            g1: Group::default(),
+            g2: Group::default(),
         };
         world.insert4x4("identity_matrix".to_string(), identity_matrix());
         Ok(world)
@@ -111,6 +118,7 @@ async fn main() {
         .steps(steps::camera::steps())
         .steps(steps::canvas::steps())
         .steps(steps::cylinders::steps())
+        .steps(steps::groups::steps())
         .steps(steps::intersections::steps())
         .steps(steps::lights::steps())
         .steps(steps::materials::steps())
@@ -118,7 +126,7 @@ async fn main() {
         .steps(steps::patterns::steps())
         .steps(steps::planes::steps())
         .steps(steps::rays::steps())
-        .steps(steps::shapes::steps())
+        .steps(steps::objects::steps())
         .steps(steps::spheres::steps())
         .steps(steps::transformations::steps())
         .steps(steps::tuples::steps())

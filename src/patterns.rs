@@ -1,6 +1,6 @@
 use crate::{
     matrices::{identity_matrix, Matrix4x4},
-    shapes::Object,
+    objects::Object,
     tuples::{point, Tuple},
 };
 use noise::{NoiseFn, Perlin, Seedable};

@@ -162,7 +162,7 @@ pub fn steps() -> Steps<MyWorld> {
                 _ => panic!("desired function not covered"),
             };
             let lookup = match ctx.matches[1].as_str() {
-                "s.transform" => world.shapes.get("s").unwrap().transform(),
+                "s.transform" => world.objects.get("s").unwrap().transform(),
                 "pattern.transform" => world.pattern.transform(),
                 _ => world.get4x4(&ctx.matches[1]),
             };

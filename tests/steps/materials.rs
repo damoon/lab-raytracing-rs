@@ -34,7 +34,7 @@ pub fn steps() -> Steps<MyWorld> {
             let desired = ctx.matches[3].parse::<f64>().unwrap();
             let material = match ctx.matches[1].as_str() {
                 "m" => world.m.clone(),
-                "s.material" => world.shapes.get("s").unwrap().material.clone(),
+                "s.material" => world.objects.get("s").unwrap().material.clone(),
                 _ => panic!("material origin not covered"),
             };
             let value = match ctx.matches[2].as_str() {
@@ -70,10 +70,10 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^(outer|inner|shape).material.ambient ← ([-0-9.]+)$"#,
         |mut world, ctx| {
             let value = ctx.matches[2].parse::<f64>().unwrap();
-            let mut object = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
+            let mut object = world.objects.get(&ctx.matches[1]).unwrap().deref().clone();
             object.material.ambient = value;
             world
-                .shapes
+                .objects
                 .insert(ctx.matches[1].clone(), Arc::new(object));
             world
         },

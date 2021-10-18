@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     materials::Material,
+    objects::Object,
     patterns::pattern_at_shape,
-    shapes::Object,
     tuples::{color, dot, reflect, Tuple},
 };
 

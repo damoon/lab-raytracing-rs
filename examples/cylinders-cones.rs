@@ -1,8 +1,8 @@
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
-use lab_raytracing_rs::shapes::default_cone;
-use lab_raytracing_rs::shapes::default_cylinder;
-use lab_raytracing_rs::shapes::Shape;
+use lab_raytracing_rs::objects::default_cone;
+use lab_raytracing_rs::objects::default_cylinder;
+use lab_raytracing_rs::objects::Shape;
 use lab_raytracing_rs::transformations::translation;
 use lab_raytracing_rs::transformations::view_transform;
 use lab_raytracing_rs::tuples::color;
