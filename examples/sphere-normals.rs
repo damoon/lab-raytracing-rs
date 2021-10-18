@@ -1,8 +1,8 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::hit;
+use lab_raytracing_rs::intersections::Intersection;
+use lab_raytracing_rs::objects::default_sphere;
 use lab_raytracing_rs::rays::Ray;
-use lab_raytracing_rs::shapes::default_sphere;
-use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
@@ -29,11 +29,18 @@ fn main() -> io::Result<()> {
             let world_x = -half_wall_size + (pixel_size * x as f64) + half_pixel_size;
 
             let position = point(world_x, world_y, wall_z);
-            let r = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
-            let xs = intersect(&shape, &r);
+            let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
+            let xs: Vec<Intersection> = shape
+                .intersect(&ray)
+                .iter()
+                .map(|t| Intersection {
+                    t: *t,
+                    object: shape.clone(),
+                })
+                .collect();
             let hit = hit(&xs, None);
             if let Some(hit) = hit {
-                let world_point = r.position(hit.t);
+                let world_point = ray.position(hit.t);
                 let normal = shape.normal_at(&world_point);
                 let r = normal.x.abs();
                 let g = normal.y.abs();

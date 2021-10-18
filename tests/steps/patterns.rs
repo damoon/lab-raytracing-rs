@@ -83,7 +83,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"^c ← (stripe_at_object|pattern_at_shape)\(pattern, (object|shape), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
         |mut world, ctx| {
             let point = parse_point(&ctx.matches[3..=5]);
-            let object = world.shapes.get(&ctx.matches[2]).unwrap();
+            let object = world.objects.get(&ctx.matches[2]).unwrap();
             let color = pattern_at_shape(&world.pattern, object, &point);
             world.tuples.insert("c".to_string(), color);
             world

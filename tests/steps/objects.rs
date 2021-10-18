@@ -5,14 +5,14 @@ use crate::{
     MyWorld,
 };
 use cucumber_rust::Steps;
-use lab_raytracing_rs::shapes::default_testshape;
+use lab_raytracing_rs::objects::default_testshape;
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.given_regex(r#"^(s) ← test_shape\(\)$"#, |mut world, ctx| {
         world
-            .shapes
+            .objects
             .insert(ctx.matches[1].clone(), Arc::new(default_testshape()));
         world
     });
@@ -25,7 +25,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "vector" => parse_vector(&ctx.matches[3..=5]),
                 _ => panic!("desired kind not covered"),
             };
-            let ray = lab_raytracing_rs::shapes::SAVED_RAY.with(|c| c.read().unwrap().clone());
+            let ray = lab_raytracing_rs::objects::SAVED_RAY.with(|c| c.read().unwrap().clone());
             let lookup = match ctx.matches[1].as_str() {
                 "origin" => ray.origin.clone(),
                 "direction" => ray.direction.clone(),

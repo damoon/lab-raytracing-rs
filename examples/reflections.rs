@@ -1,14 +1,14 @@
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::matrices::identity_matrix;
+use lab_raytracing_rs::objects::default_plane;
+use lab_raytracing_rs::objects::default_sphere;
 use lab_raytracing_rs::patterns::checkers_pattern;
 use lab_raytracing_rs::patterns::ring_pattern;
 use lab_raytracing_rs::patterns::solid_pattern;
 use lab_raytracing_rs::patterns::stripe_pattern;
 use lab_raytracing_rs::patterns::Pattern;
 use lab_raytracing_rs::patterns::Renderer;
-use lab_raytracing_rs::shapes::default_plane;
-use lab_raytracing_rs::shapes::default_sphere;
 use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_y;
 use lab_raytracing_rs::transformations::rotation_z;

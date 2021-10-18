@@ -251,10 +251,22 @@ impl Matrix4x4 {
     }
 
     pub fn mul_tuple(&self, point: &Tuple) -> Tuple {
-        let x = (self.state[0][0] * point.x) + (self.state[0][1] * point.y) + (self.state[0][2] * point.z) + (self.state[0][3] * point.w);
-        let y = (self.state[1][0] * point.x) + (self.state[1][1] * point.y) + (self.state[1][2] * point.z) + (self.state[1][3] * point.w);
-        let z = (self.state[2][0] * point.x) + (self.state[2][1] * point.y) + (self.state[2][2] * point.z) + (self.state[2][3] * point.w);
-        let w = (self.state[3][0] * point.x) + (self.state[3][1] * point.y) + (self.state[3][2] * point.z) + (self.state[3][3] * point.w);
+        let x = (self.state[0][0] * point.x)
+            + (self.state[0][1] * point.y)
+            + (self.state[0][2] * point.z)
+            + (self.state[0][3] * point.w);
+        let y = (self.state[1][0] * point.x)
+            + (self.state[1][1] * point.y)
+            + (self.state[1][2] * point.z)
+            + (self.state[1][3] * point.w);
+        let z = (self.state[2][0] * point.x)
+            + (self.state[2][1] * point.y)
+            + (self.state[2][2] * point.z)
+            + (self.state[2][3] * point.w);
+        let w = (self.state[3][0] * point.x)
+            + (self.state[3][1] * point.y)
+            + (self.state[3][2] * point.z)
+            + (self.state[3][3] * point.w);
         Tuple::new(x, y, z, w)
     }
 }
@@ -267,10 +279,6 @@ pub fn identity_matrix() -> Matrix4x4 {
     Matrix4x4 { state }
 }
 
-impl_op_ex!(*|a: &Matrix4x4, b: &Matrix4x4| -> Matrix4x4 {
-    a.mul_matrix(b)
-});
+impl_op_ex!(*|a: &Matrix4x4, b: &Matrix4x4| -> Matrix4x4 { a.mul_matrix(b) });
 
-impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Tuple| -> Tuple {
-    a.mul_tuple(b)
-});
+impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Tuple| -> Tuple { a.mul_tuple(b) });

@@ -1,4 +1,5 @@
 use lab_raytracing_rs::camera::Camera;
+use lab_raytracing_rs::groups::Group;
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::matrices::identity_matrix;
 use lab_raytracing_rs::objects::default_plane;
@@ -61,16 +62,18 @@ fn main() -> io::Result<()> {
     let mut pattern = Box::new(checkers_pattern(black, white));
     pattern.set_transform(scaling(0.25, 0.25, 0.25));
     let mut middle = default_sphere();
-    middle.set_transform(
+    middle.material.pattern = Some(pattern);
+    middle.material.diffuse = 0.7;
+    middle.material.specular = 0.3;
+    let mut group = Group::default();
+    group.set_transform(
         translation(-0.5, 1.0, 0.5)
             * rotation_x(PI / 4.0)
             * rotation_y(PI / 4.0)
             * rotation_z(PI / 4.0),
     );
-    middle.material.pattern = Some(pattern);
-    middle.material.diffuse = 0.7;
-    middle.material.specular = 0.3;
-    world.add_object(middle);
+    group.add_object(middle);
+    world.add_group(group);
 
     let right_pattern = Box::new(stripe_pattern(red, grey));
     let mut right = default_sphere();

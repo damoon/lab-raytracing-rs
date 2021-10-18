@@ -1,7 +1,7 @@
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::lights::Pointlight;
-use lab_raytracing_rs::shapes::default_plane;
-use lab_raytracing_rs::shapes::default_sphere;
+use lab_raytracing_rs::objects::default_plane;
+use lab_raytracing_rs::objects::default_sphere;
 use lab_raytracing_rs::transformations::rotation_x;
 use lab_raytracing_rs::transformations::rotation_z;
 use lab_raytracing_rs::transformations::scaling;

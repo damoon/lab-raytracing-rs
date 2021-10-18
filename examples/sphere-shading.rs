@@ -1,10 +1,10 @@
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::intersections::hit;
+use lab_raytracing_rs::intersections::Intersection;
 use lab_raytracing_rs::lights::lighting;
 use lab_raytracing_rs::lights::Pointlight;
+use lab_raytracing_rs::objects::default_sphere;
 use lab_raytracing_rs::rays::Ray;
-use lab_raytracing_rs::shapes::default_sphere;
-use lab_raytracing_rs::shapes::intersect;
 use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use std::io;
@@ -39,7 +39,14 @@ fn main() -> io::Result<()> {
 
             let position = point(world_x, world_y, wall_z);
             let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
-            let xs = intersect(&shape, &ray);
+            let xs: Vec<Intersection> = shape
+                .intersect(&ray)
+                .iter()
+                .map(|t| Intersection {
+                    t: *t,
+                    object: shape.clone(),
+                })
+                .collect();
             let hit = hit(&xs, None);
             if let Some(hit) = hit {
                 let world_point = ray.position(hit.t);

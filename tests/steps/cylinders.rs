@@ -1,13 +1,13 @@
 use crate::MyWorld;
 use cucumber_rust::Steps;
-use lab_raytracing_rs::shapes::Shape;
+use lab_raytracing_rs::objects::Shape;
 use std::{ops::Deref, sync::Arc};
 
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
     steps.then_regex(r#"cyl.(minimum|maximum) = (-?infinity)"#, |world, ctx| {
-        let obj = world.shapes.get("cyl").unwrap();
+        let obj = world.objects.get("cyl").unwrap();
         match obj.shape {
             Shape::Cylinder(min, max, _closed) => {
                 let lookup = match ctx.matches[1].as_str() {
@@ -33,7 +33,7 @@ pub fn steps() -> Steps<MyWorld> {
             "false" => false,
             _ => panic!("desired value not true of false"),
         };
-        let obj = world.shapes.get("cyl").unwrap();
+        let obj = world.objects.get("cyl").unwrap();
         match obj.shape {
             Shape::Cylinder(_min, _max, closed) => {
                 let lookup = match ctx.matches[1].as_str() {
@@ -51,7 +51,7 @@ pub fn steps() -> Steps<MyWorld> {
         r#"(cyl|shape).(minimum|maximum) ← ([-0-9.]+)"#,
         |mut world, ctx| {
             let value = ctx.matches[3].parse::<f64>().unwrap();
-            let mut obj = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
+            let mut obj = world.objects.get(&ctx.matches[1]).unwrap().deref().clone();
             obj.shape = match obj.shape {
                 Shape::Cylinder(min, max, closed) => match ctx.matches[2].as_str() {
                     "minimum" => Shape::Cylinder(value, max, closed),
@@ -65,7 +65,7 @@ pub fn steps() -> Steps<MyWorld> {
                 },
                 _ => panic!("expected shape of kind cylinder"),
             };
-            world.shapes.insert(ctx.matches[1].clone(), Arc::new(obj));
+            world.objects.insert(ctx.matches[1].clone(), Arc::new(obj));
             world
         },
     );
@@ -78,7 +78,7 @@ pub fn steps() -> Steps<MyWorld> {
                 "false" => false,
                 _ => panic!("value not true of false"),
             };
-            let mut obj = world.shapes.get(&ctx.matches[1]).unwrap().deref().clone();
+            let mut obj = world.objects.get(&ctx.matches[1]).unwrap().deref().clone();
             obj.shape = match obj.shape {
                 Shape::Cylinder(min, max, _closed) => match ctx.matches[2].as_str() {
                     "closed" => Shape::Cylinder(min, max, value),
@@ -90,7 +90,7 @@ pub fn steps() -> Steps<MyWorld> {
                 },
                 _ => panic!("expected shape of kind cylinder"),
             };
-            world.shapes.insert(ctx.matches[1].clone(), Arc::new(obj));
+            world.objects.insert(ctx.matches[1].clone(), Arc::new(obj));
             world
         },
     );

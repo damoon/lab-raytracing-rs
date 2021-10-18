@@ -1,12 +1,13 @@
+use crate::groups::{Group, GroupMember};
 use crate::intersections::Intersection;
 use crate::lights::Pointlight;
+use crate::objects::Object;
 use crate::rays::Ray;
-use crate::shapes::{intersect, Object};
 use crate::tuples::Tuple;
 use std::sync::Arc;
 
 pub struct World {
-    pub objects: Vec<Arc<Object>>,
+    pub objects: Vec<GroupMember>,
     pub light: Option<Pointlight>,
 }
 
@@ -19,13 +20,17 @@ impl World {
     }
 
     pub fn add_object(&mut self, obj: Object) {
-        self.objects.push(Arc::new(obj));
+        self.objects.push(GroupMember::Object(Arc::new(obj)));
     }
 
-    pub fn insersect(&self, r: &Ray) -> Vec<Intersection> {
+    pub fn add_group(&mut self, obj: Group) {
+        self.objects.push(GroupMember::SubGroup(Arc::new(obj)));
+    }
+
+    pub fn insersect(&self, ray: &Ray) -> Vec<Intersection> {
         let mut v = Vec::with_capacity(self.objects.len());
         for obj in self.objects.iter() {
-            let mut intersections = intersect(obj, r);
+            let mut intersections = obj.intersect(ray);
             v.append(&mut intersections);
         }
         v.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
