@@ -1,4 +1,5 @@
 use super::tuples::Tuple;
+use crate::groups::AABB;
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use std::fmt;
 
@@ -282,3 +283,9 @@ pub fn identity_matrix() -> Matrix4x4 {
 impl_op_ex!(*|a: &Matrix4x4, b: &Matrix4x4| -> Matrix4x4 { a.mul_matrix(b) });
 
 impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Tuple| -> Tuple { a.mul_tuple(b) });
+
+impl_op_ex_commutative!(*|a: &Matrix4x4, b: &AABB| -> AABB { b.mul_aabb(a) });
+
+impl_op_ex_commutative!(*|a: &Matrix4x4, b: &Option<AABB>| -> Option<AABB> {
+    b.as_ref().map(|b| b.mul_aabb(a))
+});

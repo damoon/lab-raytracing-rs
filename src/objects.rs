@@ -1,4 +1,5 @@
 use crate::{
+    groups::AABB,
     materials::{Material, REFRACTIVE_INDEX_GLASS},
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
@@ -69,23 +70,27 @@ pub struct Object {
     pub material: Material,
     pub shape: Shape,
     pub throws_shaddow: bool,
+    bounds: Option<AABB>,
 }
 
 impl Object {
     pub fn new(shape: Shape, transform: Matrix4x4, material: Material) -> Object {
         let transform_inverse = transform.inverse().unwrap();
+        let bounds = Some(shape.bounds() * &transform);
         Object {
             transform,
             transform_inverse,
             material,
             shape,
             throws_shaddow: true,
+            bounds,
         }
     }
 
     pub fn set_transform(&mut self, transform: Matrix4x4) {
         self.transform = transform;
         self.transform_inverse = self.transform.inverse().unwrap();
+        self.bounds = Some(self.shape.bounds() * &self.transform);
     }
 
     pub fn transform(&self) -> &Matrix4x4 {
@@ -96,8 +101,8 @@ impl Object {
         &self.transform_inverse
     }
 
-    pub fn intersect_local(&self, ray: &Ray) -> Vec<f64> {
-        self.shape.intersect(ray)
+    pub fn intersect_local(&self, local_ray: &Ray) -> Vec<f64> {
+        self.shape.intersect(local_ray)
     }
 
     pub fn intersect(&self, world_ray: &Ray) -> Vec<f64> {
@@ -111,6 +116,10 @@ impl Object {
         let mut world_normal = self.transform_inverse.transpose() * local_normal;
         world_normal.w = 0.0;
         world_normal.normalize()
+    }
+
+    pub fn bounds(&self) -> &Option<AABB> {
+        &self.bounds
     }
 }
 
@@ -316,6 +325,35 @@ impl Shape {
                 vector(local_point.x, y, local_point.z)
             }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
+        }
+    }
+
+    pub fn bounds(&self) -> AABB {
+        match self {
+            Shape::Plane => AABB {
+                min: point(f64::NEG_INFINITY, 0.0, f64::NEG_INFINITY),
+                max: point(f64::INFINITY, 0.0, f64::INFINITY),
+            },
+            Shape::Sphere => AABB {
+                min: point(-1.0, -1.0, -1.0),
+                max: point(1.0, 1.0, 1.0),
+            },
+            Shape::Cube => AABB {
+                min: point(-1.0, -1.0, -1.0),
+                max: point(1.0, 1.0, 1.0),
+            },
+            Shape::Cylinder(minimum, maximum, _closed) => AABB {
+                min: point(-1.0, *minimum, -1.0),
+                max: point(1.0, *maximum, 1.0),
+            },
+            Shape::Cone(minimum, maximum, _closed) => AABB {
+                min: point(*minimum, *minimum, *minimum),
+                max: point(*maximum, *maximum, *maximum),
+            },
+            Shape::Testshape => AABB {
+                min: point(-1.0, -1.0, -1.0),
+                max: point(1.0, 1.0, 1.0),
+            },
         }
     }
 }
