@@ -96,7 +96,7 @@ pub fn steps() -> Steps<MyWorld> {
     });
 
     steps.when_regex(r#"^xs ← local_intersect\(g, r\)$"#, |mut world, _ctx| {
-        world.xs = world.g.local_intersect(&world.r);
+        world.xs = world.g.intersect(&world.r);
         world
     });
 
