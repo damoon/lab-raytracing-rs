@@ -12,5 +12,6 @@ pub mod planes;
 pub mod rays;
 pub mod spheres;
 pub mod transformations;
+pub mod triangles;
 pub mod tuples;
 pub mod world;

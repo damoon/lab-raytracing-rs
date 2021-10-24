@@ -10,5 +10,6 @@ pub mod objects;
 pub mod patterns;
 pub mod rays;
 pub mod transformations;
+pub mod triangles;
 pub mod tuples;
 pub mod world;

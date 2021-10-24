@@ -79,7 +79,7 @@ async fn tuple_kind(world: &mut MyWorld, not: String, kind: String) {
 }
 
 #[given(
-    regex = r"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white|position) ← (point|vector|color)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"
+    regex = r"^(a|b|p|v|p1|p2|p3|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white|position) ← (point|vector|color)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"
 )]
 async fn set_tuple_kind(
     world: &mut MyWorld,
