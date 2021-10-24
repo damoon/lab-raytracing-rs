@@ -3,6 +3,7 @@ use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::matrices::identity_matrix;
 use lab_raytracing_rs::objects::default_plane;
 use lab_raytracing_rs::objects::default_sphere;
+use lab_raytracing_rs::objects::metallic;
 use lab_raytracing_rs::objects::mirror as mirror_material;
 use lab_raytracing_rs::patterns::checkers_pattern;
 use lab_raytracing_rs::patterns::ring_pattern;
@@ -64,7 +65,7 @@ fn main() -> io::Result<()> {
 
     let mut middle = default_sphere();
     middle.set_transform(translation(-0.5, 1.0, 0.5));
-    middle.material = mirror_material();
+    middle.material = metallic();
     world.add_object(middle);
 
     let right_pattern = Box::new(stripe_pattern(red, grey));

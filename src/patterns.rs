@@ -101,9 +101,9 @@ impl Renderer {
                 b.color_at(&(p * &b.transform_inverse))
             }
             Renderer::Checkers(a, b) => {
-                let px = (p.x + (2.0 * f64::EPSILON)).floor();
-                let py = (p.y + (2.0 * f64::EPSILON)).floor();
-                let pz = (p.z + (2.0 * f64::EPSILON)).floor();
+                let px = (p.x + (1024.0 * f64::EPSILON)).floor();
+                let py = (p.y + (1024.0 * f64::EPSILON)).floor();
+                let pz = (p.z + (1024.0 * f64::EPSILON)).floor();
                 if ((px + py + pz) % 2.0).abs() < f64::EPSILON {
                     return a.color_at(&(p * &a.transform_inverse));
                 }
