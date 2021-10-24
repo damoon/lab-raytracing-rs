@@ -53,7 +53,7 @@ impl World {
             match object {
                 None => {}
                 Some(object) => {
-                    if Arc::ptr_eq(object, &i.object) && i.t.abs() < 1024.0 * f64::EPSILON {
+                    if Arc::ptr_eq(object, &i.object) && i.t.abs() < 0.0001 {
                         continue;
                     }
                 }

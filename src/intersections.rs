@@ -31,7 +31,7 @@ pub fn hit<'a>(
         match skip_object {
             None => {}
             Some(object) => {
-                if Arc::ptr_eq(object, &current.object) && current.t < 1024.0 * f64::EPSILON {
+                if Arc::ptr_eq(object, &current.object) && current.t < 0.0001 {
                     continue;
                 }
             }

@@ -38,6 +38,11 @@ pub fn default_cube() -> Object {
 pub fn glass_sphere() -> Object {
     let shape = Shape::Sphere;
     let transform = identity_matrix();
+    let material = glass();
+    Object::new(shape, transform, material)
+}
+
+pub fn glass() -> Material {
     let mut material = Material::default();
     material.transparency = 1.0;
     material.refractive_index = REFRACTIVE_INDEX_GLASS;
@@ -46,11 +51,36 @@ pub fn glass_sphere() -> Object {
     material.ambient = 0.1;
     material.diffuse = 0.1;
     material.shininess = 300.0;
-    Object::new(shape, transform, material)
+    material
+}
+
+pub fn mirror() -> Material {
+    let mut material = Material::default();
+    material.color = color(1.0, 1.0, 1.0);
+    material.ambient = 0.0;
+    material.specular = 0.0;
+    material.diffuse = 0.0;
+    material.reflective = 0.7;
+    material
+}
+
+pub fn metallic() -> Material {
+    let mut material = Material::default();
+    material.color = color(0.05, 0.1, 0.2);
+    //material.ambient = 0.0;
+    material.specular = 0.5;
+    material.diffuse = 1.0;
+    material.reflective = 0.1;
+    material.shininess = 3.0;
+    material
 }
 
 pub fn default_cylinder() -> Object {
-    let shape = Shape::Cylinder(f64::NEG_INFINITY, f64::INFINITY, false);
+    cylinder(f64::NEG_INFINITY, f64::INFINITY)
+}
+
+pub fn cylinder(min: f64, max: f64) -> Object {
+    let shape = Shape::Cylinder(min, max, false);
     let transform = identity_matrix();
     let material = Material::default();
     Object::new(shape, transform, material)

@@ -45,6 +45,21 @@ impl GroupMember {
             GroupMember::Object(o) => o.bounds(),
         }
     }
+
+    fn update_transform(&self, update: &Matrix4x4) -> Self {
+        match self {
+            GroupMember::SubGroup(g) => {
+                let mut g = g.as_ref().clone();
+                g.set_transform(update * g.transform());
+                GroupMember::SubGroup(Arc::new(g))
+            }
+            GroupMember::Object(o) => {
+                let mut o = o.as_ref().clone();
+                o.set_transform(update * o.transform());
+                GroupMember::Object(Arc::new(o))
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -106,20 +121,20 @@ impl Group {
 
     pub fn add_group(&mut self, mut e: Group) {
         e.set_transform(&self.transform * e.transform());
-        self.extend_bounds(e.bounds());
+        self.bounds = Self::outer_bounds(&self.bounds, e.bounds());
         let e = GroupMember::SubGroup(Arc::new(e));
         self.elements.push(e);
     }
 
     pub fn add_object(&mut self, mut e: Object) {
         e.set_transform(&self.transform * e.transform());
-        self.extend_bounds(e.bounds());
+        self.bounds = Self::outer_bounds(&self.bounds, e.bounds());
         let e = GroupMember::Object(Arc::new(e));
         self.elements.push(e)
     }
 
-    fn extend_bounds(&mut self, bounds: &Option<AABB>) {
-        self.bounds = match (&self.bounds, bounds) {
+    fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
+        match (this, other) {
             (None, None) => None,
             (None, Some(b)) => Some(b.clone()),
             (Some(a), None) => Some(a.clone()),
@@ -144,22 +159,21 @@ impl Group {
     }
 
     pub fn set_transform(&mut self, transform: Matrix4x4) {
-        // let update = &transform * &self.transform;
+        let update = &transform * &self.transform_inverse;
         self.transform = transform;
         self.transform_inverse = self.transform.inverse().unwrap();
 
-        if !self.is_empty() {
-            panic!("changing a group after adding elements is not supported yet");
+        self.elements = self
+            .elements
+            .iter()
+            .map(|e| e.update_transform(&update))
+            .collect();
+
+        let mut bounds = None;
+        for e in self.elements.iter() {
+            bounds = Self::outer_bounds(&bounds, e.bounds());
         }
-        // let list: Vec<GroupMember> = self
-        //     .elements
-        //     .into_iter()
-        //     .map(|e| {
-        //         e.update_transform(&update);
-        //         e
-        //     })
-        //     .collect();
-        // self.elements = list;
+        self.bounds = bounds;
     }
 
     pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {

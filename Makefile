@@ -1,6 +1,8 @@
 all: images clock.png projectile.png
 
-images: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png cylinders-cones.png groups.png
+images: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png \
+	sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png \
+	cylinders-cones.png groups.png many-spheres.png metallic.png hexagon-donut.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg
@@ -63,3 +65,12 @@ cylinders-cones.png:
 
 groups.png:
 	cargo run --release --example groups | convert /dev/stdin groups.png
+
+many-spheres.png:
+	cargo run --release --example many-spheres | convert /dev/stdin many-spheres.png
+
+metallic.png:
+	cargo run --release --example metallic | convert /dev/stdin metallic.png
+
+hexagon-donut.png:
+	cargo run --release --example hexagon-donut | convert /dev/stdin hexagon-donut.png
