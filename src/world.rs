@@ -6,6 +6,7 @@ use crate::rays::Ray;
 use crate::tuples::Tuple;
 use std::sync::Arc;
 
+#[derive(Debug)]
 pub struct World {
     pub objects: Vec<GroupMember>,
     pub light: Option<Pointlight>,

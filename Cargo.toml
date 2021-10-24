@@ -1,7 +1,7 @@
 [package]
 name = "lab-raytracing-rs"
 version = "0.0.0"
-edition = "2018"
+edition = "2021"
 
 [[test]]
 name = "cucumber"
@@ -17,7 +17,10 @@ num_cpus = "1.13.0"
 fastrand = "1.5.0"
 
 [dev-dependencies]
-cucumber_rust = "0.9"
+cucumber = { git = "https://github.com/cucumber-rs/cucumber", version = "0.10.0" }
+async-trait = "0.1.51"
+#cucumber = { package = "cucumber_rust", version = "0.10.0" }
+#cucumber_rust = "0.10.0"
 #cucumber_rust = { path="../cucumber-rust" }
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "time"] }
 approx = "0.5.0"

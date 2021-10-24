@@ -50,6 +50,7 @@ pub fn hit<'a>(
     r
 }
 
+#[derive(Debug)]
 pub struct IntersectionPrecomputations {
     pub t: f64,
     pub object: Arc<Object>,

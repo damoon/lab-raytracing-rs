@@ -20,7 +20,7 @@ profile:
 	time target/release/examples/$(EXAMPLE) > /dev/null
 
 test:
-	cargo test --test cucumber -- --silent
+	cargo test --test cucumber
 
 clock.png:
 	cargo run --release --example clock | convert /dev/stdin clock.png
