@@ -1,18 +1,8 @@
 name: Execute automated checks
 on: push
 jobs:
-  clippy_check:
-    name: Clippy check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2
-      - run: rustup component add clippy
-      - uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # renovate: tag=v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
   test:
-    name: Cucumber tests
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # renovate: tag=v2
@@ -20,3 +10,6 @@ jobs:
         with:
           command: test
           args: --test cucumber
+      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # renovate: tag=v1
+        with:
+          command: clippy
