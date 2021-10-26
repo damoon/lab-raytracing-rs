@@ -9,6 +9,7 @@ use lab_raytracing_rs::intersections::{
 use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
+use lab_raytracing_rs::obj_file::Parser;
 use lab_raytracing_rs::objects::{default_sphere, Object};
 use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
@@ -35,6 +36,8 @@ pub struct MyWorld {
     r: Ray,
     r2: Ray,
     objects: HashMap<String, Arc<Object>>,
+    files: HashMap<String, String>,
+    parser: Option<Parser>,
     xs: Vec<Intersection>,
     light: Pointlight,
     m: Material,
@@ -78,6 +81,8 @@ impl cucumber::World for MyWorld {
                 direction: vector(1.0, 1.0, 1.0),
             },
             objects: HashMap::new(),
+            files: HashMap::new(),
+            parser: None,
             xs: Vec::new(),
             light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
             m: Material::default(),
