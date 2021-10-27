@@ -84,71 +84,76 @@ async fn tuple_kind(world: &mut MyWorld, not: String, kind: String) {
 }
 
 #[given(
-    regex = r"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white|position) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+    regex = r"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white|position) ← (point|vector|color)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"
 )]
-async fn set_tuple_kind(world: &mut MyWorld, name: String, kind: String, x: f64, y: f64, z: f64) {
+async fn set_tuple_kind(
+    world: &mut MyWorld,
+    name: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let tuple = match kind.as_str() {
-        "point" => point(x, y, z),
-        "vector" => vector(x, y, z),
-        "color" => color(x, y, z),
+        "point" => parse_point(&[x, y, z]),
+        "vector" => parse_vector(&[x, y, z]),
+        "color" => parse_color(&[x, y, z]),
         _ => panic!("type not covered"),
     };
     world.tuples.insert(name, tuple);
 }
 
+#[when(regex = r"^(r) ← reflect\((v), (n)\)$")]
+async fn calculate_reflection(world: &mut MyWorld, ray: String, vector: String, normal: String) {
+    let vector = world.tuples.get(&vector).unwrap();
+    let normal = world.tuples.get(&normal).unwrap();
+    let reflected = reflect(vector, normal);
+    world.tuples.insert(ray, reflected);
+}
+
+#[then(regex = r"^(-?)(p|v|a) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn negate_tuple(
+    world: &mut MyWorld,
+    negation: String,
+    name: String,
+    x: String,
+    y: String,
+    z: String,
+    w: String,
+) {
+    let desired_tuple = parse_tuple(&[x, y, z, w]);
+    let mut tuple = world.tuples.get(&name).unwrap().clone();
+    if &negation == "-" {
+        tuple = -tuple;
+    }
+    eq_tuples_similar(&desired_tuple, &tuple);
+}
+
+#[then(regex = r"^(a1) \+ (a2) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_tuple(
+    world: &mut MyWorld,
+    this: String,
+    other: String,
+    x: String,
+    y: String,
+    z: String,
+    w: String,
+) {
+    let desired_tuple = parse_tuple(&[x, y, z, w]);
+    let tuple1 = world.tuples.get(&this).unwrap();
+    let tuple2 = world.tuples.get(&other).unwrap();
+    let computed_tuple = tuple1 + tuple2;
+    eq_tuples_similar(&computed_tuple, &desired_tuple);
+}
+
+#[then(regex = r"^(p2|p3|p4) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_point(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let point = world.tuples.get(&name).unwrap().clone();
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&point, &desired_color);
+}
+
 /*
-    steps.given_regex(
-        r#"^(n|eyev) ← vector\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"#,
-        |mut world, ctx| {
-            let vector = parse_vector(&ctx.matches[2..=4]);
-            world.tuples.insert(ctx.matches[1].clone(), vector);
-            world
-        },
-    );
-
-    steps.when("r ← reflect(v, n)", |mut world, _ctx| {
-        let vector = world.tuples.get("v").unwrap();
-        let normal = world.tuples.get("n").unwrap();
-        let reflected = reflect(vector, normal);
-        world.tuples.insert("r".to_string(), reflected);
-        world
-    });
-
-    steps.then_regex(
-        r#"^(-?)(p|v|a) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let desired_tuple = parse_tuple(&ctx.matches[3..=6]);
-            let mut tuple = world.tuples.get(&ctx.matches[2]).unwrap().clone();
-            if &ctx.matches[1] == "-" {
-                tuple = -tuple;
-            }
-            eq_tuples_similar(&desired_tuple, &tuple);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(a1) \+ (a2) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let desired_tuple = parse_tuple(&ctx.matches[3..=6]);
-            let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
-            let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
-            let computed_tuple = tuple1 + tuple2;
-            eq_tuples_similar(&computed_tuple, &desired_tuple);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(p2|p3|p4) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let point = world.tuples.get(&ctx.matches[1]).unwrap().clone();
-            let desired_color = parse_color(&ctx.matches[2..=4]);
-            eq_tuples_similar(&point, &desired_color);
-            world
-        },
-    );
-
     steps.then_regex(
         r#"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2), ([-0-9.|\-?√2/2]+), ([-0-9.]+|\-?√2/2)\)$"#,
         |world, ctx| {
@@ -342,6 +347,7 @@ async fn set_tuple_kind(world: &mut MyWorld, name: String, kind: String, x: f64,
 
     steps
 }
+*/
 
 pub fn eq_tuples_similar(this: &Tuple, other: &Tuple) -> bool {
     if (this.x - other.x).abs() > 0.0001 {
@@ -358,4 +364,3 @@ pub fn eq_tuples_similar(this: &Tuple, other: &Tuple) -> bool {
     }
     true
 }
-*/
