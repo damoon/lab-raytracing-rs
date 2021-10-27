@@ -4,7 +4,8 @@ use super::{
 };
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber::{gherkin::Step, given, step::Context, then, when};
+use lab_raytracing_rs::{groups::Group, transformations::scaling};
 use lab_raytracing_rs::{
     intersections::Intersection,
     matrices::Matrix4x4,
@@ -12,65 +13,59 @@ use lab_raytracing_rs::{
         default_cone, default_cube, default_cylinder, default_plane, default_sphere, glass_sphere,
     },
     patterns::test_pattern,
-    transformations::{scaling, translation},
+    transformations::translation,
     tuples::{color, Tuple},
 };
 use regex::Regex;
 use std::{ops::Deref, sync::Arc};
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+#[given(
+    regex = r"^(s|shape|s1|object|c|cyl|s2|s3) ← (sphere|plane|glass_sphere|cube|cylinder|cone)\(\)$"
+)]
+async fn create_shape(world: &mut MyWorld, name: String, kind: String) {
+    let s = match kind.as_str() {
+        "sphere" => default_sphere(),
+        "plane" => default_plane(),
+        "glass_sphere" => glass_sphere(),
+        "cube" => default_cube(),
+        "cylinder" => default_cylinder(),
+        "cone" => default_cone(),
+        _ => panic!("object kind not covered"),
+    };
+    world.objects.insert(name, Arc::new(s));
+}
 
-    steps.given_regex(
-        r#"^(s|shape|s1|object|c|cyl|s2|s3) ← (sphere|plane|glass_sphere|cube|cylinder|cone)\(\)$"#,
-        |mut world, ctx| {
-            let s = match ctx.matches[2].as_str() {
-                "sphere" => default_sphere(),
-                "plane" => default_plane(),
-                "glass_sphere" => glass_sphere(),
-                "cube" => default_cube(),
-                "cylinder" => default_cylinder(),
-                "cone" => default_cone(),
-                _ => panic!("object kind not covered"),
-            };
-            world.objects.insert(ctx.matches[1].clone(), Arc::new(s));
-            world
-        },
-    );
-
-    steps.given_regex(
-        r#"^(s1|s2|shape|lower|upper|A|B|C|floor|ball) ← (sphere|plane|glass_sphere)\(\) with:$"#,
-        |mut world, ctx| {
-            let mut s = match ctx.matches[2].as_str() {
-                "sphere" => default_sphere(),
-                "plane" => default_plane(),
-                "glass_sphere" => glass_sphere(),
-                _ => panic!("object kind not covered"),
-            };
-            for row in &ctx.step.table.as_ref().unwrap().rows {
-                let key = row.get(0).unwrap();
-                let value = row.get(1).unwrap();
-                match key.as_str() {
-                    "material.color" => s.material.color = color_from_string(value),
-                    "material.ambient" => s.material.ambient = value.parse::<f64>().unwrap(),
-                    "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
-                    "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
-                    "material.reflective" => s.material.reflective = value.parse::<f64>().unwrap(),
-                    "material.transparency" => {
-                        s.material.transparency = value.parse::<f64>().unwrap()
-                    }
-                    "material.refractive_index" => {
-                        s.material.refractive_index = value.parse::<f64>().unwrap()
-                    }
-                    "transform" => s.set_transform(transform_from_string(value)),
-                    _ => panic!("object property not covered"),
-                }
+#[given(
+    regex = r"^(s1|s2|shape|lower|upper|A|B|C|floor|ball) ← (sphere|plane|glass_sphere)\(\) with:$"
+)]
+async fn create_shape_with(world: &mut MyWorld, name: String, kind: String, step: &Step) {
+    let mut s = match kind.as_str() {
+        "sphere" => default_sphere(),
+        "plane" => default_plane(),
+        "glass_sphere" => glass_sphere(),
+        _ => panic!("object kind not covered"),
+    };
+    for row in &step.table.as_ref().unwrap().rows {
+        let key = row.get(0).unwrap();
+        let value = row.get(1).unwrap();
+        match key.as_str() {
+            "material.color" => s.material.color = color_from_string(value),
+            "material.ambient" => s.material.ambient = value.parse::<f64>().unwrap(),
+            "material.diffuse" => s.material.diffuse = value.parse::<f64>().unwrap(),
+            "material.specular" => s.material.specular = value.parse::<f64>().unwrap(),
+            "material.reflective" => s.material.reflective = value.parse::<f64>().unwrap(),
+            "material.transparency" => s.material.transparency = value.parse::<f64>().unwrap(),
+            "material.refractive_index" => {
+                s.material.refractive_index = value.parse::<f64>().unwrap()
             }
-            world.objects.insert(ctx.matches[1].clone(), Arc::new(s));
-            world
-        },
-    );
+            "transform" => s.set_transform(transform_from_string(value)),
+            _ => panic!("object property not covered"),
+        }
+    }
+    world.objects.insert(name, Arc::new(s));
+}
 
+/*
     steps.given_regex(r#"^(shape|A|B) has:$"#, |mut world, ctx| {
         let mut s = world.objects.get(&ctx.matches[1]).unwrap().deref().clone();
         for row in &ctx.step.table.as_ref().unwrap().rows {
@@ -229,6 +224,7 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps
 }
+*/
 
 fn color_from_string(s: &str) -> Tuple {
     let re = Regex::new(r#"\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)"#).unwrap();

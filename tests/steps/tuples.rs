@@ -1,5 +1,5 @@
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber::Step;
 use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple};
 
 use crate::MyWorld;
@@ -45,74 +45,58 @@ pub fn parse_color(ss: &[String]) -> Tuple {
     color(r, g, b)
 }
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+use cucumber::{given, then, when};
+use lab_raytracing_rs::{groups::Group, transformations::scaling};
+use std::ops::Deref;
 
-    steps.given_regex(
-        r#"(a|a1|a2|n|b) ← tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |mut world, ctx| {
-            let tuple = parse_tuple(&ctx.matches[2..=5]);
-            world.tuples.insert(ctx.matches[1].clone(), tuple);
-            world
-        },
-    );
+#[given(regex = r"^(a|a1|a2|n|b) ← tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn set_tuple(world: &mut MyWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
+    let tuple = Tuple::new(x, y, z, w);
+    world.tuples.insert(name, tuple);
+}
 
-    steps.given_regex(
-        r#"(position) ← point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |mut world, ctx| {
-            let tuple = parse_point(&ctx.matches[2..=4]);
-            world.tuples.insert(ctx.matches[1].clone(), tuple);
-            world
-        },
-    );
+#[then(regex = r"^(a|c).(x|y|z|w|red|green|blue) = ([-0-9.]+)$")]
+async fn compare_value(world: &mut MyWorld, name: String, attribute: String, desired: f64) {
+    let tuple = world.tuples.get(&name).unwrap();
+    let value = match attribute.as_str() {
+        "x" => tuple.x,
+        "y" => tuple.y,
+        "z" => tuple.z,
+        "w" => tuple.w,
+        "red" => tuple.x,
+        "green" => tuple.y,
+        "blue" => tuple.z,
+        _ => panic!("Invalid attribute checked"),
+    };
+    assert_abs_diff_eq!(desired, value);
+}
 
-    steps.then_regex(
-        r#"^(a|c).(x|y|z|w|red|green|blue) = ([-0-9.]+)$"#,
-        |world, ctx| {
-            let desired = ctx.matches[3].parse::<f64>().unwrap();
-            let tuple = world.tuples.get(&ctx.matches[1]).unwrap();
-            let value = match ctx.matches[2].as_str() {
-                "x" => tuple.x,
-                "y" => tuple.y,
-                "z" => tuple.z,
-                "w" => tuple.w,
-                "red" => tuple.x,
-                "green" => tuple.y,
-                "blue" => tuple.z,
-                _ => panic!("Invalid attribute checked"),
-            };
-            assert_abs_diff_eq!(desired, value);
-
-            world
-        },
-    );
-
-    steps.then_regex(r#"^(a) is (not )?a (point|vector)$"#, |world, ctx| {
-        let tuple = world.tuples.get(&ctx.matches[1]).unwrap();
-        assert!(match (ctx.matches[2].as_str(), ctx.matches[3].as_str()) {
-            ("", "point") => tuple.is_point(),
-            ("not ", "point") => !tuple.is_point(),
-            ("", "vector") => tuple.is_vector(),
-            ("not ", "vector") => !tuple.is_vector(),
-            (_, _) => false,
-        });
-        world
+#[then(regex = r"^a is (not )?a (point|vector)$")]
+async fn tuple_kind(world: &mut MyWorld, not: String, kind: String) {
+    let tuple = world.tuples.get("a").unwrap();
+    assert!(match (not.as_str(), kind.as_str()) {
+        ("", "point") => tuple.is_point(),
+        ("not ", "point") => !tuple.is_point(),
+        ("", "vector") => tuple.is_vector(),
+        ("not ", "vector") => !tuple.is_vector(),
+        (_, _) => false,
     });
+}
 
-    steps.given_regex(
-        r#"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |mut world, ctx| {
-            let tuple = match ctx.matches[2].as_str() {
-                "point" => parse_point(&ctx.matches[3..=5]),
-                "vector" => parse_vector(&ctx.matches[3..=5]),
-                "color" => parse_color(&ctx.matches[3..=5]),
-                _ => panic!("type not covered"),
-            };
-            world.tuples.insert(ctx.matches[1].clone(), tuple);
-            world
-        },
-    );
+#[given(
+    regex = r"^(a|b|p|v|p1|p2|v1|v2|zero|c|c1|c2|c3|n|red|from|to|up|origin|direction|intensity|eyev|normalv|black|white|position) ← (point|vector|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn set_tuple_kind(world: &mut MyWorld, name: String, kind: String, x: f64, y: f64, z: f64) {
+    let tuple = match kind.as_str() {
+        "point" => point(x, y, z),
+        "vector" => vector(x, y, z),
+        "color" => color(x, y, z),
+        _ => panic!("type not covered"),
+    };
+    world.tuples.insert(name, tuple);
+}
 
+/*
     steps.given_regex(
         r#"^(n|eyev) ← vector\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"#,
         |mut world, ctx| {
@@ -374,3 +358,4 @@ pub fn eq_tuples_similar(this: &Tuple, other: &Tuple) -> bool {
     }
     true
 }
+*/

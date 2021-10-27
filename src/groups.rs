@@ -8,7 +8,7 @@ use crate::{
 use auto_ops::impl_op_ex;
 use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum GroupMember {
     SubGroup(Arc<Group>),
     Object(Arc<Object>),
@@ -62,7 +62,7 @@ impl GroupMember {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Group {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,

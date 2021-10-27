@@ -1,5 +1,5 @@
 use crate::MyWorld;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::objects::Shape;
 use std::{ops::Deref, sync::Arc};
 

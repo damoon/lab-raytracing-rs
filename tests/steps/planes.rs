@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::MyWorld;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::{intersections::Intersection, objects::default_plane};
 
 use super::tuples::parse_point;

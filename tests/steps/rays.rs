@@ -1,6 +1,6 @@
 use super::tuples::{eq_tuples_similar, parse_point, parse_vector};
 use crate::MyWorld;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::{rays::Ray, tuples::vector};
 
 pub fn steps() -> Steps<MyWorld> {

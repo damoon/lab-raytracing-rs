@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::{
     camera::Camera,
     transformations::{rotation_y, translation, view_transform},

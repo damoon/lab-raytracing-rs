@@ -1,7 +1,7 @@
 use std::{ops::Deref, sync::Arc};
 
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::materials::Material;
 
 use crate::{steps::tuples::parse_color, MyWorld};

@@ -1,5 +1,4 @@
 use crate::steps::tuples::{parse_point, parse_vector};
-use cucumber_rust::Steps;
 use lab_raytracing_rs::matrices::Matrix4x4;
 use lab_raytracing_rs::transformations::{
     rotation_x, rotation_y, rotation_z, scaling, shearing, translation, view_transform,
@@ -32,6 +31,7 @@ pub fn parse_shearing(ss: &[String]) -> Matrix4x4 {
     shearing(xy, xz, yx, yz, zx, zy)
 }
 
+/*
 pub fn steps() -> Steps<MyWorld> {
     let mut steps: Steps<MyWorld> = Steps::new();
 
@@ -173,3 +173,4 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps
 }
+*/

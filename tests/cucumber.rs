@@ -1,4 +1,5 @@
-use cucumber_rust::{async_trait, Cucumber, World as CucumberWorld};
+use async_trait::async_trait;
+use cucumber::{cli, given, then, when, WorldInit, WriterExt};
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::groups::Group;
@@ -19,6 +20,7 @@ use std::sync::Arc;
 
 mod steps;
 
+#[derive(Debug, WorldInit)]
 pub struct MyWorld {
     tuples: HashMap<String, Tuple>,
     floats: HashMap<String, f64>,
@@ -43,6 +45,8 @@ pub struct MyWorld {
     g1: Group,
     g2: Group,
 }
+
+#[derive(Debug)]
 enum Matrix {
     M2x2(Matrix2x2),
     M3x3(Matrix3x3),
@@ -50,7 +54,7 @@ enum Matrix {
 }
 
 #[async_trait(?Send)]
-impl CucumberWorld for MyWorld {
+impl cucumber::World for MyWorld {
     type Error = Infallible;
 
     async fn new() -> Result<Self, Infallible> {
@@ -113,25 +117,25 @@ impl MyWorld {
 
 #[tokio::main]
 async fn main() {
-    Cucumber::<MyWorld>::new()
-        .features(&["./features"])
-        .steps(steps::camera::steps())
-        .steps(steps::canvas::steps())
-        .steps(steps::cylinders::steps())
-        .steps(steps::groups::steps())
-        .steps(steps::intersections::steps())
-        .steps(steps::lights::steps())
-        .steps(steps::materials::steps())
-        .steps(steps::matrices::steps())
-        .steps(steps::patterns::steps())
-        .steps(steps::planes::steps())
-        .steps(steps::rays::steps())
-        .steps(steps::objects::steps())
-        .steps(steps::spheres::steps())
-        .steps(steps::transformations::steps())
-        .steps(steps::tuples::steps())
-        .steps(steps::world::steps())
-        .cli()
-        .run_and_exit()
+    MyWorld::cucumber()
+        // .repeat_failed()
+        // .repeat_skipped()
+        // .steps(steps::camera::steps())
+        // .steps(steps::canvas::steps())
+        // .steps(steps::cylinders::steps())
+        // .steps(steps::groups::steps())
+        // .steps(steps::intersections::steps())
+        // .steps(steps::lights::steps())
+        // .steps(steps::materials::steps())
+        // .steps(steps::matrices::steps())
+        // .steps(steps::patterns::steps())
+        // .steps(steps::planes::steps())
+        // .steps(steps::rays::steps())
+        // .steps(steps::objects::steps())
+        // .steps(steps::spheres::steps())
+        // .steps(steps::transformations::steps())
+        // .steps(steps::tuples::steps())
+        // .steps(steps::world::steps())
+        .run_and_exit("./features")
         .await
 }

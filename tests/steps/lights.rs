@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::{
     lights::{lighting, Pointlight},
     objects::default_sphere,

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::MyWorld;
-use cucumber_rust::Steps;
+use cucumber::{step::Collection, Step};
 use lab_raytracing_rs::{
     camera::RAY_RECURSION_DEPTH,
     groups::GroupMember,
@@ -13,8 +13,8 @@ use lab_raytracing_rs::{
     world::World,
 };
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+pub fn steps() -> Collection<MyWorld> {
+    let mut steps: Collection<MyWorld> = cucumber::step::Collection();
 
     steps.given("w ← world()", |mut world, _ctx| {
         world.w = World::default();

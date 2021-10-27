@@ -1,4 +1,4 @@
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::{
     patterns::{
         checkers_pattern, gradient_pattern, pattern_at_shape, ring_pattern, solid_pattern,

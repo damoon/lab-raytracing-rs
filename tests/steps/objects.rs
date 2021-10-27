@@ -4,7 +4,7 @@ use crate::{
     steps::tuples::{parse_point, parse_vector},
     MyWorld,
 };
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::objects::default_testshape;
 
 pub fn steps() -> Steps<MyWorld> {

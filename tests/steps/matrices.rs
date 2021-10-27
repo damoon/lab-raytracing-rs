@@ -2,7 +2,7 @@ use crate::steps::tuples::{parse_point, parse_tuple};
 use crate::Matrix;
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
-use cucumber_rust::Steps;
+use cucumber::Steps;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 
 pub fn steps() -> Steps<MyWorld> {

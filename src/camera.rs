@@ -10,6 +10,7 @@ use crossbeam_channel::bounded;
 pub const RAY_RECURSION_DEPTH: usize = 5;
 use std::env;
 
+#[derive(Debug)]
 pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
@@ -24,6 +25,7 @@ pub struct Camera {
     pub renderer: Renderer,
 }
 
+#[derive(Debug)]
 pub enum AntiAliasing {
     Off,
     Fast,
@@ -31,6 +33,7 @@ pub enum AntiAliasing {
     Dynamic,
 }
 
+#[derive(Debug)]
 pub enum Renderer {
     SingleThreaded,
     Multithreaded(usize),
