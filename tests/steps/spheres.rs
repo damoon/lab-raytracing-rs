@@ -1,11 +1,10 @@
 use super::{
-    transformations::{parse_scaling, parse_translation},
     tuples::parse_point,
 };
-use crate::{Matrix, MyWorld};
+use crate::{MyWorld};
 use approx::assert_abs_diff_eq;
-use cucumber::{gherkin::Step, given, step::Context, then, when};
-use lab_raytracing_rs::{groups::Group, transformations::scaling};
+use cucumber::{gherkin::Step, given, then, when};
+use lab_raytracing_rs::{transformations::scaling};
 use lab_raytracing_rs::{
     intersections::Intersection,
     matrices::Matrix4x4,
@@ -110,12 +109,6 @@ async fn assign_material(world: &mut MyWorld, name: String) {
 async fn match_material(world: &mut MyWorld, name: String) {
     let s = world.objects.get(&name).unwrap();
     assert_eq!(s.material, world.m);
-}
-
-#[given(regex = r"^(t) ← translation\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn create_translation(world: &mut MyWorld, name: String, x: f64, y: f64, z: f64) {
-    let translation = translation(x, y, z);
-    world.insert4x4(name, translation);
 }
 
 #[given(regex = r"^set_transform\((s), (m|t)\)$")]

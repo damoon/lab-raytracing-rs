@@ -1,7 +1,6 @@
 use approx::assert_abs_diff_eq;
-use cucumber::Step;
 use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple};
-
+use cucumber::{given, then, when};
 use crate::MyWorld;
 
 pub fn parse_float(s: &str) -> f64 {
@@ -44,10 +43,6 @@ pub fn parse_color(ss: &[String]) -> Tuple {
     let b = parse_float(ss[2].as_str());
     color(r, g, b)
 }
-
-use cucumber::{given, then, when};
-use lab_raytracing_rs::{groups::Group, transformations::scaling};
-use std::ops::Deref;
 
 #[given(regex = r"^(a|a1|a2|n|b) ← tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
 async fn set_tuple(world: &mut MyWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
@@ -153,201 +148,141 @@ async fn compare_point(world: &mut MyWorld, name: String, x: String, y: String, 
     eq_tuples_similar(&point, &desired_color);
 }
 
-/*
-    steps.then_regex(
-        r#"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2), ([-0-9.|\-?√2/2]+), ([-0-9.]+|\-?√2/2)\)$"#,
-        |world, ctx| {
-            let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
-            let desired_vector = parse_vector(&ctx.matches[2..=4]);
-            eq_tuples_similar(&tuple, &desired_vector);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(n) = vector\(√3/3, √3/3, √3/3\)$"#,
-        |world, ctx| {
-            let tuple = world.tuples.get(&ctx.matches[1]).unwrap().clone();
-            let desired_vector = vector(
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-                3.0_f64.sqrt() / 3.0,
-            );
-            eq_tuples_similar(&tuple, &desired_vector);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(c1) \+ (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let desired_color = parse_color(&ctx.matches[3..=5]);
-            let color1 = world.tuples.get(&ctx.matches[1]).unwrap();
-            let color2 = world.tuples.get(&ctx.matches[2]).unwrap();
-            let computed_color = color1 + color2;
-            eq_tuples_similar(&computed_color, &desired_color);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(c|c1|c2|color) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let desired_color = parse_color(&ctx.matches[2..=4]);
-            let color = world.tuples.get(&ctx.matches[1]).unwrap();
-            eq_tuples_similar(color, &desired_color);
-            world
-        },
-    );
-
-    steps.then_regex(r#"^(c) = (white)$"#, |world, ctx| {
-        let lookup = world.tuples.get(&ctx.matches[1]).unwrap();
-        let desired = world.tuples.get(&ctx.matches[2]).unwrap();
-        eq_tuples_similar(lookup, desired);
-        world
-    });
-
-    steps.then_regex(
-        r#"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
-            let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
-            let vector = tuple1 - tuple2;
-            let desired_tuple = match ctx.matches[3].as_str() {
-                "point" => parse_point(&ctx.matches[4..=6]),
-                "vector" => parse_vector(&ctx.matches[4..=6]),
-                "color" => parse_color(&ctx.matches[4..=6]),
-                _ => panic!("type not covered"),
-            };
-            eq_tuples_similar(&desired_tuple, &vector);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(a) (\*|/) ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let tuple = world.tuples.get(&ctx.matches[1]).unwrap();
-            let multiplicator = ctx.matches[3].parse::<f64>().unwrap();
-            let calculated = match ctx.matches[2].as_str() {
-                "*" => tuple * multiplicator,
-                "/" => tuple / multiplicator,
-                _ => panic!("operator not covered"),
-            };
-            let desired_tuple = parse_tuple(&ctx.matches[4..=7]);
-            eq_tuples_similar(&calculated, &desired_tuple);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(c) \* ([-0-9.]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let tuple = world.tuples.get(&ctx.matches[1]).unwrap();
-            let multiplicator = ctx.matches[2].parse::<f64>().unwrap();
-            let calculated = tuple * multiplicator;
-            let desired_color = parse_color(&ctx.matches[3..=5]);
-            eq_tuples_similar(&calculated, &desired_color);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(c1) \* (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let color1 = world.tuples.get(&ctx.matches[1]).unwrap();
-            let color2 = world.tuples.get(&ctx.matches[2]).unwrap();
-            let calculated = color1 * color2;
-            let desired_color = parse_color(&ctx.matches[3..=5]);
-            eq_tuples_similar(&calculated, &desired_color);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^(result) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let color = world.tuples.get(&ctx.matches[1]).unwrap();
-            let desired_color = parse_color(&ctx.matches[2..=4]);
-            eq_tuples_similar(color, &desired_color);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^magnitude\((v|norm)\) = (√14|[-0-9.]+)$"#,
-        |world, ctx| {
-            let calculated = world.tuples.get(&ctx.matches[1]).unwrap().magnitude();
-            let desired = match ctx.matches[2].as_str() {
-                "√14" => 14.0_f64.sqrt(),
-                a => a.parse::<f64>().unwrap(),
-            };
-            assert_abs_diff_eq!(calculated, desired);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^normalize\((v)\) = (approximately )?vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let calculated = world.tuples.get(&ctx.matches[1]).unwrap().normalize();
-            let desired = parse_vector(&ctx.matches[3..=5]);
-            if ctx.matches[2] == "approximately " {
-                eq_tuples_similar(&desired, &calculated);
-            } else {
-                assert_eq!(desired, calculated);
-            }
-            world
-        },
-    );
-
-    steps.given_regex(
-        r#"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
-        |mut world, ctx| {
-            let normalized = parse_vector(&ctx.matches[2..=4]).normalize();
-            world.tuples.insert(ctx.matches[1].clone(), normalized);
-            world
-        },
-    );
-
-    steps.when_regex(r#"^(norm) ← normalize\((v)\)$"#, |mut world, ctx| {
-        let normalized = world.tuples.get(&ctx.matches[2]).unwrap().normalize();
-        world.tuples.insert(ctx.matches[1].clone(), normalized);
-        world
-    });
-
-    steps.then_regex(r#"^(n) = normalize\((n)\)$"#, |world, ctx| {
-        let desired = world.tuples.get(&ctx.matches[1]).unwrap();
-        let vector = world.tuples.get(&ctx.matches[2]).unwrap().normalize();
-        assert_eq!(desired, &vector);
-        world
-    });
-
-    steps.then_regex(r#"^dot\((a), (b)\) = ([-0-9.]+)$"#, |world, ctx| {
-        let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
-        let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
-        let desired = ctx.matches[3].parse::<f64>().unwrap();
-        let dot = dot(tuple1, tuple2);
-        assert_abs_diff_eq!(dot, desired);
-        world
-    });
-
-    steps.then_regex(
-        r#"^cross\((a|b), (a|b)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let tuple1 = world.tuples.get(&ctx.matches[1]).unwrap();
-            let tuple2 = world.tuples.get(&ctx.matches[2]).unwrap();
-            let cross = cross(tuple1, tuple2);
-            let desired = parse_vector(&ctx.matches[3..=5]);
-            assert_eq!(cross, desired);
-
-            world
-        },
-    );
-
-    steps
+#[then(regex = r"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3)\)$")]
+async fn compare_vector(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let tuple = world.tuples.get(&name).unwrap().clone();
+    let desired_vector = parse_vector(&[x, y, z]);
+    eq_tuples_similar(&tuple, &desired_vector);
 }
-*/
+
+#[then(regex = r"^(c1) \+ (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn add_colors(world: &mut MyWorld, color_1: String, color_2: String, x: String, y: String, z: String) {
+    let color_1 = world.tuples.get(&color_1).unwrap().clone();
+    let color_2 = world.tuples.get(&color_2).unwrap().clone();
+    let color = color_1 + color_2;
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&color, &desired_color);
+}
+
+#[then(regex = r"^(c|c1|c2|color) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_color(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let color = world.tuples.get(&name).unwrap().clone();
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&color, &desired_color);
+}
+
+#[then(regex = r"^(c) = (white)$")]
+async fn compare_tuples(world: &mut MyWorld, this: String, other: String) {
+    let lookup = world.tuples.get(&this).unwrap();
+    let desired = world.tuples.get(&other).unwrap();
+    eq_tuples_similar(lookup, desired);
+}
+
+#[then(regex = r"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn substract_tuples(world: &mut MyWorld, this: String, other: String, kind: String, x: String, y: String, z: String) {
+    let tuple1 = world.tuples.get(&this).unwrap();
+    let tuple2 = world.tuples.get(&other).unwrap();
+    let tuple = tuple1 - tuple2;
+    let desired_tuple = match kind.as_str() {
+        "point" => parse_point(&[x, y, z]),
+        "vector" => parse_vector(&[x, y, z]),
+        "color" => parse_color(&[x, y, z]),
+        _ => panic!("type not covered"),
+    };
+    eq_tuples_similar(&desired_tuple, &tuple);
+}
+
+#[then(regex = r"^(a) (\*|/) ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn scale_tuples(world: &mut MyWorld, name: String, operation: String, factor: f64, x: String, y: String, z: String, w: String) {
+    let tuple = world.tuples.get(&name).unwrap();
+    let calculated = match operation.as_str() {
+        "*" => tuple * factor,
+        "/" => tuple / factor,
+        _ => panic!("operation not covered"),
+    };
+    let desired_tuple = parse_tuple(&[x, y, z, w]);
+    eq_tuples_similar(&calculated, &desired_tuple);
+}
+
+#[then(regex = r"^(c) \* ([-0-9.]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn scale_color(world: &mut MyWorld, name: String, factor: f64, x: String, y: String, z: String) {
+    let tuple = world.tuples.get(&name).unwrap();
+    let calculated = tuple * factor;
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&calculated, &desired_color);
+}
+
+#[then(regex = r"^(c1) \* (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn multiply_color(world: &mut MyWorld, this: String, other: String, x: String, y: String, z: String) {
+    let color_1 = world.tuples.get(&this).unwrap();
+    let color_2 = world.tuples.get(&other).unwrap();
+    let calculated = color_1 * color_2;
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&calculated, &desired_color);
+}
+
+#[then(regex = r"^(result) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn assign_color(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let color = world.tuples.get(&name).unwrap();
+    let desired_color = parse_color(&[x, y, z]);
+    eq_tuples_similar(&color, &desired_color);
+}
+
+#[then(regex = r"^magnitude\((v|norm)\) = (√14|[-0-9.]+)$")]
+async fn compare_magnitude(world: &mut MyWorld, name: String, desired: String) {
+    let calculated = world.tuples.get(&name).unwrap().magnitude();
+    let desired = match desired.as_str() {
+        "√14" => 14.0_f64.sqrt(),
+        a => a.parse::<f64>().unwrap(),
+    };
+    assert_abs_diff_eq!(calculated, desired);
+}
+
+#[then(regex = r"^normalize\((v)\) = (approximately )?vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_normalize(world: &mut MyWorld, name: String, approximately: String, x: String, y: String, z: String) {
+    let calculated = world.tuples.get(&name).unwrap().normalize();
+    let desired = parse_vector(&[x,y,z]);
+    if approximately == "approximately " {
+        eq_tuples_similar(&desired, &calculated);
+    } else {
+        assert_eq!(desired, calculated);
+    }
+}
+
+#[given(regex = r"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$")]
+async fn assign_normalized_vector(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let normalized = parse_vector(&[x,y,z]).normalize();
+    world.tuples.insert(name, normalized);
+}
+
+#[given(regex = r"^(norm) ← normalize\((v)\)$")]
+async fn assign_normalized_tuple(world: &mut MyWorld, target: String, origin: String) {
+    let tuple = world.tuples.get(&origin).unwrap().normalize();
+    world.tuples.insert(target, tuple);
+}
+
+#[then(regex = r"^(n) = normalize\((n)\)$")]
+async fn check_is_normalized(world: &mut MyWorld, desired: String, origin: String) {
+    let tuple = world.tuples.get(&origin).unwrap().normalize();
+    world.tuples.insert(desired, tuple);
+}
+
+#[then(regex = r"^dot\((a), (b)\) = ([-0-9.]+)$")]
+async fn compute_dot(world: &mut MyWorld, this: String, other: String, desired: f64) {
+    let tuple1 = world.tuples.get(&this).unwrap();
+    let tuple2 = world.tuples.get(&other).unwrap();
+    let dot = dot(tuple1, tuple2);
+    assert_abs_diff_eq!(dot, desired);
+}
+
+#[then(regex = r"^cross\((a|b), (a|b)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compute_cross(world: &mut MyWorld, this: String, other: String, x: String, y: String, z: String) {
+    let tuple1 = world.tuples.get(&this).unwrap();
+    let tuple2 = world.tuples.get(&other).unwrap();
+    let cross = cross(tuple1, tuple2);
+    let desired = parse_vector(&[x, y, z]);
+    assert_eq!(cross, desired);
+}
 
 pub fn eq_tuples_similar(this: &Tuple, other: &Tuple) -> bool {
     if (this.x - other.x).abs() > 0.0001 {
