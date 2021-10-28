@@ -1,7 +1,7 @@
-use approx::assert_abs_diff_eq;
-use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple};
-use cucumber::{given, then, when};
 use crate::MyWorld;
+use approx::assert_abs_diff_eq;
+use cucumber::{given, then, when};
+use lab_raytracing_rs::tuples::{color, cross, dot, point, reflect, vector, Tuple};
 
 pub fn parse_float(s: &str) -> f64 {
     match s {
@@ -148,7 +148,9 @@ async fn compare_point(world: &mut MyWorld, name: String, x: String, y: String, 
     eq_tuples_similar(&point, &desired_color);
 }
 
-#[then(regex = r"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3)\)$")]
+#[then(
+    regex = r"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3)\)$"
+)]
 async fn compare_vector(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
     let tuple = world.tuples.get(&name).unwrap().clone();
     let desired_vector = parse_vector(&[x, y, z]);
@@ -156,7 +158,14 @@ async fn compare_vector(world: &mut MyWorld, name: String, x: String, y: String,
 }
 
 #[then(regex = r"^(c1) \+ (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn add_colors(world: &mut MyWorld, color_1: String, color_2: String, x: String, y: String, z: String) {
+async fn add_colors(
+    world: &mut MyWorld,
+    color_1: String,
+    color_2: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let color_1 = world.tuples.get(&color_1).unwrap().clone();
     let color_2 = world.tuples.get(&color_2).unwrap().clone();
     let color = color_1 + color_2;
@@ -178,8 +187,18 @@ async fn compare_tuples(world: &mut MyWorld, this: String, other: String) {
     eq_tuples_similar(lookup, desired);
 }
 
-#[then(regex = r"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn substract_tuples(world: &mut MyWorld, this: String, other: String, kind: String, x: String, y: String, z: String) {
+#[then(
+    regex = r"^(p|p1|v1|zero|c1) \- (v|p2|v2|c2) = (vector|point|color)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn substract_tuples(
+    world: &mut MyWorld,
+    this: String,
+    other: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let tuple1 = world.tuples.get(&this).unwrap();
     let tuple2 = world.tuples.get(&other).unwrap();
     let tuple = tuple1 - tuple2;
@@ -192,9 +211,17 @@ async fn substract_tuples(world: &mut MyWorld, this: String, other: String, kind
     eq_tuples_similar(&desired_tuple, &tuple);
 }
 
-#[then(regex = r"^(a) (\*|/) ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn scale_tuples(world: &mut MyWorld, name: String, operation: String, factor: f64, x: String, y: String, z: String, w: String) {
-    let tuple = world.tuples.get(&name).unwrap();
+#[then(regex = r"^a (\*|/) ([-0-9.]+) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn scale_tuples(
+    world: &mut MyWorld,
+    operation: String,
+    factor: f64,
+    x: String,
+    y: String,
+    z: String,
+    w: String,
+) {
+    let tuple = world.tuples.get("a").unwrap();
     let calculated = match operation.as_str() {
         "*" => tuple * factor,
         "/" => tuple / factor,
@@ -205,7 +232,14 @@ async fn scale_tuples(world: &mut MyWorld, name: String, operation: String, fact
 }
 
 #[then(regex = r"^(c) \* ([-0-9.]+) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn scale_color(world: &mut MyWorld, name: String, factor: f64, x: String, y: String, z: String) {
+async fn scale_color(
+    world: &mut MyWorld,
+    name: String,
+    factor: f64,
+    x: String,
+    y: String,
+    z: String,
+) {
     let tuple = world.tuples.get(&name).unwrap();
     let calculated = tuple * factor;
     let desired_color = parse_color(&[x, y, z]);
@@ -213,7 +247,14 @@ async fn scale_color(world: &mut MyWorld, name: String, factor: f64, x: String, 
 }
 
 #[then(regex = r"^(c1) \* (c2) = color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn multiply_color(world: &mut MyWorld, this: String, other: String, x: String, y: String, z: String) {
+async fn multiply_color(
+    world: &mut MyWorld,
+    this: String,
+    other: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let color_1 = world.tuples.get(&this).unwrap();
     let color_2 = world.tuples.get(&other).unwrap();
     let calculated = color_1 * color_2;
@@ -225,7 +266,7 @@ async fn multiply_color(world: &mut MyWorld, this: String, other: String, x: Str
 async fn assign_color(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
     let color = world.tuples.get(&name).unwrap();
     let desired_color = parse_color(&[x, y, z]);
-    eq_tuples_similar(&color, &desired_color);
+    eq_tuples_similar(color, &desired_color);
 }
 
 #[then(regex = r"^magnitude\((v|norm)\) = (√14|[-0-9.]+)$")]
@@ -238,10 +279,19 @@ async fn compare_magnitude(world: &mut MyWorld, name: String, desired: String) {
     assert_abs_diff_eq!(calculated, desired);
 }
 
-#[then(regex = r"^normalize\((v)\) = (approximately )?vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn compare_normalize(world: &mut MyWorld, name: String, approximately: String, x: String, y: String, z: String) {
+#[then(
+    regex = r"^normalize\((v)\) = (approximately )?vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn compare_normalize(
+    world: &mut MyWorld,
+    name: String,
+    approximately: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let calculated = world.tuples.get(&name).unwrap().normalize();
-    let desired = parse_vector(&[x,y,z]);
+    let desired = parse_vector(&[x, y, z]);
     if approximately == "approximately " {
         eq_tuples_similar(&desired, &calculated);
     } else {
@@ -250,8 +300,14 @@ async fn compare_normalize(world: &mut MyWorld, name: String, approximately: Str
 }
 
 #[given(regex = r"^(direction) ← normalize\(vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$")]
-async fn assign_normalized_vector(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
-    let normalized = parse_vector(&[x,y,z]).normalize();
+async fn assign_normalized_vector(
+    world: &mut MyWorld,
+    name: String,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let normalized = parse_vector(&[x, y, z]).normalize();
     world.tuples.insert(name, normalized);
 }
 
@@ -276,7 +332,14 @@ async fn compute_dot(world: &mut MyWorld, this: String, other: String, desired: 
 }
 
 #[then(regex = r"^cross\((a|b), (a|b)\) = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn compute_cross(world: &mut MyWorld, this: String, other: String, x: String, y: String, z: String) {
+async fn compute_cross(
+    world: &mut MyWorld,
+    this: String,
+    other: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let tuple1 = world.tuples.get(&this).unwrap();
     let tuple2 = world.tuples.get(&other).unwrap();
     let cross = cross(tuple1, tuple2);

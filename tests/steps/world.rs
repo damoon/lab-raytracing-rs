@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use crate::MyWorld;
-use cucumber::{step::Collection, Step};
+use cucumber::{given, then, when};
 use lab_raytracing_rs::{
     camera::RAY_RECURSION_DEPTH,
     groups::GroupMember,
@@ -12,178 +10,142 @@ use lab_raytracing_rs::{
     tuples::{color, point},
     world::World,
 };
+use std::sync::Arc;
 
-pub fn steps() -> Collection<MyWorld> {
-    let mut steps: Collection<MyWorld> = cucumber::step::Collection();
+#[given("w ← world()")]
+async fn empty_world(world: &mut MyWorld) {
+    world.w = World::default();
+}
 
-    steps.given("w ← world()", |mut world, _ctx| {
-        world.w = World::default();
-        world
-    });
+#[given("w ← default_world()")]
+#[when("w ← default_world()")]
+async fn create_default_world(world: &mut MyWorld) {
+    world.w = default_world();
+}
 
-    steps.given("w ← default_world()", |mut world, _ctx| {
-        world.w = default_world();
-        world
-    });
+#[then("w contains no objects")]
+async fn world_is_empty(world: &mut MyWorld) {
+    assert_eq!(world.w.objects.len(), 0);
+}
 
-    steps.when("w ← default_world()", |mut world, _ctx| {
-        world.w = default_world();
-        world
-    });
+#[then("w has no light source")]
+async fn world_is_dark(world: &mut MyWorld) {
+    assert!(world.w.light.is_none());
+}
 
-    steps.then("w contains no objects", |world, _ctx| {
-        assert_eq!(world.w.objects.len(), 0);
-        world
-    });
+#[then("w.light = light")]
+async fn compare_world_light(world: &mut MyWorld) {
+    assert_eq!(world.w.light.as_ref().unwrap(), &world.light);
+}
 
-    steps.then("w has no light source", |world, _ctx| {
-        assert!(world.w.light.is_none());
-        world
-    });
+#[then(regex = r"^w contains (s1|s2)$")]
+async fn world_contains(world: &mut MyWorld, shape: String) {
+    let object = world.objects.get(&shape).unwrap().as_ref().clone();
+    assert!(world.w.objects.iter().any(|i| {
+        match i {
+            GroupMember::Object(o) => object == o.as_ref().clone(),
+            GroupMember::SubGroup(_) => panic!("matching groups is not supported"),
+        }
+    }));
+}
 
-    steps.then("w.light = light", |world, _ctx| {
-        assert_eq!(world.w.light.as_ref().unwrap(), &world.light);
-        world
-    });
+#[when("xs ← intersect_world(w, r)")]
+async fn intersect_world(world: &mut MyWorld) {
+    world.xs = world.w.insersect(&world.r);
+}
 
-    steps.then_regex(r#"^w contains (s1|s2)$"#, |world, ctx| {
-        let object = world.objects.get(&ctx.matches[1]).unwrap().as_ref().clone();
-        assert!(world.w.objects.iter().any(|i| {
-            match i {
-                GroupMember::Object(o) => object == o.as_ref().clone(),
-                GroupMember::SubGroup(_) => panic!("matching groups is not supported"),
-            }
-        }));
-        world
-    });
+#[given(regex = r"^(shape|outer|inner|A|B) ← the (first|second) object in w$")]
+async fn extract_from_world(world: &mut MyWorld, shape_name: String, position: String) {
+    let index = match position.as_str() {
+        "first" => 0,
+        "second" => 1,
+        _ => panic!("position not covered"),
+    };
+    let shape = world.w.objects.get(index).unwrap();
+    match shape {
+        GroupMember::Object(o) => world
+            .objects
+            .insert(shape_name, Arc::new(o.as_ref().clone())),
+        GroupMember::SubGroup(_) => panic!("only objects are supported"),
+    };
+}
 
-    steps.when("xs ← intersect_world(w, r)", |mut world, _ctx| {
-        let xs = world.w.insersect(&world.r);
-        world.xs = xs;
-        world
-    });
+#[given(regex = r"^(A|B|outer|inner) is the (first|second) object in w$")]
+async fn replace_in_world(world: &mut MyWorld, shape: String, position: String) {
+    let index = match position.as_str() {
+        "first" => 0,
+        "second" => 1,
+        _ => panic!("position not covered"),
+    };
+    let object = world.objects.get(&shape).unwrap();
+    world.w.objects[index] = GroupMember::Object(Arc::new(object.as_ref().clone()));
+}
 
-    steps.given_regex(
-        r#"^(shape|outer|inner|A|B) ← the (first|second) object in w$"#,
-        |mut world, ctx| {
-            let index = match ctx.matches[2].as_str() {
-                "first" => 0,
-                "second" => 1,
-                _ => panic!("position not covered"),
-            };
-            let shape = world.w.objects.get(index).unwrap();
-            match shape {
-                GroupMember::Object(o) => world
-                    .objects
-                    .insert(ctx.matches[1].clone(), Arc::new(o.as_ref().clone())),
-                GroupMember::SubGroup(_) => panic!("only objects are supported"),
-            };
-            world
-        },
-    );
+#[when(regex = r"^(c|color) ← shade_hit\(w, comps\)$")]
+async fn compute_shade_hit(world: &mut MyWorld, color: String) {
+    let shaded_color = shade_hit(&world.w, &world.comps, RAY_RECURSION_DEPTH);
+    world.tuples.insert(color, shaded_color);
+}
 
-    steps.given_regex(
-        r#"^(A|B|outer|inner) is the (first|second) object in w$"#,
-        |mut world, ctx| {
-            let index = match ctx.matches[2].as_str() {
-                "first" => 0,
-                "second" => 1,
-                _ => panic!("position not covered"),
-            };
-            let object = world.objects.get(&ctx.matches[1]).unwrap();
-            world.w.objects[index] = GroupMember::Object(Arc::new(object.as_ref().clone()));
-            world
-        },
-    );
+#[when("color ← reflected_color(w, comps)")]
+async fn compute_reflected_color(world: &mut MyWorld) {
+    let color = reflected_color(&world.w, &world.comps, RAY_RECURSION_DEPTH);
+    world.tuples.insert("color".to_string(), color);
+}
 
-    steps.when_regex(
-        r#"^(c|color) ← shade_hit\(w, comps\)$"#,
-        |mut world, ctx| {
-            let color = shade_hit(&world.w, &world.comps, RAY_RECURSION_DEPTH);
-            world.tuples.insert(ctx.matches[1].clone(), color);
-            world
-        },
-    );
+#[when(regex = r"^color ← shade_hit\(w, comps, ([0-9]+)\)$")]
+async fn compute_shade_hit_with_depth(world: &mut MyWorld, remaining: usize) {
+    let color = shade_hit(&world.w, &world.comps, remaining);
+    world.tuples.insert("color".to_string(), color);
+}
 
-    steps.when("color ← reflected_color(w, comps)", |mut world, _ctx| {
-        let color = reflected_color(&world.w, &world.comps, RAY_RECURSION_DEPTH);
-        world.tuples.insert("color".to_string(), color);
-        world
-    });
+#[when("color ← reflected_color(w, comps, 0)")]
+async fn compute_reflected_color_end(world: &mut MyWorld) {
+    let color = reflected_color(&world.w, &world.comps, 0);
+    world.tuples.insert("color".to_string(), color);
+}
 
-    steps.when_regex(
-        r#"^(color) ← shade_hit\(w, comps, ([0-9]+)\)$"#,
-        |mut world, ctx| {
-            let remaining = ctx.matches[2].parse::<usize>().unwrap();
-            let color = shade_hit(&world.w, &world.comps, remaining);
-            world.tuples.insert(ctx.matches[1].clone(), color);
-            world
-        },
-    );
+#[when(regex = r"^c ← refracted_color\(w, comps, ([0-9]+)\)$")]
+async fn compute_refracted_color(world: &mut MyWorld, remaining: usize) {
+    let color = refracted_color(&world.w, &world.comps, remaining);
+    world.tuples.insert("c".to_string(), color);
+}
 
-    steps.when(
-        "color ← reflected_color(w, comps, 0)",
-        |mut world, _ctx| {
-            let color = reflected_color(&world.w, &world.comps, 0);
-            world.tuples.insert("color".to_string(), color);
-            world
-        },
-    );
+#[when("c ← color_at(w, r)")]
+async fn compute_color_at(world: &mut MyWorld) {
+    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
+    world.tuples.insert("c".to_string(), color);
+}
 
-    steps.when_regex(
-        r#"^c ← refracted_color\(w, comps, ([0-9]+)\)$"#,
-        |mut world, ctx| {
-            let remaining = ctx.matches[1].parse::<usize>().unwrap();
-            let color = refracted_color(&world.w, &world.comps, remaining);
-            world.tuples.insert("c".to_string(), color);
-            world
-        },
-    );
+#[then("color_at(w, r) should terminate successfully")]
+async fn color_at_terminates(world: &mut MyWorld) {
+    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
+    world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
+}
 
-    steps.when("c ← color_at(w, r)", |mut world, _ctx| {
-        let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
-        world.tuples.insert("c".to_string(), color);
-        world
-    });
+#[then("c = inner.material.color")]
+async fn compare_color(world: &mut MyWorld) {
+    let c = world.tuples.get("c").unwrap();
+    assert_eq!(c, &world.objects.get("inner").unwrap().material.color);
+}
 
-    steps.then(
-        "color_at(w, r) should terminate successfully",
-        |mut world, _ctx| {
-            let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
-            world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
-            world
-        },
-    );
+#[given("in_shadow ← true")]
+async fn assign_shadowed(world: &mut MyWorld) {
+    world.in_shadow = true;
+}
 
-    steps.then("c = inner.material.color", |world, _ctx| {
-        let c = world.tuples.get("c").unwrap();
-        assert_eq!(c, &world.objects.get("inner").unwrap().material.color);
-        world
-    });
+#[then(regex = r"^is_shadowed\(w, p\) is (true|false)$")]
+async fn is_shadowed(world: &mut MyWorld, value: String) {
+    let desired = value.parse().unwrap();
+    let point = world.tuples.get("p").unwrap();
+    let computed = world.w.is_shadowed(point.clone(), None);
+    assert_eq!(computed, desired);
+}
 
-    steps.given("in_shadow ← true", |mut world, _ctx| {
-        world.in_shadow = true;
-        world
-    });
-
-    steps.then_regex(r#"^is_shadowed\(w, p\) is (true|false)$"#, |world, ctx| {
-        let desired = ctx.matches[1].parse().unwrap();
-        let point = world.tuples.get("p").unwrap();
-        let computed = world.w.is_shadowed(point.clone(), None);
-        assert_eq!(computed, desired);
-        world
-    });
-
-    steps.given_regex(
-        r#"^(s1|s2|shape|lower|upper|floor|ball) is added to w$"#,
-        |mut world, ctx| {
-            let shape = world.objects.get(&ctx.matches[1]).unwrap();
-            world.w.add_object(shape.as_ref().clone());
-            world
-        },
-    );
-
-    steps
+#[given(regex = r"^(s1|s2|shape|lower|upper|floor|ball) is added to w$")]
+async fn add_to_world(world: &mut MyWorld, shape: String) {
+    let shape = world.objects.get(&shape).unwrap();
+    world.w.add_object(shape.as_ref().clone());
 }
 
 pub fn default_world() -> World {

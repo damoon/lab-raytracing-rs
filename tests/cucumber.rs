@@ -118,8 +118,8 @@ impl MyWorld {
 #[tokio::main]
 async fn main() {
     MyWorld::cucumber()
-        // .repeat_failed()
-        // .repeat_skipped()
+        .repeat_failed()
+        //.repeat_skipped()
         // .steps(steps::camera::steps())
         // .steps(steps::canvas::steps())
         // .steps(steps::cylinders::steps())

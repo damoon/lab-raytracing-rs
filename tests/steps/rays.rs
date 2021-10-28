@@ -1,113 +1,92 @@
-use super::tuples::{eq_tuples_similar, parse_point, parse_vector};
+use super::tuples::{parse_point, parse_vector};
+use crate::steps::tuples::eq_tuples_similar;
 use crate::MyWorld;
-use cucumber::Steps;
-use lab_raytracing_rs::{rays::Ray, tuples::vector};
+use cucumber::{given, then, when};
+use lab_raytracing_rs::rays::Ray;
+use lab_raytracing_rs::tuples::point;
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+#[given(regex = r"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), direction\)$")]
+async fn create_ray_from(world: &mut MyWorld, x: f64, y: f64, z: f64) {
+    let origin = point(x, y, z);
+    let direction = world.tuples.get("direction").unwrap().clone();
+    world.r = Ray::new(origin, direction);
+}
 
-    steps.given_regex(
-        r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), direction\)$"#,
-        |mut world, ctx| {
-            let origin = parse_point(&ctx.matches[1..=3]);
-            let direction = world.tuples.get("direction").unwrap().clone();
-            world.r = Ray::new(origin, direction);
-            world
-        },
-    );
+#[given("r ← ray(origin, direction)")]
+async fn create_ray(world: &mut MyWorld) {
+    let origin = world.tuples.get("origin").unwrap().clone();
+    let direction = world.tuples.get("direction").unwrap().clone();
+    world.r = Ray::new(origin, direction);
+}
 
-    steps.when_regex(r#"^r ← ray\(origin, direction\)$"#, |mut world, _ctx| {
-        let origin = world.tuples.get("origin").unwrap().clone();
-        let direction = world.tuples.get("direction").unwrap().clone();
-        world.r = Ray::new(origin, direction);
-        world
-    });
+#[given(
+    regex = r"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), (√2/2|[-0-9.]+)\), vector\(([-0-9.]+), (-√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)\)$"
+)]
+#[when(
+    regex = r"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), (√2/2|[-0-9.]+)\), vector\(([-0-9.]+), (-√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)\)$"
+)]
+async fn create_ray_from_to(
+    world: &mut MyWorld,
+    x1: String,
+    y1: String,
+    z1: String,
+    x2: String,
+    y2: String,
+    z2: String,
+) {
+    let origin = parse_point(&[x1, y1, z1]);
+    let direction = parse_vector(&[x2, y2, z2]);
+    world.r = Ray::new(origin, direction);
+}
 
-    steps.given_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), (√2/2|[-0-9.]+)\), vector\(([-0-9.]+), (-√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)\)$"#, |mut world, ctx| {
-        let origin = parse_point(&ctx.matches[1..=3]);
-        let direction = parse_vector(&ctx.matches[4..=6]);
-        world.r = Ray::new(origin, direction);
-        world
-    });
+#[then(regex = r"^position\(r, ([-0-9.]+)\) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_position(world: &mut MyWorld, t: f64, x: f64, y: f64, z: f64) {
+    let calculated = world.r.position(t);
+    let desired = point(x, y, z);
+    assert_eq!(desired, calculated);
+}
 
-    steps.when_regex(r#"^r ← ray\(point\(([-0-9.]+), ([-0-9.]+), (√2/2|[-0-9.]+)\), vector\(([-0-9.]+), (-√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)\)$"#, |mut world, ctx| {
-        let origin = parse_point(&ctx.matches[1..=3]);
-        let direction = parse_vector(&ctx.matches[4..=6]);
-        world.r = Ray::new(origin, direction);
-        world
-    });
+#[then(regex = r"(r|r2).(origin|direction) = (origin|direction)")]
+async fn compare_ray(world: &mut MyWorld, attribute: String, desired: String) {
+    let desired = world.tuples.get(&desired).unwrap();
+    match attribute.as_str() {
+        "origin" => assert_eq!(&world.r.origin, desired),
+        "direction" => assert_eq!(&world.r.direction, desired),
+        _ => panic!("attribute not covered",),
+    };
+}
 
-    steps.then_regex(
-        r#"^position\(r, ([-0-9.]+)\) = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let t = ctx.matches[1].parse::<f64>().unwrap();
-            let calculated = world.r.position(t);
-            let desired = parse_point(&ctx.matches[2..=4]);
-            assert_eq!(desired, calculated);
-            world
-        },
-    );
+#[then(
+    regex = r"(r|r2).(origin|direction) = (point|vector)\((-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+)\)"
+)]
+async fn compare_ray_with_tuple(
+    world: &mut MyWorld,
+    ray: String,
+    attribute: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let ray = match ray.as_str() {
+        "r" => &world.r,
+        "r2" => &world.r2,
+        _ => panic!("ray not covered",),
+    };
+    let desired = match kind.as_str() {
+        "point" => parse_point(&[x, y, z]),
+        "vector" => parse_point(&[x, y, z]),
+        _ => panic!("kind not covered",),
+    };
+    match attribute.as_str() {
+        "origin" => eq_tuples_similar(&ray.origin, &desired),
+        "direction" => eq_tuples_similar(&ray.direction, &desired),
+        _ => panic!("attribute not covered",),
+    };
+}
 
-    steps.then_regex(r#"^r.origin = origin$"#, |world, _ctx| {
-        assert_eq!(&world.r.origin, world.tuples.get("origin").unwrap());
-        world
-    });
-
-    steps.then_regex(r#"^r.direction = direction$"#, |world, _ctx| {
-        assert_eq!(&world.r.direction, world.tuples.get("direction").unwrap());
-        world
-    });
-
-    steps.when_regex(r#"^r2 ← transform\(r, m\)$"#, |mut world, _ctx| {
-        let transformation = world.get4x4("m");
-        world.r2 = world.r.transform(transformation);
-        world
-    });
-
-    steps.then_regex(
-        r#"^r2.origin = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let point = parse_point(&ctx.matches[1..=3]);
-            assert_eq!(world.r2.origin, point);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^r2.direction = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let vector = parse_vector(&ctx.matches[1..=3]);
-            assert_eq!(world.r2.direction, vector);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^r.origin = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let point = parse_point(&ctx.matches[1..=3]);
-            assert_eq!(world.r.origin, point);
-            world
-        },
-    );
-
-    steps.then_regex(
-        r#"^r.direction = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let vector = parse_vector(&ctx.matches[1..=3]);
-            eq_tuples_similar(&world.r.direction, &vector);
-            world
-        },
-    );
-
-    steps.then("r.direction = vector(√2/2, 0, -√2/2)", |world, _ctx| {
-        let x = 2.0_f64.sqrt() / 2.0;
-        let y = 0.0;
-        let z = -(2.0_f64.sqrt()) / 2.0;
-        let vector = vector(x, y, z);
-        assert_eq!(world.r.direction, vector);
-        world
-    });
-
-    steps
+#[when("r2 ← transform(r, m)")]
+async fn transform_ray(world: &mut MyWorld) {
+    let transformation = world.get4x4("m");
+    world.r2 = world.r.transform(transformation);
 }

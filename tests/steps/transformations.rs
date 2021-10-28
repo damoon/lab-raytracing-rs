@@ -1,10 +1,10 @@
 use crate::steps::tuples::{parse_point, parse_vector};
+use cucumber::{given, then, when};
 use lab_raytracing_rs::matrices::Matrix4x4;
 use lab_raytracing_rs::transformations::{
     rotation_x, rotation_y, rotation_z, scaling, shearing, translation, view_transform,
 };
 use std::f64::consts::PI;
-use cucumber::{given, then, when};
 
 use crate::MyWorld;
 
@@ -32,29 +32,54 @@ pub fn parse_shearing(ss: &[String]) -> Matrix4x4 {
     shearing(xy, xz, yx, yz, zx, zy)
 }
 
-#[given(regex = r"^(transform|B|C|m|t) ← (translation|scaling)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn create_transformation(world: &mut MyWorld, target: String, kind: String, x: String, y: String, z: String) {
+#[given(
+    regex = r"^(transform|B|C|m|t) ← (translation|scaling)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn create_transformation(
+    world: &mut MyWorld,
+    target: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let transformation = match kind.as_str() {
-        "translation" => parse_translation(&[x,y,z]),
-        "scaling" => parse_scaling(&[x,y,z]),
+        "translation" => parse_translation(&[x, y, z]),
+        "scaling" => parse_scaling(&[x, y, z]),
         _ => panic!("transformation not covered"),
     };
     world.insert4x4(target, transformation);
 }
 
 #[given(regex = r"^(m) ← scaling\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\) \* rotation_z\(π/5\)$")]
-async fn combine_transformations(world: &mut MyWorld, target: String, x: String, y: String, z: String) {
-    let scaling = parse_scaling(&[x,y,z]);
+async fn combine_transformations(
+    world: &mut MyWorld,
+    target: String,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let scaling = parse_scaling(&[x, y, z]);
     let rotation_z = rotation_z(PI / 5.0);
     let transformation = scaling * rotation_z;
     world.insert4x4(target, transformation);
 }
 
-#[then(regex = r"^(half_quarter|full_quarter|transform|inv) \* (p|v) = (point|vector)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$")]
-async fn transform_tuple_desired(world: &mut MyWorld, transformation: String, tuple: String, kind: String, x: String, y: String, z: String) {
+#[then(
+    regex = r"^(half_quarter|full_quarter|transform|inv) \* (p|v) = (point|vector)\(([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2), ([-0-9.]+|-?√2/2)\)$"
+)]
+async fn transform_tuple_desired(
+    world: &mut MyWorld,
+    transformation: String,
+    tuple: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let desired = match kind.as_str() {
-        "point" => parse_point(&[x,y,z]),
-        "vector" => parse_vector(&[x,y,z]),
+        "point" => parse_point(&[x, y, z]),
+        "vector" => parse_vector(&[x, y, z]),
         _ => panic!("action not defined"),
     };
     let transformation = world.get4x4(&transformation);
@@ -70,7 +95,12 @@ async fn inverse_transformations(world: &mut MyWorld, target: String, transforma
 }
 
 #[then(regex = r"^(transform) \* (v) = (v)$")]
-async fn transform_tuple_compare(world: &mut MyWorld, transformation: String, tuple: String, desired: String) {
+async fn transform_tuple_compare(
+    world: &mut MyWorld,
+    transformation: String,
+    tuple: String,
+    desired: String,
+) {
     let transformation = world.get4x4(&transformation);
     let tuple = world.tuples.get(&tuple).unwrap();
     let desired = world.tuples.get(&desired).unwrap();
@@ -89,48 +119,64 @@ async fn prepare_rotation(world: &mut MyWorld, transformation: String, axis: Str
     world.insert4x4(transformation, rotation);
 }
 
-#[given(regex = r"^(transform) ← shearing\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn prepare_shearing(world: &mut MyWorld, transformation: String, x1: String, y1: String, z1: String, x2: String, y2: String, z2: String) {
+#[given(
+    regex = r"^transform ← shearing\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn prepare_shearing(
+    world: &mut MyWorld,
+    x1: String,
+    y1: String,
+    z1: String,
+    x2: String,
+    y2: String,
+    z2: String,
+) {
     let shearing = parse_shearing(&[x1, y1, z1, x2, y2, z2]);
-    world.insert4x4(transformation, shearing);
+    world.insert4x4("transform".to_string(), shearing);
 }
 
 #[when(regex = r"^(p2|p3|p4) ← (A|B|C) \* (p|p2|p3)$")]
-async fn transform_tuple(world: &mut MyWorld, target: String, transformation: String, tuple: String) {
+async fn transform_tuple(
+    world: &mut MyWorld,
+    target: String,
+    transformation: String,
+    tuple: String,
+) {
     let matrix = world.get4x4(&transformation);
     let tuple = world.tuples.get(&tuple).unwrap();
     let computed = matrix * tuple;
     world.tuples.insert(target, computed);
 }
 
-/*
-    steps.when("t ← view_transform(from, to, up)", |mut world, _ctx| {
-        let from = world.tuples.get("from").unwrap();
-        let to = world.tuples.get("to").unwrap();
-        let up = world.tuples.get("up").unwrap();
-        let view_transformation = view_transform(from, to, up);
-        world.insert4x4("t".to_string(), view_transformation);
-        world
-    });
-
-    steps.then_regex(
-        r#"^(t|s.transform|pattern.transform) = (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"#,
-        |world, ctx| {
-            let desired = match ctx.matches[2].as_str() {
-                "scaling" => parse_scaling(&ctx.matches[3..=5]),
-                "translation" => parse_translation(&ctx.matches[3..=5]),
-                _ => panic!("desired function not covered"),
-            };
-            let lookup = match ctx.matches[1].as_str() {
-                "s.transform" => world.objects.get("s").unwrap().transform(),
-                "pattern.transform" => world.pattern.transform(),
-                _ => world.get4x4(&ctx.matches[1]),
-            };
-            assert_eq!(lookup, &desired);
-            world
-        },
-    );
-
-    steps
+#[when(regex = r"^t ← view_transform\(from, to, up\)$")]
+async fn create_view(world: &mut MyWorld) {
+    let from = world.tuples.get("from").unwrap();
+    let to = world.tuples.get("to").unwrap();
+    let up = world.tuples.get("up").unwrap();
+    let view_transformation = view_transform(from, to, up);
+    world.insert4x4("t".to_string(), view_transformation);
 }
-*/
+
+#[then(
+    regex = r"^(t|s.transform|pattern.transform) = (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$"
+)]
+async fn compare_transformation(
+    world: &mut MyWorld,
+    target: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let desired = match kind.as_str() {
+        "scaling" => parse_scaling(&[x, y, z]),
+        "translation" => parse_translation(&[x, y, z]),
+        _ => panic!("desired function not covered"),
+    };
+    let lookup = match target.as_str() {
+        "s.transform" => world.objects.get("s").unwrap().transform(),
+        "pattern.transform" => world.pattern.transform(),
+        a => world.get4x4(a),
+    };
+    assert_eq!(lookup, &desired);
+}
