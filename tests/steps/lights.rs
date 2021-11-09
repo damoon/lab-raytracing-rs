@@ -1,100 +1,99 @@
-use std::sync::Arc;
-
-use cucumber::Steps;
+use super::tuples::parse_point;
+use crate::MyWorld;
+use cucumber::{given, then, when};
 use lab_raytracing_rs::{
     lights::{lighting, Pointlight},
     objects::default_sphere,
 };
+use std::sync::Arc;
 
-use crate::MyWorld;
+#[when("light ← point_light(position, intensity)")]
+async fn assign_light(world: &mut MyWorld) {
+    let position = world.tuples.get("position").unwrap();
+    let intensity = world.tuples.get("intensity").unwrap();
+    world.light = Pointlight::new(position.clone(), intensity.clone());
+}
 
-use super::tuples::parse_point;
+#[then("light.position = position")]
+async fn compare_light_position(world: &mut MyWorld) {
+    let position = world.tuples.get("position").unwrap();
+    assert_eq!(world.light.position, *position);
+}
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+#[then("light.intensity = intensity")]
+async fn compare_light_intensity(world: &mut MyWorld) {
+    let intensity = world.tuples.get("intensity").unwrap();
+    assert_eq!(world.light.intensity, *intensity);
+}
 
-    steps.when(
-        "light ← point_light(position, intensity)",
-        |mut world, _ctx| {
-            let position = world.tuples.get("position").unwrap();
-            let intensity = world.tuples.get("intensity").unwrap();
-            world.light = Pointlight::new(position.clone(), intensity.clone());
-            world
-        },
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::many_single_char_names)]
+#[given(
+    regex = r"^(w\.)?light ← point_light\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
+)]
+async fn assign_light_attribute(
+    world: &mut MyWorld,
+    target: String,
+    x: String,
+    y: String,
+    z: String,
+    r: String,
+    g: String,
+    b: String,
+) {
+    let position = parse_point(&[x, y, z]);
+    let intensity = parse_point(&[r, g, b]);
+    let light = Pointlight::new(position, intensity);
+    match target.as_str() {
+        "w." => world.w.light = Some(light),
+        _ => world.light = light,
+    };
+}
+
+#[when("result ← lighting(m, light, position, eyev, normalv)")]
+async fn compute_lighting(world: &mut MyWorld) {
+    let material = &world.m;
+    let object = Arc::new(default_sphere());
+    let light = &world.light;
+    let position = world.tuples.get("position").unwrap();
+    let eyev = world.tuples.get("eyev").unwrap();
+    let normalv = world.tuples.get("normalv").unwrap();
+    let result = lighting(material, &object, light, position, eyev, normalv, false);
+    world.tuples.insert("result".to_string(), result);
+}
+
+#[when("result ← lighting(m, light, position, eyev, normalv, in_shadow)")]
+async fn compute_lighting_in_shadow(world: &mut MyWorld) {
+    let material = &world.m;
+    let object = Arc::new(default_sphere());
+    let light = &world.light;
+    let position = world.tuples.get("position").unwrap();
+    let eyev = world.tuples.get("eyev").unwrap();
+    let normalv = world.tuples.get("normalv").unwrap();
+    let in_shadow = world.in_shadow;
+    let result = lighting(material, &object, light, position, eyev, normalv, in_shadow);
+    world.tuples.insert("result".to_string(), result);
+}
+
+#[when(
+    regex = r"(c1|c2) ← lighting\(m, light, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), eyev, normalv, false\)$"
+)]
+async fn compute_lighting_at_point(
+    world: &mut MyWorld,
+    target: String,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let material = &world.m;
+    let object = Arc::new(default_sphere());
+    let light = &world.light;
+    let position = parse_point(&[x, y, z]);
+    let eyev = world.tuples.get("eyev").unwrap();
+    let normalv = world.tuples.get("normalv").unwrap();
+    let in_shadow = false;
+    let result = lighting(
+        material, &object, light, &position, eyev, normalv, in_shadow,
     );
-
-    steps.then("light.position = position", |world, _ctx| {
-        let position = world.tuples.get("position").unwrap();
-        assert_eq!(world.light.position, *position);
-        world
-    });
-
-    steps.then("light.intensity = intensity", |world, _ctx| {
-        let intensity = world.tuples.get("intensity").unwrap();
-        assert_eq!(world.light.intensity, *intensity);
-        world
-    });
-
-    steps.given_regex(
-        r#"^(w\.)?light ← point_light\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), color\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"#,
-        |mut world, ctx| {
-            let position = parse_point(&ctx.matches[2..=4]);
-            let intensity = parse_point(&ctx.matches[5..=7]);
-            let light = Pointlight::new(position, intensity);
-            match ctx.matches[1].as_str() {
-                "w." => world.w.light = Some(light),
-                _ => world.light = light,
-            };
-            world
-        },
-    );
-
-    steps.when(
-        "result ← lighting(m, light, position, eyev, normalv)",
-        |mut world, _ctx| {
-            let material = &world.m;
-            let object = Arc::new(default_sphere());
-            let light = &world.light;
-            let position = world.tuples.get("position").unwrap();
-            let eyev = world.tuples.get("eyev").unwrap();
-            let normalv = world.tuples.get("normalv").unwrap();
-            let result = lighting(material, &object, light, position, eyev, normalv, false);
-            world.tuples.insert("result".to_string(), result);
-            world
-        },
-    );
-
-    steps.when(
-        "result ← lighting(m, light, position, eyev, normalv, in_shadow)",
-        |mut world, _ctx| {
-            let material = &world.m;
-            let object = Arc::new(default_sphere());
-            let light = &world.light;
-            let position = world.tuples.get("position").unwrap();
-            let eyev = world.tuples.get("eyev").unwrap();
-            let normalv = world.tuples.get("normalv").unwrap();
-            let in_shadow = world.in_shadow;
-            let result = lighting(material, &object, light, position, eyev, normalv, in_shadow);
-            world.tuples.insert("result".to_string(), result);
-            world
-        },
-    );
-
-    steps.when_regex(
-        r#"^(c1|c2) ← lighting\(m, light, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), eyev, normalv, false\)$"#,
-        |mut world, ctx| {
-            let material = &world.m;
-            let object = Arc::new(default_sphere());
-            let light = &world.light;
-            let position = parse_point(&ctx.matches[2..=4]);
-            let eyev = world.tuples.get("eyev").unwrap();
-            let normalv = world.tuples.get("normalv").unwrap();
-            let in_shadow = false;
-            let result = lighting(material, &object, light, &position, eyev, normalv, in_shadow);
-            world.tuples.insert(ctx.matches[1].clone(), result);
-            world
-        },
-    );
-
-    steps
+    world.tuples.insert(target, result);
 }

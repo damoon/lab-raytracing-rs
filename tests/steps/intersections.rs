@@ -1,97 +1,64 @@
-use std::sync::Arc;
-
 use crate::{
     steps::tuples::{parse_float, parse_point, parse_vector},
     MyWorld,
 };
 use approx::assert_abs_diff_eq;
-use cucumber::Steps;
+use cucumber::{given, then, when};
 use lab_raytracing_rs::intersections::{hit, prepare_computations, schlick, Intersection};
+use std::sync::Arc;
 
-pub fn steps() -> Steps<MyWorld> {
-    let mut steps: Steps<MyWorld> = Steps::new();
+#[when(regex = r"(i) ← intersection\(([-0-9.]+), (s)\)$")]
+#[given(regex = r"(i|i1|i2|i3|i4) ← intersection\((√2|[-0-9.]+), (s|s2|shape)\)$")]
+async fn assign_intersection(world: &mut MyWorld, target: String, t: String, shape: String) {
+    let t = parse_float(t.as_str());
+    let object = world.objects.get(&shape).unwrap().clone();
+    let intersection = Intersection { t, object };
+    world.intersections.insert(target, intersection);
+}
 
-    steps.when_regex(
-        r#"^(i) ← intersection\(([-0-9.]+), s\)$"#,
-        |mut world, ctx| {
-            let t = ctx.matches[2].parse::<f64>().unwrap();
-            let object = world.objects.get("s").unwrap().clone();
-            let intersection = Intersection { t, object };
-            world
-                .intersections
-                .insert(ctx.matches[1].clone(), intersection);
-            world
-        },
-    );
+#[then(regex = r"(i).object = s$")]
+async fn compare_intersection_object(world: &mut MyWorld, intersection: String) {
+    let shape = &world.intersections.get(&intersection).unwrap().object;
+    let desired = world.objects.get("s").unwrap();
+    assert!(Arc::ptr_eq(shape, desired));
+}
 
-    steps.given_regex(
-        r#"^(i|i1|i2|i3|i4) ← intersection\((√2|[-0-9.]+), (s|s2|shape)\)$"#,
-        |mut world, ctx| {
-            let t = match ctx.matches[2].as_str() {
-                "√2" => 2.0_f64.sqrt(),
-                s => s.parse::<f64>().unwrap(),
-            };
-            let object = world.objects.get(&ctx.matches[3]).unwrap().clone();
-            let intersection = Intersection { t, object };
-            world
-                .intersections
-                .insert(ctx.matches[1].clone(), intersection);
-            world
-        },
-    );
+#[then(regex = r"(i).t = ([-0-9.]+)$")]
+async fn compare_intersection_distance(world: &mut MyWorld, intersection: String, desired: f64) {
+    let intersection = world.intersections.get(&intersection).unwrap().clone();
+    assert_abs_diff_eq!(desired, intersection.t);
+}
 
-    steps.then_regex(r#"^(i).object = s$"#, |world, ctx| {
-        let shape = &world.intersections.get(&ctx.matches[1]).unwrap().object;
-        let desired = world.objects.get("s").unwrap();
-        assert!(Arc::ptr_eq(shape, desired));
-        world
-    });
+#[when(regex = r"xs ← intersections\((i1), (i2)\)$")]
+#[given(regex = r"xs ← intersections\((i2), (i1)\)$")]
+async fn assign_intersections(world: &mut MyWorld, i1: String, i2: String) {
+    let i1 = world.intersections.get(&i1).unwrap().clone();
+    let i2 = world.intersections.get(&i2).unwrap().clone();
+    world.xs = vec![i1, i2];
+}
 
-    steps.then_regex(r#"^(i).t = ([-0-9.]+)$"#, |world, ctx| {
-        let intersection = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-        let desired = ctx.matches[2].parse::<f64>().unwrap();
-        assert_abs_diff_eq!(desired, intersection.t);
-        world
-    });
+#[given(regex = r"xs ← intersections\((i)\)$")]
+async fn assign_intersections_single(world: &mut MyWorld, i1: String) {
+    let i1 = world.intersections.get(&i1).unwrap().clone();
+    world.xs = vec![i1];
+}
 
-    steps.when_regex(
-        r#"^xs ← intersections\((i1), (i2)\)$"#,
-        |mut world, ctx| {
-            let i1 = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-            let i2 = world.intersections.get(&ctx.matches[2]).unwrap().clone();
-            world.xs = vec![i1, i2];
-            world
-        },
-    );
+#[given(regex = r"xs ← intersections\((i1), (i2), (i3), (i4)\)$")]
+async fn assign_intersections_quad(
+    world: &mut MyWorld,
+    i1: String,
+    i2: String,
+    i3: String,
+    i4: String,
+) {
+    let i1 = world.intersections.get(&i1).unwrap().clone();
+    let i2 = world.intersections.get(&i2).unwrap().clone();
+    let i3 = world.intersections.get(&i3).unwrap().clone();
+    let i4 = world.intersections.get(&i4).unwrap().clone();
+    world.xs = vec![i1, i2, i3, i4];
+}
 
-    steps.given_regex(
-        r#"^xs ← intersections\((i2), (i1)\)$"#,
-        |mut world, ctx| {
-            let i1 = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-            let i2 = world.intersections.get(&ctx.matches[2]).unwrap().clone();
-            world.xs = vec![i1, i2];
-            world
-        },
-    );
-
-    steps.given_regex(r#"^xs ← intersections\((i)\)$"#, |mut world, ctx| {
-        let i1 = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-        world.xs = vec![i1];
-        world
-    });
-
-    steps.given_regex(
-        r#"^xs ← intersections\((i1), (i2), (i3), (i4)\)$"#,
-        |mut world, ctx| {
-            let i1 = world.intersections.get(&ctx.matches[1]).unwrap().clone();
-            let i2 = world.intersections.get(&ctx.matches[2]).unwrap().clone();
-            let i3 = world.intersections.get(&ctx.matches[3]).unwrap().clone();
-            let i4 = world.intersections.get(&ctx.matches[4]).unwrap().clone();
-            world.xs = vec![i1, i2, i3, i4];
-            world
-        },
-    );
-
+/*
     steps.then_regex(r#"^xs\[([-0-9.]+)\].t = ([-0-9.]+)$"#, |world, ctx| {
         let index = ctx.matches[1].parse::<usize>().unwrap();
         let desired = ctx.matches[2].parse::<f64>().unwrap();
@@ -309,3 +276,4 @@ pub fn steps() -> Steps<MyWorld> {
 
     steps
 }
+*/
