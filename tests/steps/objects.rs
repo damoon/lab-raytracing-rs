@@ -4,7 +4,7 @@ use crate::{
     steps::tuples::{parse_point, parse_vector},
     MyWorld,
 };
-use cucumber::{given, then, when};
+use cucumber::{given, then};
 use lab_raytracing_rs::objects::default_testshape;
 
 #[given(regex = r"^(s) ← test_shape\(\)$")]

@@ -5,7 +5,7 @@ pub mod groups;
 // pub mod intersections;
 // pub mod lights;
 // pub mod materials;
-// pub mod matrices;
+pub mod matrices;
 pub mod objects;
 pub mod patterns;
 pub mod planes;
