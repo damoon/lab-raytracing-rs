@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use cucumber::{cli, given, then, when, WorldInit, WriterExt};
+use cucumber::WorldInit;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::canvas::Canvas;
 use lab_raytracing_rs::groups::Group;
@@ -57,7 +57,7 @@ enum Matrix {
 impl cucumber::World for MyWorld {
     type Error = Infallible;
 
-    async fn new() -> Result<Self, Infallible> {
+    async fn new() -> Result<Self, Self::Error> {
         let mut world = Self {
             tuples: HashMap::new(),
             floats: HashMap::new(),
@@ -119,7 +119,7 @@ impl MyWorld {
 async fn main() {
     MyWorld::cucumber()
         .repeat_failed()
-        //.repeat_skipped()
+        .repeat_skipped()
         // .steps(steps::camera::steps())
         // .steps(steps::canvas::steps())
         // .steps(steps::cylinders::steps())
