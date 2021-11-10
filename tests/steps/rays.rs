@@ -12,7 +12,7 @@ async fn create_ray_from(world: &mut MyWorld, x: f64, y: f64, z: f64) {
     world.r = Ray::new(origin, direction);
 }
 
-#[given("r ← ray(origin, direction)")]
+#[when("r ← ray(origin, direction)")]
 async fn create_ray(world: &mut MyWorld) {
     let origin = world.tuples.get("origin").unwrap().clone();
     let direction = world.tuples.get("direction").unwrap().clone();
@@ -46,18 +46,23 @@ async fn compare_position(world: &mut MyWorld, t: f64, x: f64, y: f64, z: f64) {
     assert_eq!(desired, calculated);
 }
 
-#[then(regex = r"(r|r2).(origin|direction) = (origin|direction)")]
-async fn compare_ray(world: &mut MyWorld, attribute: String, desired: String) {
+#[then(regex = r"^(r|r2).(origin|direction) = (origin|direction)$")]
+async fn compare_ray(world: &mut MyWorld, ray: String, attribute: String, desired: String) {
     let desired = world.tuples.get(&desired).unwrap();
+    let ray = match ray.as_str() {
+        "r" => &world.r,
+        "r2" => &world.r2,
+        _ => panic!("ray not covered",),
+    };
     match attribute.as_str() {
-        "origin" => assert_eq!(&world.r.origin, desired),
-        "direction" => assert_eq!(&world.r.direction, desired),
+        "origin" => assert_eq!(&ray.origin, desired),
+        "direction" => assert_eq!(&ray.direction, desired),
         _ => panic!("attribute not covered",),
     };
 }
 
 #[then(
-    regex = r"(r|r2).(origin|direction) = (point|vector)\((-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+)\)"
+    regex = r"^(r|r2).(origin|direction) = (point|vector)\((-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+), (-?√2/2|[-0-9.]+)\)$"
 )]
 async fn compare_ray_with_tuple(
     world: &mut MyWorld,

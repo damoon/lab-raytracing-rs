@@ -76,7 +76,7 @@ async fn compute_lighting_in_shadow(world: &mut MyWorld) {
 }
 
 #[when(
-    regex = r"(c1|c2) ← lighting\(m, light, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), eyev, normalv, false\)$"
+    regex = r"^(c1|c2) ← lighting\(m, light, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), eyev, normalv, false\)$"
 )]
 async fn compute_lighting_at_point(
     world: &mut MyWorld,

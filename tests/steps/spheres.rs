@@ -1,10 +1,8 @@
-use super::{
-    tuples::parse_point,
-};
-use crate::{MyWorld};
+use super::tuples::parse_point;
+use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber::{gherkin::Step, given, then, when};
-use lab_raytracing_rs::{transformations::scaling};
+use lab_raytracing_rs::transformations::scaling;
 use lab_raytracing_rs::{
     intersections::Intersection,
     matrices::Matrix4x4,
@@ -157,7 +155,7 @@ async fn compare_translation(world: &mut MyWorld, name: String, translation: Str
     assert_eq!(lookup, desired);
 }
 
-#[then(regex = r"^xs ← intersect\(s, r\)$")]
+#[when(regex = r"^xs ← intersect\(s, r\)$")]
 async fn calculate_intersections(world: &mut MyWorld) {
     let s = world.objects.get("s").unwrap();
     world.xs = s

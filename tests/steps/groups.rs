@@ -1,7 +1,7 @@
 use crate::MyWorld;
 use cucumber::{given, then, when};
-use lab_raytracing_rs::{groups::Group, transformations::scaling};
-use std::ops::Deref;
+use lab_raytracing_rs::{groups::Group, transformations::{rotation_y, scaling}};
+use std::{f64::consts::PI, ops::Deref};
 
 #[given(regex = r"^(g|g1|g2) ← group\(\)$")]
 async fn create_group(world: &mut MyWorld, name: String) {
@@ -31,11 +31,20 @@ async fn group_is_not_empty(world: &mut MyWorld) {
 }
 
 #[given(regex = r"set_transform\((g|g2), scaling\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)")]
-async fn rotate_group_1(world: &mut MyWorld, group: String, x: f64, y: f64, z: f64) {
+async fn scale_group(world: &mut MyWorld, group: String, x: f64, y: f64, z: f64) {
     let transform = scaling(x, y, z);
     match group.as_str() {
         "g" => world.g.set_transform(transform),
         "g2" => world.g2.set_transform(transform),
+        _ => panic!("group not covered"),
+    }
+}
+
+#[given(regex = r"set_transform\((g1), rotation_y\(π/2\)\)")]
+async fn rotate_group(world: &mut MyWorld, group: String) {
+    let transform = rotation_y(PI / 2.0);
+    match group.as_str() {
+        "g1" => world.g1.set_transform(transform),
         _ => panic!("group not covered"),
     }
 }

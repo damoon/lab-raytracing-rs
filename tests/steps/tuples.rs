@@ -149,7 +149,7 @@ async fn compare_point(world: &mut MyWorld, name: String, x: String, y: String, 
 }
 
 #[then(
-    regex = r"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2/2|\-?√3/3)\)$"
+    regex = r"^(n|r|n1|n2|n3|normal) = vector\(([-0-9.]+|\-?√2|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2|\-?√2/2|\-?√3/3), ([-0-9.]+|\-?√2|\-?√2/2|\-?√3/3)\)$"
 )]
 async fn compare_vector(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
     let tuple = world.tuples.get(&name).unwrap().clone();
@@ -311,7 +311,7 @@ async fn assign_normalized_vector(
     world.tuples.insert(name, normalized);
 }
 
-#[given(regex = r"^(norm) ← normalize\((v)\)$")]
+#[when(regex = r"^(norm) ← normalize\((v)\)$")]
 async fn assign_normalized_tuple(world: &mut MyWorld, target: String, origin: String) {
     let tuple = world.tuples.get(&origin).unwrap().normalize();
     world.tuples.insert(target, tuple);

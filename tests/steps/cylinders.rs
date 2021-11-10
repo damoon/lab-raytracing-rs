@@ -24,7 +24,7 @@ async fn compare_cylinder_attribute(world: &mut MyWorld, attribute: String, valu
     }
 }
 
-#[given(regex = r"^cyl.closed = (true|false)$")]
+#[then(regex = r"^cyl.closed = (true|false)$")]
 async fn compare_cylinder_closed(world: &mut MyWorld, value: String) {
     let desired = match value.as_str() {
         "true" => true,

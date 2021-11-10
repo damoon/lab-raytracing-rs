@@ -116,6 +116,9 @@ async fn assign_color_from_stripe_pattern(
 #[given(
     regex = r"^set_pattern_transform\(pattern, (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
 )]
+#[when(
+    regex = r"^set_pattern_transform\(pattern, (scaling|translation)\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
+)]
 async fn set_pattern_transform(
     world: &mut MyWorld,
     transformation: String,

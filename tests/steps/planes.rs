@@ -1,10 +1,7 @@
-use std::sync::Arc;
+use crate::{steps::tuples::parse_point, MyWorld};
 use cucumber::{given, then, when};
 use lab_raytracing_rs::{intersections::Intersection, objects::default_plane};
-use crate::{
-    MyWorld,
-    steps::tuples::{parse_point},
-};
+use std::sync::Arc;
 
 #[given("p ← plane()")]
 async fn assign_default_plane(world: &mut MyWorld) {
@@ -37,16 +34,30 @@ async fn intersecting_object(world: &mut MyWorld, index: usize, object_name: Str
     assert_eq!(lookup, desired);
 }
 
-#[when(regex = r"^(n|n1|n2|n3) ← local_normal_at\((p|cyl|shape), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$")]
-async fn local_normal_at_point(world: &mut MyWorld, normal_name: String, object_name: String, x: String, y: String, z: String) {
+#[when(
+    regex = r"^(n|n1|n2|n3) ← local_normal_at\((p|cyl|shape), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
+)]
+async fn local_normal_at_point(
+    world: &mut MyWorld,
+    normal_name: String,
+    object_name: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let point = parse_point(&[x, y, z]);
     let obj = world.objects.get(&object_name).unwrap();
     let normal = obj.shape.normal_at(&point);
     world.tuples.insert(normal_name, normal);
 }
 
-#[when(regex = r"^(n|n1|n2|n3) ← local_normal_at\((c), (p)\)$")]
-async fn local_normal_at(world: &mut MyWorld, normal_name: String, object_name: String, point_name: String) {
+#[when(regex = r"^(n|n1|n2|n3|normal) ← local_normal_at\((c), (p)\)$")]
+async fn local_normal_at(
+    world: &mut MyWorld,
+    normal_name: String,
+    object_name: String,
+    point_name: String,
+) {
     let point = world.tuples.get(&point_name).unwrap();
     let obj = world.objects.get(&object_name).unwrap();
     let normal = obj.shape.normal_at(point);
