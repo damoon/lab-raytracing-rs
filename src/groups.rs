@@ -133,6 +133,13 @@ impl Group {
         self.elements.push(e)
     }
 
+    pub fn get_object(&self, idx: usize) -> Arc<Object> {
+        match &self.elements.get(idx).unwrap() {
+            &GroupMember::Object(o) => o.clone(),
+            &GroupMember::SubGroup(_) => panic!("found a group"),
+        }
+    }
+
     fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
         match (this, other) {
             (None, None) => None,
