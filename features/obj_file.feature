@@ -48,45 +48,45 @@ Feature: OBJ File Parser
         And t2.p2 = parser.vertices[3]
         And t2.p3 = parser.vertices[4]
 
-#   Scenario: Triangulating polygons
-#     Given file ← a file containing:
-#       """
-#       v -1 1 0
-#       v -1 0 0
-#       v 1 0 0
-#       v 1 1 0
-#       v 0 2 0
+    Scenario: Triangulating polygons
+        Given file ← a file containing:
+        """
+        v -1 1 0
+        v -1 0 0
+        v 1 0 0
+        v 1 1 0
+        v 0 2 0
 
-#       f 1 2 3 4 5
-#       """
-#     When parser ← parse_obj_file(file)
-#     And g ← parser.default_group
-#     And t1 ← first child of g
-#     And t2 ← second child of g
-#     And t3 ← third child of g
-#     Then t1.p1 = parser.vertices[1]
-#     And t1.p2 = parser.vertices[2]
-#     And t1.p3 = parser.vertices[3]
-#     And t2.p1 = parser.vertices[1]
-#     And t2.p2 = parser.vertices[3]
-#     And t2.p3 = parser.vertices[4]
-#     And t3.p1 = parser.vertices[1]
-#     And t3.p2 = parser.vertices[4]
-#     And t3.p3 = parser.vertices[5]
+        f 1 2 3 4 5
+        """
+        When parser ← parse_obj_file(file)
+        And g ← parser.default_group
+        And t1 ← first child of g
+        And t2 ← second child of g
+        And t3 ← third child of g
+        Then t1.p1 = parser.vertices[1]
+        And t1.p2 = parser.vertices[2]
+        And t1.p3 = parser.vertices[3]
+        And t2.p1 = parser.vertices[1]
+        And t2.p2 = parser.vertices[3]
+        And t2.p3 = parser.vertices[4]
+        And t3.p1 = parser.vertices[1]
+        And t3.p2 = parser.vertices[4]
+        And t3.p3 = parser.vertices[5]
 
-#   Scenario: Triangles in groups
-#     Given file ← the file "triangles.obj"
-#     When parser ← parse_obj_file(file)
-#     And g1 ← "FirstGroup" from parser
-#     And g2 ← "SecondGroup" from parser
-#     And t1 ← first child of g1
-#     And t2 ← first child of g2
-#     Then t1.p1 = parser.vertices[1]
-#     And t1.p2 = parser.vertices[2]
-#     And t1.p3 = parser.vertices[3]
-#     And t2.p1 = parser.vertices[1]
-#     And t2.p2 = parser.vertices[3]
-#     And t2.p3 = parser.vertices[4]
+    Scenario: Triangles in groups
+        Given file ← the file "triangles.obj"
+        When parser ← parse_obj_file(file)
+        And g1 ← "FirstGroup" from parser
+        And g2 ← "SecondGroup" from parser
+        And t1 ← first child of g1
+        And t2 ← first child of g2
+        Then t1.p1 = parser.vertices[1]
+        And t1.p2 = parser.vertices[2]
+        And t1.p3 = parser.vertices[3]
+        And t2.p1 = parser.vertices[1]
+        And t2.p2 = parser.vertices[3]
+        And t2.p3 = parser.vertices[4]
 
 #   Scenario: Converting an OBJ file to a group
 #     Given file ← the file "triangles.obj"

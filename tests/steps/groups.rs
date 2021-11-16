@@ -1,6 +1,9 @@
 use crate::MyWorld;
 use cucumber::{given, then, when};
-use lab_raytracing_rs::{groups::Group, transformations::{rotation_y, scaling}};
+use lab_raytracing_rs::{
+    groups::Group,
+    transformations::{rotation_y, scaling},
+};
 use std::{f64::consts::PI, ops::Deref};
 
 #[given(regex = r"^(g|g1|g2) ← group\(\)$")]
@@ -12,11 +15,6 @@ async fn create_group(world: &mut MyWorld, name: String) {
         "g2" => world.g2 = grp,
         _ => panic!("group not covered"),
     }
-}
-
-#[given("g ← parser.default_group")]
-async fn group_from_parser(world: &mut MyWorld) {
-    world.g = world.parser.default_group.clone();
 }
 
 #[then(regex = r"^g.transform = (identity_matrix)$")]
@@ -84,11 +82,12 @@ async fn intersect_group(world: &mut MyWorld) {
     world.xs = world.g.intersect(&world.r);
 }
 
-#[when(regex = r"^(t1|t2) ← (first|second) child of g$")]
+#[when(regex = r"^(t1|t2|t3) ← (first|second|third) child of g$")]
 async fn assign_object_from_group(world: &mut MyWorld, target: String, position: String) {
     let object = match position.as_str() {
         "first" => world.g.get_object(0),
         "second" => world.g.get_object(1),
+        "third" => world.g.get_object(2),
         _ => panic!("position not covered"),
     };
     world.objects.insert(target, object);

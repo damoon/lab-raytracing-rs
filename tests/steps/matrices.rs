@@ -3,7 +3,7 @@ use crate::Matrix;
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber::gherkin::Step;
-use cucumber::{when, given, then};
+use cucumber::{given, then, when};
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 
 #[given(regex = r"^the following (2x2|3x3|4x4) matrix (A|B|M):$")]

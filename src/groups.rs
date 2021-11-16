@@ -135,8 +135,8 @@ impl Group {
 
     pub fn get_object(&self, idx: usize) -> Arc<Object> {
         match &self.elements.get(idx).unwrap() {
-            &GroupMember::Object(o) => o.clone(),
-            &GroupMember::SubGroup(_) => panic!("found a group"),
+            GroupMember::Object(o) => o.clone(),
+            GroupMember::SubGroup(_) => panic!("found a group"),
         }
     }
 

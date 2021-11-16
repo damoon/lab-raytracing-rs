@@ -111,8 +111,17 @@ async fn compare_precomputed_object(world: &mut MyWorld) {
     assert_eq!(lookup, desired);
 }
 
-#[then(regex = r"^comps\.(point|eyev|normalv|reflectv) = (point|vector)\((√2/2|[-0-9.]+), (√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)$")]
-async fn compare_precomputed_attribute(world: &mut MyWorld, attribute: String, kind: String, x: String, y: String, z: String) {
+#[then(
+    regex = r"^comps\.(point|eyev|normalv|reflectv) = (point|vector)\((√2/2|[-0-9.]+), (√2/2|[-0-9.]+), (√2/2|[-0-9.]+)\)$"
+)]
+async fn compare_precomputed_attribute(
+    world: &mut MyWorld,
+    attribute: String,
+    kind: String,
+    x: String,
+    y: String,
+    z: String,
+) {
     let tuple = match kind.as_str() {
         "point" => parse_point(&[x, y, z]),
         "vector" => parse_vector(&[x, y, z]),
@@ -138,15 +147,14 @@ async fn compare_precomputed_float(world: &mut MyWorld, attribute: String, desir
 
 #[then(regex = r"^comps\.inside = (true|false)$")]
 async fn compare_precomputed_bool(world: &mut MyWorld, desired: bool) {
-     assert_eq!(world.comps.inside, desired);
+    assert_eq!(world.comps.inside, desired);
 }
 
 #[then("comps.over_point.z < -EPSILON/2")]
 #[then("comps.under_point.z > EPSILON/2")]
 #[then("comps.point.z > comps.over_point.z")]
 #[then("comps.point.z < comps.under_point.z")]
-async fn refactored_away(_: &mut MyWorld) {
-}
+async fn refactored_away(_: &mut MyWorld) {}
 
 #[given("xs ← intersections(2:A, 2.75:B, 3.25:C, 4.75:B, 5.25:C, 6:A)")]
 async fn prepare_six_intersections(world: &mut MyWorld) {
@@ -178,8 +186,21 @@ async fn prepare_six_intersections(world: &mut MyWorld) {
     ];
 }
 
-#[given(regex = r"^xs ← intersections\(([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B)\)$")]
-async fn prepare_four_intersections(world: &mut MyWorld, a_t: String, a_o: String, b_t: String, b_o: String, c_t: String, c_o: String, d_t: String, d_o: String) {
+#[allow(clippy::too_many_arguments)]
+#[given(
+    regex = r"^xs ← intersections\(([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B)\)$"
+)]
+async fn prepare_four_intersections(
+    world: &mut MyWorld,
+    a_t: String,
+    a_o: String,
+    b_t: String,
+    b_o: String,
+    c_t: String,
+    c_o: String,
+    d_t: String,
+    d_o: String,
+) {
     world.xs = vec![
         Intersection {
             t: parse_float(&a_t),
@@ -201,7 +222,13 @@ async fn prepare_four_intersections(world: &mut MyWorld, a_t: String, a_o: Strin
 }
 
 #[given(regex = r"^xs ← intersections\(([-√/0-9\.]+):(shape), ([-√/0-9\.]+):(shape)\)$")]
-async fn prepare_two_intersections(world: &mut MyWorld, a_t: String, a_o: String, b_t: String, b_o: String) {
+async fn prepare_two_intersections(
+    world: &mut MyWorld,
+    a_t: String,
+    a_o: String,
+    b_t: String,
+    b_o: String,
+) {
     world.xs = vec![
         Intersection {
             t: parse_float(&a_t),
@@ -216,12 +243,10 @@ async fn prepare_two_intersections(world: &mut MyWorld, a_t: String, a_o: String
 
 #[given(regex = r"^xs ← intersections\(([-√/0-9\.]+):(floor|shape)\)$")]
 async fn prepare_one_intersections(world: &mut MyWorld, a_t: String, a_o: String) {
-    world.xs = vec![
-        Intersection {
-            t: parse_float(&a_t),
-            object: world.objects.get(&a_o).unwrap().clone(),
-        },
-    ];
+    world.xs = vec![Intersection {
+        t: parse_float(&a_t),
+        object: world.objects.get(&a_o).unwrap().clone(),
+    }];
 }
 
 #[when("reflectance ← schlick(comps)")]
