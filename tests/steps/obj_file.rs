@@ -18,6 +18,7 @@ async fn read_file(world: &mut MyWorld, target: String, path: String) {
     world.files.insert(target, content);
 }
 
+#[given(regex = r"^parser ← parse_obj_file\((gibberish|file)\)$")]
 #[when(regex = r"^parser ← parse_obj_file\((gibberish|file)\)$")]
 async fn parse_file(world: &mut MyWorld, file: String) {
     let content = world.files.get(&file).unwrap();
@@ -32,12 +33,23 @@ async fn select_parser_default_group(world: &mut MyWorld) {
 
 #[when(regex = r#"(g1|g2) ← "(\w+)" from parser"#)]
 async fn select_group_from_parser(world: &mut MyWorld, target: String, group_name: String) {
-    let g = world.parser.groups.get(&group_name).unwrap().clone();
+    let g = world.parser.groups.get(&group_name).expect("group missing").clone();
     match target.as_str() {
         "g1" => world.g1 = g,
         "g2" => world.g2 = g,
         _ => panic!("group name not covered"),
     }
+}
+
+#[when("g ← obj_to_group(parser)")]
+async fn parser_to_group(world: &mut MyWorld) {
+    world.g = world.parser.to_group();
+}
+
+#[then(regex = r#"g includes "(FirstGroup|SecondGroup)" from parser"#)]
+async fn compare_group_from_parser(world: &mut MyWorld, group_name: String) {
+    let g = world.parser.groups.get(&group_name).expect("group missing");
+    assert!(world.g.contains_group(g));
 }
 
 #[then(regex = r"^parser should have ignored ([-0-9]+) lines$")]

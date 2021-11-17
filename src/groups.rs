@@ -6,22 +6,12 @@ use crate::{
     tuples::{point, Tuple},
 };
 use auto_ops::impl_op_ex;
-use std::sync::Arc;
+use std::{sync::Arc};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum GroupMember {
     SubGroup(Arc<Group>),
     Object(Arc<Object>),
-}
-
-impl PartialEq for GroupMember {
-    fn eq(&self, other: &GroupMember) -> bool {
-        match (&self, &other) {
-            (GroupMember::SubGroup(s), GroupMember::SubGroup(o)) => Arc::ptr_eq(s, o),
-            (GroupMember::Object(s), GroupMember::Object(o)) => Arc::ptr_eq(s, o),
-            _ => false,
-        }
-    }
 }
 
 impl GroupMember {
@@ -62,7 +52,7 @@ impl GroupMember {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Group {
     transform: Matrix4x4,
     transform_inverse: Matrix4x4,
@@ -152,6 +142,19 @@ impl Group {
     // pub fn contains_object(&self, o: Arc<Object>) -> bool {
     //     self.elements.contains(&GroupMember::Object(o))
     // }
+
+    pub fn contains_group(&self, g: &Group) -> bool {
+        for e in self.elements.iter() {
+            if let GroupMember::SubGroup(sg) = e  {
+                let sg = sg.as_ref();
+                if g == sg {
+                    return true
+                }
+            }
+        }
+
+        false
+    }
 
     pub fn len(&self) -> usize {
         self.elements.len()

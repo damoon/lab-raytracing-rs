@@ -82,12 +82,18 @@ async fn intersect_group(world: &mut MyWorld) {
     world.xs = world.g.intersect(&world.r);
 }
 
-#[when(regex = r"^(t1|t2|t3) ← (first|second|third) child of g$")]
-async fn assign_object_from_group(world: &mut MyWorld, target: String, position: String) {
+#[when(regex = r"^(t1|t2|t3) ← (first|second|third) child of (g|g1|g2)$")]
+async fn assign_object_from_group(world: &mut MyWorld, target: String, position: String, group: String) {
+    let g = match group.as_str() {
+        "g" => world.g.clone(),
+        "g1" => world.g1.clone(),
+        "g2" => world.g2.clone(),
+        _ => panic!("group name not covered"),
+    };
     let object = match position.as_str() {
-        "first" => world.g.get_object(0),
-        "second" => world.g.get_object(1),
-        "third" => world.g.get_object(2),
+        "first" => g.get_object(0),
+        "second" => g.get_object(1),
+        "third" => g.get_object(2),
         _ => panic!("position not covered"),
     };
     world.objects.insert(target, object);
