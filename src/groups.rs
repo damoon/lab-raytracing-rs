@@ -6,7 +6,7 @@ use crate::{
     tuples::{point, Tuple},
 };
 use auto_ops::impl_op_ex;
-use std::{sync::Arc};
+use std::sync::Arc;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum GroupMember {
@@ -46,6 +46,21 @@ impl GroupMember {
             GroupMember::Object(o) => {
                 let mut o = o.as_ref().clone();
                 o.set_transform(update * o.transform());
+                GroupMember::Object(Arc::new(o))
+            }
+        }
+    }
+
+    fn set_color(&self, c: &Tuple) -> Self {
+        match self {
+            GroupMember::SubGroup(g) => {
+                let mut g = g.as_ref().clone();
+                g.set_color(c);
+                GroupMember::SubGroup(Arc::new(g))
+            }
+            GroupMember::Object(o) => {
+                let mut o = o.as_ref().clone();
+                o.material.color = c.clone();
                 GroupMember::Object(Arc::new(o))
             }
         }
@@ -130,6 +145,10 @@ impl Group {
         }
     }
 
+    pub fn set_color(&mut self, c: &Tuple) {
+        self.elements = self.elements.iter().map(|e| e.set_color(c)).collect()
+    }
+
     fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
         match (this, other) {
             (None, None) => None,
@@ -145,10 +164,10 @@ impl Group {
 
     pub fn contains_group(&self, g: &Group) -> bool {
         for e in self.elements.iter() {
-            if let GroupMember::SubGroup(sg) = e  {
+            if let GroupMember::SubGroup(sg) = e {
                 let sg = sg.as_ref();
                 if g == sg {
-                    return true
+                    return true;
                 }
             }
         }

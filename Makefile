@@ -2,7 +2,8 @@ all: renders clock.png projectile.png
 
 renders: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png \
 	sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png \
-	cylinders-cones.png groups.png many-spheres.png metallic.png hexagon-donut.png dodecahedron.png
+	cylinders-cones.png groups.png many-spheres.png metallic.png hexagon-donut.png dodecahedron.png \
+	teapot.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg
@@ -12,7 +13,7 @@ clean:
 #	echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
 #	cargo flamegraph --output flamegraph-cargo.svg --example refraction | convert /dev/stdin /dev/null
 
-export EXAMPLE=refraction
+export EXAMPLE=teapot
 
 profile:
 	PROFILE_CPU=1 cargo run --release --example $(EXAMPLE) | convert /dev/stdin $(EXAMPLE).png
@@ -77,3 +78,6 @@ hexagon-donut.png:
 
 dodecahedron.png:
 	cargo run --release --example dodecahedron | convert /dev/stdin dodecahedron.png
+
+teapot.png:
+	cargo run --release --example teapot | convert /dev/stdin teapot.png
