@@ -14,6 +14,7 @@ use std::{f64::consts::PI, fs, io};
 fn main() -> io::Result<()> {
     let mut world = World::default();
 
+    eprintln!("setup scene");
     let mut floor = default_plane();
     floor.material.pattern = Some(Box::new(solid_pattern(color(
         212.0 / 250.0,
@@ -43,10 +44,17 @@ fn main() -> io::Result<()> {
     wall.set_transform(translation(9.0, 0.0, 0.0) * rotation_z(PI / 2.0));
     world.add_object(wall);
 
+    eprintln!("load teapot");
     let mut teapot = load_obj_file("examples/teapot.obj");
     teapot.set_color(&color(255.0 / 250.0, 215.0 / 250.0, 0.0 / 250.0));
+
+    eprintln!("regroup aabb");
+    let teapot = teapot.regroup_aabb();
+
     world.add_group(teapot);
 
+
+    eprintln!("setup light and lighting");
     world.light = Some(Pointlight::new(
         point(-11.0, 3.0, -10.0),
         color(1.0, 1.0, 1.0),
@@ -59,6 +67,7 @@ fn main() -> io::Result<()> {
         &vector(0.0, 1.0, 0.0),
     ));
 
+    eprintln!("rendering");
     let canvas = camera.render(&world);
 
     let file = &mut io::stdout();

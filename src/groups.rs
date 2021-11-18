@@ -65,6 +65,17 @@ impl GroupMember {
             }
         }
     }
+
+    fn objects(&self) -> Vec<Arc<Object>> {
+        match self {
+            GroupMember::SubGroup(g) => {
+                g.objects()
+            },
+            GroupMember::Object(o) => {
+                vec![o.clone()]
+            },
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -79,6 +90,30 @@ pub struct Group {
 pub struct AABB {
     pub min: Tuple,
     pub max: Tuple,
+}
+
+impl AABB {
+    fn goes_to_infinity(&self) -> bool {
+        if self.min.x == f64::NEG_INFINITY {
+            return true
+        }
+        if self.min.y == f64::NEG_INFINITY {
+            return true
+        }
+        if self.min.z == f64::NEG_INFINITY {
+            return true
+        }
+        if self.max.x == f64::INFINITY {
+            return true
+        }
+        if self.max.y == f64::INFINITY {
+            return true
+        }
+        if self.max.z == f64::INFINITY {
+            return true
+        }
+        false
+    }
 }
 
 impl_op_ex!(+|a: &AABB, b: &AABB| -> AABB {
@@ -122,6 +157,139 @@ impl Group {
             bounds,
             elements,
         }
+    }
+
+    pub fn regroup_aabb(self) -> Self {
+        let mut group = Group::default();
+
+        let mut objects = Vec::new();
+        // let mut bounds = None;
+        let mut min = point(f64::INFINITY, f64::INFINITY, f64::INFINITY);
+        let mut max = point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+
+
+        for e in self.objects() {
+            if e.bounds().clone().unwrap().goes_to_infinity() {
+                group.add_object(e.as_ref().clone());
+            } else {
+                let eb = e.bounds().clone().unwrap();
+                let center = eb.center();
+
+                if center.x < min.x {
+                    min.x = center.x;
+                }
+                if center.y < min.y {
+                    min.y = center.y;
+                }
+                if center.z < min.z {
+                    min.z = center.z;
+                }
+                if center.x > max.x {
+                    max.x = center.x;
+                }
+                if center.y > max.y {
+                    max.y = center.y;
+                }
+                if center.z > max.z {
+                    max.z = center.z;
+                }
+
+                objects.push(e)
+            }
+        }
+
+        let x_range = max.x - min.x;
+        let y_range = max.y - min.y;
+        let z_range = max.z - min.z;
+        let bigish = Self::bigish(x_range, y_range, z_range);
+        let mut group_low = Group::default();
+        let mut group_high = Group::default();
+
+        if bigish == 3 {
+            return self
+        }
+        else if bigish == 0 {
+            let average = (max.x + min.x) / 2.0;
+            for e in objects {
+                let eb = e.bounds().clone().unwrap();
+                let e = e.as_ref().clone();
+                // let x = (eb.max.x + eb.min.x) / 2.0;
+                let x = eb.center().x;
+                if x < average {
+                    group_low.add_object(e)
+                } else {
+                    group_high.add_object(e)
+                }
+            }
+        }
+        else if bigish == 1 {
+            let average = (max.y + min.y) / 2.0;
+            for e in objects {
+                let eb = e.bounds().clone().unwrap();
+                let e = e.as_ref().clone();
+                let y = eb.center().y;
+                if y < average {
+                    group_low.add_object(e)
+                } else {
+                    group_high.add_object(e)
+                }
+            }
+        }
+        else {
+            let average = (max.z + min.z) / 2.0;
+            for e in objects {
+                let eb = e.bounds().clone().unwrap();
+                let e = e.as_ref().clone();
+                let z = eb.center().z;
+                if z < average {
+                    group_low.add_object(e)
+                } else {
+                    group_high.add_object(e)
+                }
+            }
+        }
+
+        if group_low.len() >= 4 {
+            group_low = group_low.regroup_aabb();
+        }
+        if group_high.len() >= 4 {
+            group_high = group_high.regroup_aabb();
+        }
+
+        group.add_group(group_low);
+        group.add_group(group_high);
+
+        group
+    }
+
+    fn bigish (x: f64, y: f64, z: f64) -> usize {
+        if x > y && x > z {
+            return 0
+        }
+        if y > x && y > z {
+            return 1
+        }
+        if z > x && z > y {
+            return 2
+        }
+        if x > y {
+            return 0
+        }
+        if y > x {
+            return 1
+        }
+        if z > x {
+            return 2
+        }
+        3
+    }
+
+    fn objects(&self) -> Vec<Arc<Object>> {
+        let mut ls = Vec::new();
+        for e in self.elements.iter() {
+            ls.append(&mut e.objects()); 
+        }
+        ls
     }
 
     pub fn add_group(&mut self, mut e: Group) {
@@ -256,6 +424,13 @@ impl AABB {
         }
 
         true
+    }
+
+    fn center(&self) -> Tuple {
+        let avg_x = (self.min.x + self.max.x) / 2.0;
+        let avg_y = (self.min.y + self.max.y) / 2.0;
+        let avg_z = (self.min.z + self.max.z) / 2.0;
+        point (avg_x, avg_y, avg_z)
     }
 
     fn check_axis(min: f64, max: f64, origin: f64, direction: f64) -> (f64, f64) {
