@@ -1,5 +1,6 @@
 use crate::{
     intersections::Intersection,
+    materials::Material,
     matrices::{identity_matrix, Matrix4x4},
     objects::Object,
     rays::Ray,
@@ -44,16 +45,16 @@ impl GroupMember {
         }
     }
 
-    fn set_color(&self, c: &Tuple) -> Self {
+    fn set_material(&self, m: &Material) -> Self {
         match self {
             GroupMember::SubGroup(g) => {
                 let mut g = g.as_ref().clone();
-                g.set_color(c);
+                g.set_material(m);
                 GroupMember::SubGroup(Arc::new(g))
             }
             GroupMember::Object(o) => {
                 let mut o = o.as_ref().clone();
-                o.material.color = c.clone();
+                o.material = m.clone();
                 GroupMember::Object(Arc::new(o))
             }
         }
@@ -300,8 +301,8 @@ impl Group {
         }
     }
 
-    pub fn set_color(&mut self, c: &Tuple) {
-        self.elements = self.elements.iter().map(|e| e.set_color(c)).collect()
+    pub fn set_material(&mut self, m: &Material) {
+        self.elements = self.elements.iter().map(|e| e.set_material(m)).collect()
     }
 
     fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
