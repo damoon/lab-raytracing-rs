@@ -1,15 +1,24 @@
-use lab_raytracing_rs::{camera::Camera, lights::Pointlight, matrices::identity_matrix, obj_file::Parser, objects::default_plane, patterns::solid_pattern, transformations::{rotation_x, rotation_z, scaling, translation, view_transform}, tuples::{color, point, vector}, world::World};
+use lab_raytracing_rs::{
+    camera::Camera,
+    lights::Pointlight,
+    matrices::identity_matrix,
+    obj_file::Parser,
+    objects::default_plane,
+    patterns::solid_pattern,
+    transformations::{rotation_x, rotation_z, scaling, translation, view_transform},
+    tuples::{color, point, vector},
+    world::World,
+};
 use std::{env, f64::consts::PI, fs, io};
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
-    let scale = args.get(1).expect("scale factor missing").parse::<f64>().expect("not a number");
-    let rotate = match args.get(2).expect("upwards axis is missing").as_str() {
+    let rotate = match args.get(1).expect("upwards axis is missing").as_str() {
         "y" => identity_matrix(),
-        "z" => rotation_x(- PI / 2.0),
+        "z" => rotation_x(-PI / 2.0),
         _ => panic!("upwards axis undefined"),
     };
-    let file = args.get(3).expect("obj file missing");
+    let file = args.get(2).expect("obj file missing");
 
     let mut world = World::default();
 
@@ -47,10 +56,24 @@ fn main() -> io::Result<()> {
     let content = fs::read_to_string(file).expect("could not read file");
     let mut teapot = Parser::parse_obj_file(&content).to_group();
 
+    eprintln!("set material");
     teapot.set_color(&color(255.0 / 250.0, 215.0 / 250.0, 0.0 / 250.0));
 
-    let transform = scaling(scale, scale, scale) * rotate;
+    eprintln!("center");
+    teapot.set_transform(rotate.clone());
+    let aabb = teapot.bounds().clone().unwrap();
+    let center = aabb.center();
+    // let x_range = aabb.max.x - aabb.min.x;
+    let y_range = aabb.max.y - aabb.min.y;
+    // let z_range = aabb.max.z - aabb.min.z;
+    // let biggest = biggest(x_range, y_range, z_range);
+    let scale = 4.0 / y_range;
+    let transform = scaling(scale, scale, scale)
+        * translation(-center.x, -center.y + (y_range / 2.0), -center.z)
+        * rotate;
     teapot.set_transform(transform);
+
+    eprintln!("bounds: {:?}", teapot.bounds().clone().unwrap());
 
     eprintln!("regroup aabb");
     let teapot = teapot.regroup_aabb();
@@ -66,7 +89,7 @@ fn main() -> io::Result<()> {
     let mut camera = Camera::new(1600, 900, PI / 3.0);
     camera.set_transform(view_transform(
         &point(-5.0, 5.0, -10.0),
-        &point(0.0, 1.0, 0.0),
+        &point(0.0, 2.0, 0.0),
         &vector(0.0, 1.0, 0.0),
     ));
 
@@ -78,4 +101,15 @@ fn main() -> io::Result<()> {
     canvas.ppm(writer)?;
 
     Ok(())
+}
+
+#[allow(dead_code)]
+fn biggest(x: f64, y: f64, z: f64) -> f64 {
+    if x > y && x > z {
+        return x;
+    }
+    if y > z {
+        return y;
+    }
+    z
 }

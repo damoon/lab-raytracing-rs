@@ -18,7 +18,7 @@ impl GroupMember {
     pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
         match self {
             GroupMember::SubGroup(g) => g.intersect(ray),
-            GroupMember::Object(o) => o.intersect(ray, &o),
+            GroupMember::Object(o) => o.intersect(ray, o),
         }
     }
 
@@ -413,7 +413,7 @@ impl AABB {
         true
     }
 
-    fn center(&self) -> Tuple {
+    pub fn center(&self) -> Tuple {
         let avg_x = (self.min.x + self.max.x) / 2.0;
         let avg_y = (self.min.y + self.max.y) / 2.0;
         let avg_z = (self.min.z + self.max.z) / 2.0;

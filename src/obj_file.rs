@@ -48,7 +48,9 @@ impl Parser {
         let re_normal = Regex::new(r"^vn +(?P<x>[-0-9.]+) (?P<y>[-0-9.]+) (?P<z>[-0-9.]+)$")
             .expect("vertex regex is invalid");
         let re_face = Regex::new(r"^f(( [0-9]+){3,})$").expect("face regex is invalid");
-        let re_smooth_face =
+        let re_smooth_face_2 =
+            Regex::new(r"^f(( +[0-9]*/[0-9]*){3,})$").expect("face regex is invalid");
+        let re_smooth_face_3 =
             Regex::new(r"^f(( +[0-9]*/[0-9]*/[0-9]*){3,})$").expect("face regex is invalid");
         let re_group = Regex::new(r"^g +(?P<name>\w+)$").expect("group regex is invalid");
 
@@ -125,13 +127,43 @@ impl Parser {
                 continue;
             }
 
-            // smooth face
-            if let Some(cap) = re_smooth_face.captures(line) {
+            // face + skipped vt
+            if let Some(cap) = re_smooth_face_2.captures(line) {
                 let indices: Vec<Vec<Option<usize>>> = cap[1]
                     .trim()
                     .split_whitespace()
                     .map(|s: &str| {
-                        s.split("/")
+                        s.split('/')
+                            .map(|s| match s.parse::<usize>() {
+                                Ok(v) => Some(v),
+                                Err(_) => None,
+                            })
+                            .collect()
+                    })
+                    .collect();
+                for i in 1..(indices.len() - 1) {
+                    let vectex_1 = indices[0][0].expect("vectex_1 is missing");
+                    let vectex_2 = indices[i][0].expect("vectex_2 is missing");
+                    let vectex_3 = indices[i + 1][0].expect("vectex_3 is missing");
+                    let p1 = p.vertices[vectex_1 - 1].clone();
+                    let p2 = p.vertices[vectex_2 - 1].clone();
+                    let p3 = p.vertices[vectex_3 - 1].clone();
+                    let obj = triangle(p1, p2, p3);
+                    p.groups
+                        .get_mut(&p.current_group)
+                        .expect("group is missing")
+                        .add_object(obj);
+                }
+                continue;
+            }
+
+            // face + skipped vt + vn
+            if let Some(cap) = re_smooth_face_3.captures(line) {
+                let indices: Vec<Vec<Option<usize>>> = cap[1]
+                    .trim()
+                    .split_whitespace()
+                    .map(|s: &str| {
+                        s.split('/')
                             .map(|s| match s.parse::<usize>() {
                                 Ok(v) => Some(v),
                                 Err(_) => None,

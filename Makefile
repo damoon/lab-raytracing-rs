@@ -3,7 +3,7 @@ all: renders clock.png projectile.png
 renders: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png \
 	sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png \
 	cylinders-cones.png groups.png many-spheres.png metallic.png hexagon-donut.png dodecahedron.png \
-	teapot.png teapot-low.png teapot-high.png
+	teapot.png teapot-low.png teapot-high.png dragon.png astronaut.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg
@@ -80,13 +80,16 @@ dodecahedron.png:
 	cargo run --release --example dodecahedron | convert /dev/stdin dodecahedron.png
 
 teapot.png:
-	cargo run --release --example obj_file 1.0 y examples/teapot.obj | convert /dev/stdin teapot.png
+	cargo run --release --example obj_file y examples/teapot.obj | convert /dev/stdin teapot.png
 
 teapot-low.png:
-	cargo run --release --example obj_file 0.2 z examples/teapot-low.obj | convert /dev/stdin teapot-low.png
+	cargo run --release --example obj_file z examples/teapot-low.obj | convert /dev/stdin teapot-low.png
 
 teapot-high.png:
-	cargo run --release --example obj_file 0.2 z examples/teapot-high.obj | convert /dev/stdin teapot-high.png
+	cargo run --release --example obj_file z examples/teapot-high.obj | convert /dev/stdin teapot-high.png
 
 dragon.png:
-	cargo run --release --example obj_file 0.4 y examples/dragon.obj | convert /dev/stdin dragon.png
+	cargo run --release --example obj_file y examples/dragon.obj | convert /dev/stdin dragon.png
+
+astronaut.png:
+	cargo run --release --example obj_file y examples/astronaut.obj | convert /dev/stdin astronaut.png
