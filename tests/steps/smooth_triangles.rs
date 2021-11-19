@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use crate::MyWorld;
-use cucumber::{given, then, when};
+use cucumber::{then, when};
 use lab_raytracing_rs::objects::{smooth_triangle, Shape};
+
+use super::tuples::parse_point;
 
 #[when("tri ← smooth_triangle(p1, p2, p3, n1, n2, n3)")]
 async fn create_smooth_triangle(world: &mut MyWorld) {
@@ -44,4 +46,13 @@ async fn compare_smooth_triangle_attributes(
     } else {
         panic!("shape not a smooth triangle")
     }
+}
+
+#[when(regex = r"^(n) ← normal_at\(tri, point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), i\)$")]
+async fn calculate_normal_at(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
+    let tri = world.objects.get("tri").unwrap();
+    let hit = world.intersections.get("i").unwrap();
+    let point = parse_point(&[x, y, z]);
+    let normal = tri.normal_at(&point, hit);
+    world.tuples.insert(name, normal);
 }

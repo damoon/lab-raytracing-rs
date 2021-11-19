@@ -125,7 +125,7 @@ async fn negate_tuple(
 }
 
 #[then(regex = r"^(a1) \+ (a2) = tuple\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn compare_tuple(
+async fn add_tuples(
     world: &mut MyWorld,
     this: String,
     other: String,
@@ -145,7 +145,7 @@ async fn compare_tuple(
 async fn compare_point(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
     let point = world.tuples.get(&name).unwrap().clone();
     let desired_color = parse_color(&[x, y, z]);
-    eq_tuples_similar(&point, &desired_color);
+    eq_tuples_similar(&point, &desired_color);  // TODO: use makro instead of eq_tuples_similar
 }
 
 #[then(

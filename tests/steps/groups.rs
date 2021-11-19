@@ -83,7 +83,12 @@ async fn intersect_group(world: &mut MyWorld) {
 }
 
 #[when(regex = r"^(t1|t2|t3) ← (first|second|third) child of (g|g1|g2)$")]
-async fn assign_object_from_group(world: &mut MyWorld, target: String, position: String, group: String) {
+async fn assign_object_from_group(
+    world: &mut MyWorld,
+    target: String,
+    position: String,
+    group: String,
+) {
     let g = match group.as_str() {
         "g" => world.g.clone(),
         "g1" => world.g1.clone(),

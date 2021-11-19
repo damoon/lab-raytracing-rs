@@ -36,3 +36,10 @@ async fn compare_ray_properties(
     };
     assert_eq!(lookup, desired);
 }
+
+#[then(regex = r"^(t1|t2) = (t1|t2)$")]
+async fn compare_objects(world: &mut MyWorld, name: String, desired: String) {
+    let tuple = world.objects.get(&name).unwrap().as_ref().clone();
+    let desired = world.objects.get(&desired).unwrap().as_ref().clone();
+    assert_eq!(tuple, desired);
+}

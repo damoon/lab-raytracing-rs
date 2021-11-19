@@ -30,20 +30,11 @@ fn main() -> io::Result<()> {
 
             let position = point(world_x, world_y, wall_z);
             let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
-            let xs: Vec<Intersection> = shape
-                .intersect(&ray)
-                .iter()
-                .map(|t| Intersection {
-                    t: *t,
-                    object: shape.clone(),
-                    u: 0.0,
-                    v: 0.0,
-                })
-                .collect();
+            let xs: Vec<Intersection> = shape.intersect(&ray, &shape);
             let hit = hit(&xs, None);
             if let Some(hit) = hit {
                 let world_point = ray.position(hit.t);
-                let normal = shape.normal_at(&world_point);
+                let normal = shape.normal_at(&world_point, hit);
                 let r = normal.x.abs();
                 let g = normal.y.abs();
                 let b = normal.z.abs();

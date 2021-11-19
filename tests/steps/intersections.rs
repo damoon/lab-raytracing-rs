@@ -21,7 +21,7 @@ async fn assign_intersection(world: &mut MyWorld, target: String, t: String, sha
     world.intersections.insert(target, intersection);
 }
 
-#[when(regex = r"^(i) ← intersection_with_uv\(([-0-9.]+), (s), ([-0-9.]+), ([-0-9.]+)\)$")]
+#[when(regex = r"^(i) ← intersection_with_uv\(([-0-9.]+), (s|tri), ([-0-9.]+), ([-0-9.]+)\)$")]
 async fn assign_intersection_with_uv(
     world: &mut MyWorld,
     target: String,
@@ -66,6 +66,7 @@ async fn assign_intersections(world: &mut MyWorld, i1: String, i2: String) {
     world.xs = vec![i1, i2];
 }
 
+#[when(regex = r"^xs ← intersections\((i)\)$")]
 #[given(regex = r"^xs ← intersections\((i)\)$")]
 async fn assign_intersections_single(world: &mut MyWorld, i1: String) {
     let i1 = world.intersections.get(&i1).unwrap().clone();
@@ -170,10 +171,10 @@ async fn compare_precomputed_attribute(
         _ => panic!("type not covered"),
     };
     match attribute.as_str() {
-        "point" => assert_eq!(world.comps.point, tuple),
-        "eyev" => assert_eq!(world.comps.eyev, tuple),
-        "normalv" => assert_eq!(world.comps.normalv, tuple),
-        "reflectv" => assert_eq!(world.comps.reflectv, tuple),
+        "point" => assert_abs_diff_eq!(world.comps.point, tuple, epsilon = 0.0001),
+        "eyev" => assert_abs_diff_eq!(world.comps.eyev, tuple, epsilon = 0.0001),
+        "normalv" => assert_abs_diff_eq!(world.comps.normalv, tuple, epsilon = 0.0001),
+        "reflectv" => assert_abs_diff_eq!(world.comps.reflectv, tuple, epsilon = 0.0001),
         _ => panic!("type not covered"),
     };
 }
