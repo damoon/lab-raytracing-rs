@@ -21,22 +21,11 @@ impl PartialEq for Intersection {
     }
 }
 
-pub fn hit<'a>(
-    xs: &'a [Intersection],
-    skip_object: Option<&Arc<Object>>,
-) -> Option<&'a Intersection> {
+pub fn hit(xs: &[Intersection]) -> Option<&Intersection> {
     let mut r = None;
     for current in xs.iter() {
-        if current.t < 0.0 {
+        if current.t < 0.0001 {
             continue;
-        }
-        match skip_object {
-            None => {}
-            Some(object) => {
-                if Arc::ptr_eq(object, &current.object) && current.t < 0.0001 {
-                    continue;
-                }
-            }
         }
         r = match r {
             None => Some(current),
@@ -125,9 +114,9 @@ pub fn prepare_computations(
     }
 }
 
-pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: Option<&Arc<Object>>) -> Tuple {
+pub fn color_at(world: &World, ray: &Ray, remaining: usize) -> Tuple {
     let intersections = world.insersect(ray);
-    let hit = hit(&intersections, object);
+    let hit = hit(&intersections);
     match hit {
         None => color(0.0, 0.0, 0.0),
         Some(intersection) => {
@@ -138,7 +127,7 @@ pub fn color_at(world: &World, ray: &Ray, remaining: usize, object: Option<&Arc<
 }
 
 pub fn shade_hit(world: &World, comps: &IntersectionPrecomputations, remaining: usize) -> Tuple {
-    let in_shadow = world.is_shadowed(comps.point.clone(), Some(&comps.object.clone()));
+    let in_shadow = world.is_shadowed(comps.point.clone());
     let surface = lighting(
         &comps.object.material,
         &comps.object,
@@ -172,7 +161,7 @@ pub fn reflected_color(
         return color(0.0, 0.0, 0.0);
     }
     let reflect_ray = Ray::new(comps.point.clone(), comps.reflectv.clone());
-    let color = color_at(world, &reflect_ray, remaining - 1, Some(&comps.object));
+    let color = color_at(world, &reflect_ray, remaining - 1);
     color * comps.object.material.reflective
 }
 
@@ -208,8 +197,7 @@ pub fn refracted_color(
     let refract_ray = Ray::new(comps.point.clone(), direction);
     // Find the color of the refracted ray, making sure to multiply
     // by the transparency value to account for any opacity
-    color_at(world, &refract_ray, remaining - 1, Some(&comps.object))
-        * comps.object.material.transparency
+    color_at(world, &refract_ray, remaining - 1) * comps.object.material.transparency
 }
 
 pub fn schlick(comps: &IntersectionPrecomputations) -> f64 {

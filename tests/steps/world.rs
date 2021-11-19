@@ -113,13 +113,13 @@ async fn compute_refracted_color(world: &mut MyWorld, remaining: usize) {
 
 #[when("c ← color_at(w, r)")]
 async fn compute_color_at(world: &mut MyWorld) {
-    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
+    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
     world.tuples.insert("c".to_string(), color);
 }
 
 #[then("color_at(w, r) should terminate successfully")]
 async fn color_at_terminates(world: &mut MyWorld) {
-    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH, None);
+    let color = color_at(&world.w, &world.r, RAY_RECURSION_DEPTH);
     world.tuples.insert("dummy".to_string(), color); // insert here to avoid removal by compiler
 }
 
@@ -138,7 +138,7 @@ async fn assign_shadowed(world: &mut MyWorld) {
 async fn is_shadowed(world: &mut MyWorld, value: String) {
     let desired = value.parse().unwrap();
     let point = world.tuples.get("p").unwrap();
-    let computed = world.w.is_shadowed(point.clone(), None);
+    let computed = world.w.is_shadowed(point.clone());
     assert_eq!(computed, desired);
 }
 

@@ -12,7 +12,7 @@ async fn assign_default_plane(world: &mut MyWorld) {
 #[when(regex = r"^xs ← local_intersect\((p|c|cyl|shape|t|tri), r\)$")]
 async fn local_intersect(world: &mut MyWorld, shape_name: String) {
     let obj = world.objects.get(&shape_name).unwrap();
-    world.xs = obj.intersect(&world.r, &obj);
+    world.xs = obj.intersect(&world.r, obj);
 }
 
 #[then("xs is empty")]

@@ -38,26 +38,18 @@ impl World {
         v
     }
 
-    pub fn is_shadowed(&self, point: Tuple, object: Option<&Arc<Object>>) -> bool {
+    pub fn is_shadowed(&self, point: Tuple) -> bool {
         let v = &self.light.as_ref().unwrap().position - &point;
         let distance = v.magnitude();
         let direction = v.normalize();
         let r = Ray::new(point, direction);
 
         for i in self.insersect(&r).iter() {
-            if i.t < 0.0 {
+            if i.t < 0.0001 {
                 continue;
             }
             if i.t > distance {
                 continue;
-            }
-            match object {
-                None => {}
-                Some(object) => {
-                    if Arc::ptr_eq(object, &i.object) && i.t.abs() < 0.0001 {
-                        continue;
-                    }
-                }
             }
             if i.object.throws_shaddow {
                 return true;
