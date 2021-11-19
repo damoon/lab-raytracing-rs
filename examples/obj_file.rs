@@ -1,6 +1,7 @@
 use lab_raytracing_rs::{
     camera::Camera,
     lights::Pointlight,
+    materials::Material,
     matrices::identity_matrix,
     obj_file::Parser,
     objects::default_plane,
@@ -57,7 +58,9 @@ fn main() -> io::Result<()> {
     let mut teapot = Parser::parse_obj_file(&content).to_group();
 
     eprintln!("set material");
-    teapot.set_color(&color(255.0 / 250.0, 215.0 / 250.0, 0.0 / 250.0));
+    let mut material = Material::default();
+    material.color = color(255.0 / 250.0, 215.0 / 250.0, 0.0 / 250.0);
+    teapot.set_material(&material);
 
     eprintln!("center");
     teapot.set_transform(rotate.clone());
