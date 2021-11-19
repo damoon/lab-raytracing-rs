@@ -137,18 +137,18 @@ impl AntiAliasing {
 
     fn off(camera: &Camera, world: &World, x: usize, y: usize) -> Tuple {
         let ray = camera.ray_for_pixel(x, y);
-        color_at(world, &ray, camera.ray_recursion_depth, None)
+        color_at(world, &ray, camera.ray_recursion_depth)
     }
 
     fn fast(camera: &Camera, world: &World, x: usize, y: usize) -> Tuple {
         let ray1 = camera.ray_for_pixel_offseted(x, y, -0.33, 0.33);
-        let color1 = color_at(world, &ray1, camera.ray_recursion_depth, None);
+        let color1 = color_at(world, &ray1, camera.ray_recursion_depth);
         let ray3 = camera.ray_for_pixel_offseted(x, y, 0.33, 0.33);
-        let color3 = color_at(world, &ray3, camera.ray_recursion_depth, None);
+        let color3 = color_at(world, &ray3, camera.ray_recursion_depth);
         let ray7 = camera.ray_for_pixel_offseted(x, y, -0.33, -0.33);
-        let color7 = color_at(world, &ray7, camera.ray_recursion_depth, None);
+        let color7 = color_at(world, &ray7, camera.ray_recursion_depth);
         let ray9 = camera.ray_for_pixel_offseted(x, y, 0.33, -0.33);
-        let color9 = color_at(world, &ray9, camera.ray_recursion_depth, None);
+        let color9 = color_at(world, &ray9, camera.ray_recursion_depth);
         (color1 + color3 + color7 + color9) / 4.0
     }
 
@@ -184,7 +184,7 @@ impl AntiAliasing {
         let mut summed_color = color(0.0, 0.0, 0.0);
         for (offsetx, offsety) in points {
             let ray = camera.ray_for_pixel_offseted(x, y, -0.5 + offsetx, -0.5 + offsety);
-            let color = color_at(world, &ray, camera.ray_recursion_depth, None);
+            let color = color_at(world, &ray, camera.ray_recursion_depth);
             summed_color = summed_color + color;
         }
 
@@ -203,7 +203,7 @@ impl AntiAliasing {
         let mut color = color(0.0, 0.0, 0.0);
         for _ in 0..n {
             let ray = camera.ray_for_pixel_offseted(x, y, -0.5 + rand.f64(), -0.5 + rand.f64());
-            let c = color_at(world, &ray, camera.ray_recursion_depth, None);
+            let c = color_at(world, &ray, camera.ray_recursion_depth);
             color = color + c;
         }
 
@@ -222,7 +222,7 @@ impl AntiAliasing {
                     corner + (x2 as f64 * offset),
                     corner + (y2 as f64 * offset),
                 );
-                let c = color_at(world, &ray, camera.ray_recursion_depth, None);
+                let c = color_at(world, &ray, camera.ray_recursion_depth);
                 color = color + c;
             }
         }

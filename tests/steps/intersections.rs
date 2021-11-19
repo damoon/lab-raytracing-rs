@@ -108,7 +108,7 @@ async fn compare_intersections_distance(
 
 #[when(regex = r"^(i) ← hit\(xs\)$")]
 async fn assign_intersection_hit(world: &mut MyWorld, name: String) {
-    let intersection = hit(&world.xs, None);
+    let intersection = hit(&world.xs);
     match intersection {
         None => world.intersections.remove(&name),
         Some(i) => world.intersections.insert(name, i.clone()),

@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
             let position = point(world_x, world_y, wall_z);
             let ray = Ray::new(ray_origin.clone(), (position - &ray_origin).normalize());
             let xs: Vec<Intersection> = shape.intersect(&ray, &shape);
-            let hit = hit(&xs, None);
+            let hit = hit(&xs);
             if hit.is_some() {
                 canvas.set(x, y, red.clone());
             };
