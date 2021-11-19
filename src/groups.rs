@@ -18,16 +18,7 @@ impl GroupMember {
     pub fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
         match self {
             GroupMember::SubGroup(g) => g.intersect(ray),
-            GroupMember::Object(o) => o
-                .intersect(ray)
-                .iter()
-                .map(|t| Intersection {
-                    t: *t,
-                    object: o.clone(),
-                    u: 0.0,
-                    v: 0.0,
-                })
-                .collect(),
+            GroupMember::Object(o) => o.intersect(ray, &o),
         }
     }
 

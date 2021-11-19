@@ -1,3 +1,4 @@
+use approx::AbsDiffEq;
 use auto_ops::{impl_op_ex, impl_op_ex_commutative};
 use std::fmt;
 
@@ -29,6 +30,21 @@ impl Tuple {
     pub fn normalize(&self) -> Tuple {
         let m = self.magnitude();
         self / m
+    }
+}
+
+impl AbsDiffEq for Tuple {
+    type Epsilon = f64;
+
+    fn default_epsilon() -> Self::Epsilon {
+        0.0001
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        f64::abs_diff_eq(&self.x, &other.x, epsilon)
+            && f64::abs_diff_eq(&self.y, &other.y, epsilon)
+            && f64::abs_diff_eq(&self.z, &other.z, epsilon)
+            && f64::abs_diff_eq(&self.w, &other.w, epsilon)
     }
 }
 

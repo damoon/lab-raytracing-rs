@@ -8,8 +8,8 @@ use crate::{
 };
 use crossbeam_channel::bounded;
 pub const RAY_RECURSION_DEPTH: usize = 5;
-use std::env;
 use indicatif::ProgressBar;
+use std::env;
 
 #[derive(Debug)]
 pub struct Camera {

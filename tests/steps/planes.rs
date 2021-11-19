@@ -12,16 +12,7 @@ async fn assign_default_plane(world: &mut MyWorld) {
 #[when(regex = r"^xs ← local_intersect\((p|c|cyl|shape|t|tri), r\)$")]
 async fn local_intersect(world: &mut MyWorld, shape_name: String) {
     let obj = world.objects.get(&shape_name).unwrap();
-    world.xs = obj
-        .intersect(&world.r)
-        .iter()
-        .map(|&i| Intersection {
-            t: i,
-            object: obj.clone(),
-            u: 0.0,
-            v: 0.0,
-        })
-        .collect();
+    world.xs = obj.intersect(&world.r, &obj);
 }
 
 #[then("xs is empty")]
@@ -49,7 +40,13 @@ async fn local_normal_at_point(
 ) {
     let point = parse_point(&[x, y, z]);
     let obj = world.objects.get(&object_name).unwrap();
-    let normal = obj.shape.normal_at(&point);
+    let hit = &Intersection {
+        t: 0.0,
+        object: obj.clone(),
+        u: 0.0,
+        v: 0.0,
+    };
+    let normal = obj.shape.normal_at(&point, hit);
     world.tuples.insert(normal_name, normal);
 }
 
@@ -62,6 +59,12 @@ async fn local_normal_at(
 ) {
     let point = world.tuples.get(&point_name).unwrap();
     let obj = world.objects.get(&object_name).unwrap();
-    let normal = obj.shape.normal_at(point);
+    let hit = &Intersection {
+        t: 0.0,
+        object: obj.clone(),
+        u: 0.0,
+        v: 0.0,
+    };
+    let normal = obj.shape.normal_at(point, hit);
     world.tuples.insert(normal_name, normal);
 }

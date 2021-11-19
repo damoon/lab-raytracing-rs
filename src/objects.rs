@@ -1,5 +1,6 @@
 use crate::{
     groups::AABB,
+    intersections::Intersection,
     materials::{Material, REFRACTIVE_INDEX_GLASS},
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
@@ -146,18 +147,18 @@ impl Object {
         &self.transform_inverse
     }
 
-    pub fn intersect_local(&self, local_ray: &Ray) -> Vec<f64> {
-        self.shape.intersect(local_ray)
+    pub fn intersect_local(&self, local_ray: &Ray, obj: &Arc<Object>) -> Vec<Intersection> {
+        self.shape.intersect(local_ray, obj)
     }
 
-    pub fn intersect(&self, world_ray: &Ray) -> Vec<f64> {
+    pub fn intersect(&self, world_ray: &Ray, obj: &Arc<Object>) -> Vec<Intersection> {
         let local_ray = world_ray.transform(&self.transform_inverse);
-        self.intersect_local(&local_ray)
+        self.intersect_local(&local_ray, obj)
     }
 
-    pub fn normal_at(&self, world_point: &Tuple) -> Tuple {
+    pub fn normal_at(&self, world_point: &Tuple, hit: &Intersection) -> Tuple {
         let local_point = &self.transform_inverse * world_point;
-        let local_normal = self.shape.normal_at(&local_point);
+        let local_normal = self.shape.normal_at(&local_point, hit);
         let mut world_normal = self.transform_inverse.transpose() * local_normal;
         world_normal.w = 0.0;
         world_normal.normalize()
@@ -201,7 +202,7 @@ thread_local! {
 }
 
 impl Shape {
-    pub fn intersect(&self, ray: &Ray) -> Vec<f64> {
+    pub fn intersect(&self, ray: &Ray, obj: &Arc<Object>) -> Vec<Intersection> {
         match self {
             Shape::Plane => {
                 if ray.direction.y.abs() < f64::EPSILON {
@@ -209,7 +210,12 @@ impl Shape {
                 }
 
                 let t = -ray.origin.y / ray.direction.y;
-                vec![t]
+                vec![Intersection {
+                    t,
+                    object: obj.clone(),
+                    u: 0.0,
+                    v: 0.0,
+                }]
             }
             Shape::Sphere => {
                 let sphere_to_ray = &ray.origin - point(0.0, 0.0, 0.0); // Sphere is at 0, 0, 0
@@ -226,7 +232,20 @@ impl Shape {
 
                 let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
                 let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
-                vec![t1, t2]
+                vec![
+                    Intersection {
+                        t: t1,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    },
+                    Intersection {
+                        t: t2,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    },
+                ]
             }
             Shape::Cube => {
                 let (xtmin, xtmax) = check_axis(ray.origin.x, ray.direction.x);
@@ -248,7 +267,20 @@ impl Shape {
                     return vec![];
                 }
 
-                vec![tmin, tmax]
+                vec![
+                    Intersection {
+                        t: tmin,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    },
+                    Intersection {
+                        t: tmax,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    },
+                ]
             }
             Shape::Cylinder(min, max, closed) => {
                 let mut xs = Vec::with_capacity(2);
@@ -256,7 +288,7 @@ impl Shape {
                 let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
                 // ray is parallel to the y axis
                 if a.abs() < f64::EPSILON {
-                    intersect_caps_cylinder(min, max, closed, ray, &mut xs);
+                    intersect_caps_cylinder(min, max, closed, ray, &mut xs, obj);
                     return xs;
                 }
                 let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
@@ -275,14 +307,24 @@ impl Shape {
 
                 let y0 = ray.origin.y + t0 * ray.direction.y;
                 if min < &y0 && &y0 < max {
-                    xs.push(t0);
+                    xs.push(Intersection {
+                        t: t0,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    });
                 }
                 let y1 = ray.origin.y + t1 * ray.direction.y;
                 if min < &y1 && &y1 < max {
-                    xs.push(t1);
+                    xs.push(Intersection {
+                        t: t1,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    });
                 }
 
-                intersect_caps_cylinder(min, max, closed, ray, &mut xs);
+                intersect_caps_cylinder(min, max, closed, ray, &mut xs, obj);
 
                 xs
             }
@@ -296,7 +338,12 @@ impl Shape {
 
                 if a.abs() < f64::EPSILON && b.abs() > f64::EPSILON {
                     let t = -c / (2.0 * b);
-                    xs.push(t);
+                    xs.push(Intersection {
+                        t,
+                        object: obj.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    });
                 }
 
                 if a.abs() > f64::EPSILON {
@@ -311,16 +358,26 @@ impl Shape {
 
                         let y0 = ray.origin.y + t0 * ray.direction.y;
                         if min < &y0 && &y0 < max {
-                            xs.push(t0);
+                            xs.push(Intersection {
+                                t: t0,
+                                object: obj.clone(),
+                                u: 0.0,
+                                v: 0.0,
+                            });
                         }
                         let y1 = ray.origin.y + t1 * ray.direction.y;
                         if min < &y1 && &y1 < max {
-                            xs.push(t1);
+                            xs.push(Intersection {
+                                t: t1,
+                                object: obj.clone(),
+                                u: 0.0,
+                                v: 0.0,
+                            });
                         }
                     }
                 }
 
-                intersect_caps_cone(min, max, closed, ray, &mut xs);
+                intersect_caps_cone(min, max, closed, ray, &mut xs, obj);
 
                 xs
             }
@@ -346,7 +403,12 @@ impl Shape {
                 }
 
                 let t = f * dot(&t.e2, &origin_cross_e1);
-                vec![t]
+                vec![Intersection {
+                    t,
+                    object: obj.clone(),
+                    u,
+                    v,
+                }]
             }
             Shape::SmoothTriangle(t) => {
                 let dir_cross_e2 = cross(&ray.direction, &t.e2);
@@ -370,7 +432,12 @@ impl Shape {
                 }
 
                 let t = f * dot(&t.e2, &origin_cross_e1);
-                vec![t]
+                vec![Intersection {
+                    t,
+                    object: obj.clone(),
+                    u,
+                    v,
+                }]
             }
             Shape::Testshape => {
                 SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
@@ -379,7 +446,7 @@ impl Shape {
         }
     }
 
-    pub fn normal_at(&self, local_point: &Tuple) -> Tuple {
+    pub fn normal_at(&self, local_point: &Tuple, hit: &Intersection) -> Tuple {
         match self {
             Shape::Plane => vector(0.0, 1.0, 0.0),
             Shape::Sphere => local_point - point(0.0, 0.0, 0.0),
@@ -419,9 +486,9 @@ impl Shape {
                 }
                 vector(local_point.x, y, local_point.z)
             }
-            Shape::Triangle(t) => t.normal.clone(),
-            Shape::SmoothTriangle(t) => {
-                t.normal.clone() // TODO
+            Shape::Triangle(tri) => tri.normal.clone(),
+            Shape::SmoothTriangle(tri) => {
+                &tri.n2 * hit.u + &tri.n3 * hit.v + &tri.n1 * (1.0 - hit.u - hit.v)
             }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
@@ -543,7 +610,8 @@ fn intersect_caps_cylinder(
     maximum: &f64,
     closed: &bool,
     ray: &Ray,
-    xs: &mut Vec<f64>,
+    xs: &mut Vec<Intersection>,
+    obj: &Arc<Object>,
 ) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
@@ -555,18 +623,35 @@ fn intersect_caps_cylinder(
     // the ray with the plane at y=cyl.minimum
     let t = (minimum - ray.origin.y) / ray.direction.y;
     if check_cap(ray, t, 1.0) {
-        xs.push(t);
+        xs.push(Intersection {
+            t,
+            object: obj.clone(),
+            u: 0.0,
+            v: 0.0,
+        });
     }
 
     // check for an intersection with the upper end cap by intersecting
     // the ray with the plane at y=cyl.maximum
     let t = (maximum - ray.origin.y) / ray.direction.y;
     if check_cap(ray, t, 1.0) {
-        xs.push(t);
+        xs.push(Intersection {
+            t,
+            object: obj.clone(),
+            u: 0.0,
+            v: 0.0,
+        });
     }
 }
 
-fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, xs: &mut Vec<f64>) {
+fn intersect_caps_cone(
+    minimum: &f64,
+    maximum: &f64,
+    closed: &bool,
+    ray: &Ray,
+    xs: &mut Vec<Intersection>,
+    obj: &Arc<Object>,
+) {
     // caps only matter if the cylinder is closed, and might possibly be
     // intersected by the ray.
     if !closed || ray.direction.y.abs() < f64::EPSILON {
@@ -577,13 +662,23 @@ fn intersect_caps_cone(minimum: &f64, maximum: &f64, closed: &bool, ray: &Ray, x
     // the ray with the plane at y=cyl.minimum
     let t = (minimum - ray.origin.y) / ray.direction.y;
     if check_cap(ray, t, *minimum) {
-        xs.push(t);
+        xs.push(Intersection {
+            t,
+            object: obj.clone(),
+            u: 0.0,
+            v: 0.0,
+        });
     }
 
     // check for an intersection with the upper end cap by intersecting
     // the ray with the plane at y=cyl.maximum
     let t = (maximum - ray.origin.y) / ray.direction.y;
     if check_cap(ray, t, *maximum) {
-        xs.push(t);
+        xs.push(Intersection {
+            t,
+            object: obj.clone(),
+            u: 0.0,
+            v: 0.0,
+        });
     }
 }

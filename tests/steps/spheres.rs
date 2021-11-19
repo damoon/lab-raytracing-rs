@@ -2,9 +2,9 @@ use super::tuples::parse_point;
 use crate::MyWorld;
 use approx::assert_abs_diff_eq;
 use cucumber::{gherkin::Step, given, then, when};
+use lab_raytracing_rs::intersections::Intersection;
 use lab_raytracing_rs::transformations::scaling;
 use lab_raytracing_rs::{
-    intersections::Intersection,
     matrices::Matrix4x4,
     objects::{
         default_cone, default_cube, default_cylinder, default_plane, default_sphere, glass_sphere,
@@ -157,17 +157,8 @@ async fn compare_translation(world: &mut MyWorld, name: String, translation: Str
 
 #[when(regex = r"^xs ← intersect\(s, r\)$")]
 async fn calculate_intersections(world: &mut MyWorld) {
-    let s = world.objects.get("s").unwrap();
-    world.xs = s
-        .intersect(&world.r)
-        .iter()
-        .map(|t| Intersection {
-            t: *t,
-            object: s.clone(),
-            u: 0.0,
-            v: 0.0,
-        })
-        .collect();
+    let obj = world.objects.get("s").unwrap();
+    world.xs = obj.intersect(&world.r, obj);
 }
 
 #[then(regex = r"^xs.count = ([-0-9.]+)$")]
@@ -193,7 +184,14 @@ async fn check_intersection_object(world: &mut MyWorld, index: usize, object: St
 )]
 async fn calculate_normal(world: &mut MyWorld, name: String, x: String, y: String, z: String) {
     let point = parse_point(&[x, y, z]);
-    let normal = world.objects.get("s").unwrap().normal_at(&point);
+    let s = world.objects.get("s").unwrap();
+    let hit = &Intersection {
+        t: 0.0,
+        object: s.clone(),
+        u: 0.0,
+        v: 0.0,
+    };
+    let normal = s.normal_at(&point, hit);
     world.tuples.insert(name, normal);
 }
 

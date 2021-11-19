@@ -1,17 +1,16 @@
-use lab_raytracing_rs::{
-    camera::Camera,
-    groups::Group,
-    lights::Pointlight,
-    obj_file::Parser,
-    objects::default_plane,
-    patterns::solid_pattern,
-    transformations::{rotation_x, rotation_z, translation, view_transform},
-    tuples::{color, point, vector},
-    world::World,
-};
-use std::{f64::consts::PI, fs, io};
+use lab_raytracing_rs::{camera::Camera, lights::Pointlight, matrices::identity_matrix, obj_file::Parser, objects::default_plane, patterns::solid_pattern, transformations::{rotation_x, rotation_z, scaling, translation, view_transform}, tuples::{color, point, vector}, world::World};
+use std::{env, f64::consts::PI, fs, io};
 
 fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    let scale = args.get(1).expect("scale factor missing").parse::<f64>().expect("not a number");
+    let rotate = match args.get(2).expect("upwards axis is missing").as_str() {
+        "y" => identity_matrix(),
+        "z" => rotation_x(- PI / 2.0),
+        _ => panic!("upwards axis undefined"),
+    };
+    let file = args.get(3).expect("obj file missing");
+
     let mut world = World::default();
 
     eprintln!("setup scene");
@@ -45,14 +44,18 @@ fn main() -> io::Result<()> {
     world.add_object(wall);
 
     eprintln!("load teapot");
-    let mut teapot = load_obj_file("examples/teapot.obj");
+    let content = fs::read_to_string(file).expect("could not read file");
+    let mut teapot = Parser::parse_obj_file(&content).to_group();
+
     teapot.set_color(&color(255.0 / 250.0, 215.0 / 250.0, 0.0 / 250.0));
+
+    let transform = scaling(scale, scale, scale) * rotate;
+    teapot.set_transform(transform);
 
     eprintln!("regroup aabb");
     let teapot = teapot.regroup_aabb();
 
     world.add_group(teapot);
-
 
     eprintln!("setup light and lighting");
     world.light = Some(Pointlight::new(
@@ -75,9 +78,4 @@ fn main() -> io::Result<()> {
     canvas.ppm(writer)?;
 
     Ok(())
-}
-
-fn load_obj_file(path: &str) -> Group {
-    let content = fs::read_to_string(path).expect("could not read file");
-    Parser::parse_obj_file(content.as_str()).to_group()
 }

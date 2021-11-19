@@ -33,7 +33,12 @@ async fn select_parser_default_group(world: &mut MyWorld) {
 
 #[when(regex = r#"(g1|g2) ← "(\w+)" from parser"#)]
 async fn select_group_from_parser(world: &mut MyWorld, target: String, group_name: String) {
-    let g = world.parser.groups.get(&group_name).expect("group missing").clone();
+    let g = world
+        .parser
+        .groups
+        .get(&group_name)
+        .expect("group missing")
+        .clone();
     match target.as_str() {
         "g1" => world.g1 = g,
         "g2" => world.g2 = g,
@@ -58,22 +63,59 @@ async fn compare_ignored_lines(world: &mut MyWorld, desired: usize) {
 }
 
 #[then(regex = r"^parser.vertices\[([0-9]+)\] = point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
-async fn compare_parsed_point(world: &mut MyWorld, index: usize, x: String, y: String, z: String) {
+async fn compare_parsed_vertices(
+    world: &mut MyWorld,
+    index: usize,
+    x: String,
+    y: String,
+    z: String,
+) {
     let desired = parse_point(&[x, y, z]);
     assert_eq!(world.parser.vertices[index - 1], desired)
 }
 
-#[then(regex = r"^(t1|t2|t3).(p1|p2|p3) = parser.vertices\[([0-9]+)\]$")]
-async fn comapre_parsed_face(world: &mut MyWorld, object: String, attribute: String, index: usize) {
-    let vertex = world.parser.vertices[index - 1].clone();
-    let triangle = match world.objects.get(&object).unwrap().shape.clone() {
-        Shape::Triangle(t) => t,
-        _ => panic!("only triangles are supported"),
+#[then(regex = r"^parser.normals\[([0-9]+)\] = vector\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn compare_parsed_normals(
+    world: &mut MyWorld,
+    index: usize,
+    x: String,
+    y: String,
+    z: String,
+) {
+    let desired = parse_point(&[x, y, z]);
+    assert_eq!(world.parser.normals[index - 1], desired)
+}
+
+#[then(regex = r"^(t1|t2|t3).(p1|p2|p3|n1|n2|n3) = parser.(vertices|normals)\[([0-9]+)\]$")]
+async fn comapre_parsed_face(
+    world: &mut MyWorld,
+    object: String,
+    attribute: String,
+    kind: String,
+    index: usize,
+) {
+    let tuple = match kind.as_str() {
+        "vertices" => world.parser.vertices[index - 1].clone(),
+        "normals" => world.parser.normals[index - 1].clone(),
+        _ => panic!("parser kind not covered"),
     };
-    match attribute.as_str() {
-        "p1" => assert_eq!(triangle.p1, vertex),
-        "p2" => assert_eq!(triangle.p2, vertex),
-        "p3" => assert_eq!(triangle.p3, vertex),
-        _ => panic!("attribute not covered"),
+    if let Shape::Triangle(t) = world.objects.get(&object).unwrap().shape.clone() {
+        match attribute.as_str() {
+            "p1" => assert_eq!(t.p1, tuple),
+            "p2" => assert_eq!(t.p2, tuple),
+            "p3" => assert_eq!(t.p3, tuple),
+            _ => panic!("attribute not covered"),
+        };
+    };
+    if let Shape::SmoothTriangle(t) = world.objects.get(&object).unwrap().shape.clone() {
+        match attribute.as_str() {
+            "p1" => assert_eq!(t.p1, tuple),
+            "p2" => assert_eq!(t.p2, tuple),
+            "p3" => assert_eq!(t.p3, tuple),
+            "n1" => assert_eq!(t.n1, tuple),
+            "n2" => assert_eq!(t.n2, tuple),
+            "n3" => assert_eq!(t.n3, tuple),
+            _ => panic!("attribute not covered"),
+        };
     };
 }
