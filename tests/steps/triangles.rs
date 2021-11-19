@@ -17,7 +17,7 @@ async fn assign_triangle(world: &mut MyWorld, target: String, p1: String, p2: St
 
 #[allow(clippy::too_many_arguments)]
 #[given(
-    regex = r"^(t) ← triangle\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
+    regex = r"^(t|s) ← triangle\(point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\), point\(([-0-9.]+), ([-0-9.]+), ([-0-9.]+)\)\)$"
 )]
 async fn assign_created_triangle(
     world: &mut MyWorld,

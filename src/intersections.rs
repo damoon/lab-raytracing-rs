@@ -11,6 +11,8 @@ use std::sync::Arc;
 pub struct Intersection {
     pub t: f64,
     pub object: Arc<Object>,
+    pub u: f64,
+    pub v: f64,
 }
 
 impl PartialEq for Intersection {

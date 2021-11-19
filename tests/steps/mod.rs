@@ -11,6 +11,7 @@ pub mod objects;
 pub mod patterns;
 pub mod planes;
 pub mod rays;
+pub mod smooth_triangles;
 pub mod spheres;
 pub mod transformations;
 pub mod triangles;
