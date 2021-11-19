@@ -104,7 +104,7 @@ pub fn prepare_computations(
     let object = intersection.object.clone();
     let point = ray.position(t);
     let eyev = -&ray.direction;
-    let mut normalv = object.normal_at(&point, &intersection);
+    let mut normalv = object.normal_at(&point, intersection);
     let mut inside = false;
     if dot(&normalv, &eyev) < 0.0 {
         inside = true;
