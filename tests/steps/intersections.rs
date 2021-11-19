@@ -12,7 +12,26 @@ use std::sync::Arc;
 async fn assign_intersection(world: &mut MyWorld, target: String, t: String, shape: String) {
     let t = parse_float(t.as_str());
     let object = world.objects.get(&shape).unwrap().clone();
-    let intersection = Intersection { t, object };
+    let intersection = Intersection {
+        t,
+        object,
+        u: 0.0,
+        v: 0.0,
+    };
+    world.intersections.insert(target, intersection);
+}
+
+#[when(regex = r"^(i) ← intersection_with_uv\(([-0-9.]+), (s), ([-0-9.]+), ([-0-9.]+)\)$")]
+async fn assign_intersection_with_uv(
+    world: &mut MyWorld,
+    target: String,
+    t: f64,
+    shape: String,
+    u: f64,
+    v: f64,
+) {
+    let object = world.objects.get(&shape).unwrap().clone();
+    let intersection = Intersection { t, object, u, v };
     world.intersections.insert(target, intersection);
 }
 
@@ -23,10 +42,20 @@ async fn compare_intersection_object(world: &mut MyWorld, intersection: String) 
     assert!(Arc::ptr_eq(shape, desired));
 }
 
-#[then(regex = r"^(i).t = ([-0-9.]+)$")]
-async fn compare_intersection_distance(world: &mut MyWorld, intersection: String, desired: f64) {
+#[then(regex = r"^(i).(t|u|v) = ([-0-9.]+)$")]
+async fn compare_intersection_distance(
+    world: &mut MyWorld,
+    intersection: String,
+    attribute: String,
+    desired: f64,
+) {
     let intersection = world.intersections.get(&intersection).unwrap().clone();
-    assert_abs_diff_eq!(desired, intersection.t);
+    match attribute.as_str() {
+        "t" => assert_abs_diff_eq!(desired, intersection.t),
+        "u" => assert_abs_diff_eq!(desired, intersection.u),
+        "v" => assert_abs_diff_eq!(desired, intersection.v),
+        _ => panic!("attribute not covered"),
+    }
 }
 
 #[when(regex = r"^xs ← intersections\((i1), (i2)\)$")]
@@ -58,9 +87,22 @@ async fn assign_intersections_quad(
     world.xs = vec![i1, i2, i3, i4];
 }
 
-#[then(regex = r"^xs\[([-0-9.]+)\].t = ([-0-9.]+)$")]
-async fn compare_intersections_distance(world: &mut MyWorld, index: usize, desired: f64) {
-    assert!((world.xs.get(index).unwrap().t - desired).abs() < 0.0001);
+#[then(regex = r"^xs\[([-0-9.]+)\].(t|u|v) = ([-0-9.]+)$")]
+async fn compare_intersections_distance(
+    world: &mut MyWorld,
+    index: usize,
+    attribute: String,
+    desired: f64,
+) {
+    let i = world.xs.get(index).unwrap();
+    let v = match attribute.as_str() {
+        "t" => i.t,
+        "u" => i.u,
+        "v" => i.v,
+        _ => panic!("attribute not covered"),
+    };
+    assert_abs_diff_eq!(v, desired, epsilon = 0.0001);
+    // assert!((v - desired).abs() < 0.0001); // TODO replace .abs compare implementations in tests
 }
 
 #[when(regex = r"^(i) ← hit\(xs\)$")]
@@ -162,26 +204,38 @@ async fn prepare_six_intersections(world: &mut MyWorld) {
         Intersection {
             t: 2.0,
             object: world.objects.get("A").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: 2.75,
             object: world.objects.get("B").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: 3.25,
             object: world.objects.get("C").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: 4.75,
             object: world.objects.get("B").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: 5.25,
             object: world.objects.get("C").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: 6.0,
             object: world.objects.get("A").unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
     ];
 }
@@ -205,18 +259,26 @@ async fn prepare_four_intersections(
         Intersection {
             t: parse_float(&a_t),
             object: world.objects.get(&a_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: parse_float(&b_t),
             object: world.objects.get(&b_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: parse_float(&c_t),
             object: world.objects.get(&c_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: parse_float(&d_t),
             object: world.objects.get(&d_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
     ];
 }
@@ -233,10 +295,14 @@ async fn prepare_two_intersections(
         Intersection {
             t: parse_float(&a_t),
             object: world.objects.get(&a_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
         Intersection {
             t: parse_float(&b_t),
             object: world.objects.get(&b_o).unwrap().clone(),
+            u: 0.0,
+            v: 0.0,
         },
     ];
 }
@@ -246,6 +312,8 @@ async fn prepare_one_intersections(world: &mut MyWorld, a_t: String, a_o: String
     world.xs = vec![Intersection {
         t: parse_float(&a_t),
         object: world.objects.get(&a_o).unwrap().clone(),
+        u: 0.0,
+        v: 0.0,
     }];
 }
 

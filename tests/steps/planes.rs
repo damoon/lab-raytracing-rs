@@ -9,7 +9,7 @@ async fn assign_default_plane(world: &mut MyWorld) {
     world.objects.insert("p".to_string(), Arc::new(p));
 }
 
-#[when(regex = r"^xs ← local_intersect\((p|c|cyl|shape|t), r\)$")]
+#[when(regex = r"^xs ← local_intersect\((p|c|cyl|shape|t|tri), r\)$")]
 async fn local_intersect(world: &mut MyWorld, shape_name: String) {
     let obj = world.objects.get(&shape_name).unwrap();
     world.xs = obj
@@ -18,6 +18,8 @@ async fn local_intersect(world: &mut MyWorld, shape_name: String) {
         .map(|&i| Intersection {
             t: i,
             object: obj.clone(),
+            u: 0.0,
+            v: 0.0,
         })
         .collect();
 }

@@ -45,6 +45,8 @@ fn main() -> io::Result<()> {
                 .map(|t| Intersection {
                     t: *t,
                     object: shape.clone(),
+                    u: 0.0,
+                    v: 0.0,
                 })
                 .collect();
             let hit = hit(&xs, None);

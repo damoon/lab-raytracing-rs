@@ -91,6 +91,8 @@ impl cucumber::World for MyWorld {
                 &Intersection {
                     t: 1.0,
                     object: Arc::new(default_sphere()),
+                    u: 0.0,
+                    v: 0.0,
                 },
                 &Ray {
                     origin: point(2.0, 0.0, 0.0),

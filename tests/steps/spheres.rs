@@ -164,6 +164,8 @@ async fn calculate_intersections(world: &mut MyWorld) {
         .map(|t| Intersection {
             t: *t,
             object: s.clone(),
+            u: 0.0,
+            v: 0.0,
         })
         .collect();
 }

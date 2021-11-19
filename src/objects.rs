@@ -3,7 +3,7 @@ use crate::{
     materials::{Material, REFRACTIVE_INDEX_GLASS},
     matrices::{identity_matrix, Matrix4x4},
     rays::Ray,
-    triangles::Triangle,
+    triangles::{SmoothTriangle, Triangle},
     tuples::{color, cross, dot, point, vector, Tuple},
 };
 use std::sync::{Arc, RwLock};
@@ -101,6 +101,13 @@ pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) -> Object {
     Object::new(shape, transform, material)
 }
 
+pub fn smooth_triangle(p1: Tuple, p2: Tuple, p3: Tuple, n1: Tuple, n2: Tuple, n3: Tuple) -> Object {
+    let shape = Shape::SmoothTriangle(SmoothTriangle::new(p1, p2, p3, n1, n2, n3));
+    let transform = identity_matrix();
+    let material = Material::default();
+    Object::new(shape, transform, material)
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Object {
     transform: Matrix4x4,
@@ -185,6 +192,7 @@ pub enum Shape {
     Cylinder(f64, f64, bool),
     Cone(f64, f64, bool),
     Triangle(Triangle),
+    SmoothTriangle(SmoothTriangle),
     Testshape,
 }
 
@@ -340,6 +348,30 @@ impl Shape {
                 let t = f * dot(&t.e2, &origin_cross_e1);
                 vec![t]
             }
+            Shape::SmoothTriangle(t) => {
+                let dir_cross_e2 = cross(&ray.direction, &t.e2);
+                let det = dot(&t.e1, &dir_cross_e2);
+
+                if det.abs() < f64::EPSILON {
+                    return vec![];
+                }
+
+                let f = 1.0 / det;
+                let p1_to_origin = &ray.origin - &t.p1;
+                let u = f * dot(&p1_to_origin, &dir_cross_e2);
+                if !(0.0..=1.0).contains(&u) {
+                    return vec![];
+                }
+
+                let origin_cross_e1 = cross(&p1_to_origin, &t.e1);
+                let v = f * dot(&ray.direction, &origin_cross_e1);
+                if v < 0.0 || (u + v) > 1.0 {
+                    return vec![];
+                }
+
+                let t = f * dot(&t.e2, &origin_cross_e1);
+                vec![t]
+            }
             Shape::Testshape => {
                 SAVED_RAY.with(|c| *c.write().unwrap() = Arc::new(ray.clone()));
                 vec![]
@@ -388,6 +420,9 @@ impl Shape {
                 vector(local_point.x, y, local_point.z)
             }
             Shape::Triangle(t) => t.normal.clone(),
+            Shape::SmoothTriangle(t) => {
+                t.normal.clone() // TODO
+            }
             Shape::Testshape => local_point - point(0.0, 0.0, 0.0),
         }
     }
@@ -415,6 +450,17 @@ impl Shape {
                 max: point(*maximum, *maximum, *maximum),
             },
             Shape::Triangle(t) => {
+                let min_x = min(t.p1.x, t.p2.x, t.p3.x);
+                let min_y = min(t.p1.y, t.p2.y, t.p3.y);
+                let min_z = min(t.p1.z, t.p2.z, t.p3.z);
+                let max_x = max(t.p1.x, t.p2.x, t.p3.x);
+                let max_y = max(t.p1.y, t.p2.y, t.p3.y);
+                let max_z = max(t.p1.z, t.p2.z, t.p3.z);
+                let min = point(min_x, min_y, min_z);
+                let max = point(max_x, max_y, max_z);
+                AABB { min, max }
+            }
+            Shape::SmoothTriangle(t) => {
                 let min_x = min(t.p1.x, t.p2.x, t.p3.x);
                 let min_y = min(t.p1.y, t.p2.y, t.p3.y);
                 let min_z = min(t.p1.z, t.p2.z, t.p3.z);

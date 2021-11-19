@@ -24,6 +24,8 @@ impl GroupMember {
                 .map(|t| Intersection {
                     t: *t,
                     object: o.clone(),
+                    u: 0.0,
+                    v: 0.0,
                 })
                 .collect(),
         }
@@ -68,12 +70,10 @@ impl GroupMember {
 
     fn objects(&self) -> Vec<Arc<Object>> {
         match self {
-            GroupMember::SubGroup(g) => {
-                g.objects()
-            },
+            GroupMember::SubGroup(g) => g.objects(),
             GroupMember::Object(o) => {
                 vec![o.clone()]
-            },
+            }
         }
     }
 }
@@ -95,22 +95,22 @@ pub struct AABB {
 impl AABB {
     fn goes_to_infinity(&self) -> bool {
         if self.min.x == f64::NEG_INFINITY {
-            return true
+            return true;
         }
         if self.min.y == f64::NEG_INFINITY {
-            return true
+            return true;
         }
         if self.min.z == f64::NEG_INFINITY {
-            return true
+            return true;
         }
         if self.max.x == f64::INFINITY {
-            return true
+            return true;
         }
         if self.max.y == f64::INFINITY {
-            return true
+            return true;
         }
         if self.max.z == f64::INFINITY {
-            return true
+            return true;
         }
         false
     }
@@ -167,7 +167,6 @@ impl Group {
         let mut min = point(f64::INFINITY, f64::INFINITY, f64::INFINITY);
         let mut max = point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
 
-
         for e in self.objects() {
             if e.bounds().clone().unwrap().goes_to_infinity() {
                 group.add_object(e.as_ref().clone());
@@ -206,9 +205,8 @@ impl Group {
         let mut group_high = Group::default();
 
         if bigish == 3 {
-            return self
-        }
-        else if bigish == 0 {
+            return self;
+        } else if bigish == 0 {
             let average = (max.x + min.x) / 2.0;
             for e in objects {
                 let eb = e.bounds().clone().unwrap();
@@ -221,8 +219,7 @@ impl Group {
                     group_high.add_object(e)
                 }
             }
-        }
-        else if bigish == 1 {
+        } else if bigish == 1 {
             let average = (max.y + min.y) / 2.0;
             for e in objects {
                 let eb = e.bounds().clone().unwrap();
@@ -234,8 +231,7 @@ impl Group {
                     group_high.add_object(e)
                 }
             }
-        }
-        else {
+        } else {
             let average = (max.z + min.z) / 2.0;
             for e in objects {
                 let eb = e.bounds().clone().unwrap();
@@ -262,24 +258,24 @@ impl Group {
         group
     }
 
-    fn bigish (x: f64, y: f64, z: f64) -> usize {
+    fn bigish(x: f64, y: f64, z: f64) -> usize {
         if x > y && x > z {
-            return 0
+            return 0;
         }
         if y > x && y > z {
-            return 1
+            return 1;
         }
         if z > x && z > y {
-            return 2
+            return 2;
         }
         if x > y {
-            return 0
+            return 0;
         }
         if y > x {
-            return 1
+            return 1;
         }
         if z > x {
-            return 2
+            return 2;
         }
         3
     }
@@ -287,7 +283,7 @@ impl Group {
     fn objects(&self) -> Vec<Arc<Object>> {
         let mut ls = Vec::new();
         for e in self.elements.iter() {
-            ls.append(&mut e.objects()); 
+            ls.append(&mut e.objects());
         }
         ls
     }
@@ -430,7 +426,7 @@ impl AABB {
         let avg_x = (self.min.x + self.max.x) / 2.0;
         let avg_y = (self.min.y + self.max.y) / 2.0;
         let avg_z = (self.min.z + self.max.z) / 2.0;
-        point (avg_x, avg_y, avg_z)
+        point(avg_x, avg_y, avg_z)
     }
 
     fn check_axis(min: f64, max: f64, origin: f64, direction: f64) -> (f64, f64) {

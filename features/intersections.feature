@@ -153,8 +153,8 @@ Feature: Intersections
         And reflectance ← schlick(comps)
         Then reflectance = 0.4901048433862598
 
-#     Scenario: An intersection can encapsulate `u` and `v`
-#         Given s ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-#         When i ← intersection_with_uv(3.5, s, 0.2, 0.4)
-#         Then i.u = 0.2
-#         And i.v = 0.4
+    Scenario: An intersection can encapsulate `u` and `v`
+        Given s ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+        When i ← intersection_with_uv(3.5, s, 0.2, 0.4)
+        Then i.u = 0.2
+        And i.v = 0.4
