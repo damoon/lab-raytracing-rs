@@ -1,3 +1,4 @@
+use crate::csg::CSG;
 use crate::groups::{Group, GroupMember};
 use crate::intersections::Intersection;
 use crate::lights::Pointlight;
@@ -26,6 +27,10 @@ impl World {
 
     pub fn add_group(&mut self, obj: Group) {
         self.objects.push(GroupMember::SubGroup(Arc::new(obj)));
+    }
+
+    pub fn add_csg(&mut self, csg: CSG) {
+        self.objects.push(GroupMember::CSG(Arc::new(csg)));
     }
 
     pub fn insersect(&self, ray: &Ray) -> Vec<Intersection> {

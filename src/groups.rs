@@ -1,4 +1,5 @@
 use crate::{
+    csg::CSG,
     intersections::Intersection,
     materials::Material,
     matrices::{identity_matrix, Matrix4x4},
@@ -13,6 +14,7 @@ use std::sync::Arc;
 pub enum GroupMember {
     SubGroup(Arc<Group>),
     Object(Arc<Object>),
+    CSG(Arc<CSG>),
 }
 
 impl GroupMember {
@@ -20,17 +22,19 @@ impl GroupMember {
         match self {
             GroupMember::SubGroup(g) => g.intersect(ray),
             GroupMember::Object(o) => o.intersect(ray, o),
+            GroupMember::CSG(c) => c.intersect(ray),
         }
     }
 
-    pub fn bounds(&self) -> &Option<AABB> {
+    pub fn bounds(&self) -> Option<AABB> {
         match self {
-            GroupMember::SubGroup(g) => g.bounds(),
-            GroupMember::Object(o) => o.bounds(),
+            GroupMember::SubGroup(g) => g.bounds().clone(),
+            GroupMember::Object(o) => o.bounds().clone(),
+            GroupMember::CSG(c) => c.bounds(),
         }
     }
 
-    fn update_transform(&self, update: &Matrix4x4) -> Self {
+    pub fn update_transform(&self, update: &Matrix4x4) -> Self {
         match self {
             GroupMember::SubGroup(g) => {
                 let mut g = g.as_ref().clone();
@@ -42,10 +46,11 @@ impl GroupMember {
                 o.set_transform(update * o.transform());
                 GroupMember::Object(Arc::new(o))
             }
+            GroupMember::CSG(c) => GroupMember::CSG(Arc::new(c.update_transform(update))),
         }
     }
 
-    fn set_material(&self, m: &Material) -> Self {
+    pub fn set_material(&self, m: &Material) -> Self {
         match self {
             GroupMember::SubGroup(g) => {
                 let mut g = g.as_ref().clone();
@@ -57,15 +62,29 @@ impl GroupMember {
                 o.material = m.clone();
                 GroupMember::Object(Arc::new(o))
             }
+            GroupMember::CSG(c) => {
+                let mut c = c.as_ref().clone();
+                c.set_material(m);
+                GroupMember::CSG(Arc::new(c))
+            }
         }
     }
 
-    fn objects(&self) -> Vec<Arc<Object>> {
+    pub fn objects(&self) -> Vec<Arc<Object>> {
         match self {
             GroupMember::SubGroup(g) => g.objects(),
             GroupMember::Object(o) => {
                 vec![o.clone()]
             }
+            GroupMember::CSG(c) => c.objects(),
+        }
+    }
+
+    pub fn includes(&self, obj: &Arc<Object>) -> bool {
+        match self {
+            GroupMember::SubGroup(g) => g.includes(obj),
+            GroupMember::Object(o) => o == obj,
+            GroupMember::CSG(c) => c.includes(obj),
         }
     }
 }
@@ -295,9 +314,10 @@ impl Group {
     }
 
     pub fn get_object(&self, idx: usize) -> Arc<Object> {
-        match &self.elements.get(idx).unwrap() {
+        match self.elements.get(idx).unwrap() {
             GroupMember::Object(o) => o.clone(),
             GroupMember::SubGroup(_) => panic!("found a group"),
+            GroupMember::CSG(_) => panic!("found a csg"),
         }
     }
 
@@ -305,7 +325,7 @@ impl Group {
         self.elements = self.elements.iter().map(|e| e.set_material(m)).collect()
     }
 
-    fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
+    pub fn outer_bounds(this: &Option<AABB>, other: &Option<AABB>) -> Option<AABB> {
         match (this, other) {
             (None, None) => None,
             (None, Some(b)) => Some(b.clone()),
@@ -325,6 +345,16 @@ impl Group {
                 if g == sg {
                     return true;
                 }
+            }
+        }
+
+        false
+    }
+
+    fn includes(&self, obj: &Arc<Object>) -> bool {
+        for e in self.elements.iter() {
+            if e.includes(obj) {
+                return true;
             }
         }
 
@@ -356,7 +386,7 @@ impl Group {
 
         let mut bounds = None;
         for e in self.elements.iter() {
-            bounds = Self::outer_bounds(&bounds, e.bounds());
+            bounds = Self::outer_bounds(&bounds, &e.bounds());
         }
         self.bounds = bounds;
     }

@@ -243,7 +243,7 @@ async fn prepare_six_intersections(world: &mut MyWorld) {
 
 #[allow(clippy::too_many_arguments)]
 #[given(
-    regex = r"^xs ← intersections\(([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B), ([-√/0-9\.]+):(A|B)\)$"
+    regex = r"^xs ← intersections\(([-√/0-9\.]+):(A|B|s1|s2), ([-√/0-9\.]+):(A|B|s1|s2), ([-√/0-9\.]+):(A|B|s1|s2), ([-√/0-9\.]+):(A|B|s1|s2)\)$"
 )]
 async fn prepare_four_intersections(
     world: &mut MyWorld,
