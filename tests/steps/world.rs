@@ -45,6 +45,7 @@ async fn world_contains(world: &mut MyWorld, shape: String) {
         match i {
             GroupMember::Object(o) => object == o.as_ref().clone(),
             GroupMember::SubGroup(_) => panic!("matching groups is not supported"),
+            GroupMember::CSG(_) => panic!("matching csg is not supported"),
         }
     }));
 }
@@ -67,6 +68,7 @@ async fn extract_from_world(world: &mut MyWorld, shape_name: String, position: S
             .objects
             .insert(shape_name, Arc::new(o.as_ref().clone())),
         GroupMember::SubGroup(_) => panic!("only objects are supported"),
+        GroupMember::CSG(_) => panic!("only objects are supported"),
     };
 }
 

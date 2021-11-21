@@ -166,6 +166,16 @@ async fn count_intersections(world: &mut MyWorld, desired: usize) {
     assert_eq!(world.xs.len(), desired);
 }
 
+#[then(regex = r"^xs_filtered.count = ([-0-9.]+)$")]
+async fn count_filtered_intersections(world: &mut MyWorld, desired: usize) {
+    assert_eq!(world.xs_filtered.len(), desired);
+}
+
+#[then(regex = r"^xs_filtered\[([-0-9.]+)\] = xs\[([-0-9.]+)\]$")]
+async fn compare_filtered_intersection(world: &mut MyWorld, filtered_index: usize, index: usize) {
+    assert_eq!(world.xs_filtered[filtered_index], world.xs[index]);
+}
+
 #[then(regex = r"^xs\[([-0-9.]+)\] = ([-0-9.]+)$")]
 async fn check_intersection_distance(world: &mut MyWorld, index: usize, desired: f64) {
     let value = world.xs.get(index).unwrap().t;

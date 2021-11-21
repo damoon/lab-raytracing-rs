@@ -1,6 +1,7 @@
 #[macro_use]
 pub mod camera;
 pub mod canvas;
+pub mod csg;
 pub mod groups;
 pub mod intersections;
 pub mod lights;

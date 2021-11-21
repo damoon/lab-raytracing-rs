@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use cucumber::WorldInit;
 use lab_raytracing_rs::camera::Camera;
 use lab_raytracing_rs::canvas::Canvas;
-use lab_raytracing_rs::groups::Group;
+use lab_raytracing_rs::csg::CSG;
+use lab_raytracing_rs::groups::{Group, GroupMember};
 use lab_raytracing_rs::intersections::{
     prepare_computations, Intersection, IntersectionPrecomputations,
 };
@@ -10,7 +11,7 @@ use lab_raytracing_rs::lights::Pointlight;
 use lab_raytracing_rs::materials::Material;
 use lab_raytracing_rs::matrices::{identity_matrix, Matrix2x2, Matrix3x3, Matrix4x4};
 use lab_raytracing_rs::obj_file::Parser;
-use lab_raytracing_rs::objects::{default_sphere, Object};
+use lab_raytracing_rs::objects::{default_cube, default_sphere, Object};
 use lab_raytracing_rs::patterns::{test_pattern, Pattern};
 use lab_raytracing_rs::rays::Ray;
 use lab_raytracing_rs::tuples::{color, point, vector, Tuple};
@@ -39,6 +40,7 @@ pub struct MyWorld {
     files: HashMap<String, String>,
     parser: Parser,
     xs: Vec<Intersection>,
+    xs_filtered: Vec<Intersection>,
     light: Pointlight,
     m: Material,
     w: World,
@@ -47,6 +49,8 @@ pub struct MyWorld {
     g: Group,
     g1: Group,
     g2: Group,
+    csg: CSG,
+    result: bool,
 }
 
 #[derive(Debug)]
@@ -84,6 +88,7 @@ impl cucumber::World for MyWorld {
             files: HashMap::new(),
             parser: Parser::new(),
             xs: Vec::new(),
+            xs_filtered: Vec::new(),
             light: Pointlight::new(point(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0)),
             m: Material::default(),
             w: World::default(),
@@ -104,6 +109,11 @@ impl cucumber::World for MyWorld {
             g: Group::default(),
             g1: Group::default(),
             g2: Group::default(),
+            csg: CSG::Union(
+                GroupMember::Object(Arc::new(default_sphere())),
+                GroupMember::Object(Arc::new(default_cube())),
+            ),
+            result: true,
         };
         world.insert4x4("identity_matrix".to_string(), identity_matrix());
         Ok(world)

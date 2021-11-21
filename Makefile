@@ -3,7 +3,7 @@ all: renders clock.png projectile.png
 renders: scene-1.png scene-2.png scene-3.png shadow.png sphere-normals.png sphere-shading.png \
 	sphere-silhouette.png planes.png patterns.png reflections.png refraction.png cubes.png \
 	cylinders-cones.png groups.png many-spheres.png metallic.png hexagon-donut.png dodecahedron.png \
-	teapot.png teapot-low.png teapot-high.png dragon.png astronaut.png
+	teapot.png teapot-low.png teapot-high.png dragon.png astronaut.png csg.png
 
 clean:
 	rm -f *.png *.ppm perf.* profile* flamegraph*.svg
@@ -93,3 +93,6 @@ dragon.png:
 
 astronaut.png:
 	cargo run --release --example obj_file y examples/astronaut.obj | convert /dev/stdin astronaut.png
+
+csg.png:
+	cargo run --release --example csg | convert /dev/stdin csg.png
