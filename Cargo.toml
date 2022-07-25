@@ -19,7 +19,7 @@ indicatif = "0.16.2"
 regex = "1.6.0"
 
 [dev-dependencies]
-cucumber = "0.10.2"
+cucumber = "0.13.0"
 async-trait = "0.1.56"
 tokio = { version = "1.20.1", features = ["rt-multi-thread", "macros", "time"] }
 approx = "0.5.1"
