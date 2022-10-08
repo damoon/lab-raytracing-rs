@@ -9,7 +9,7 @@ harness = false
 
 [dependencies]
 auto_ops = "0.3.0"
-noise = "0.8.0"
+noise = "0.8.1"
 pprof = { version = "0.10.1", features = ["flamegraph", "protobuf", ] }
 crossbeam = "0.8.2"
 crossbeam-channel = "0.5.6"
