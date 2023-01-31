@@ -20,7 +20,7 @@ regex = "1.7.1"
 
 [dev-dependencies]
 cucumber = "0.10.2"
-async-trait = "0.1.63"
+async-trait = "0.1.64"
 tokio = { version = "1.25.0", features = ["rt-multi-thread", "macros", "time"] }
 approx = "0.5.1"
 regex = "1.7.1"
