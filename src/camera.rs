@@ -9,7 +9,7 @@ use crate::{
 use crossbeam_channel::bounded;
 pub const RAY_RECURSION_DEPTH: usize = 5;
 use indicatif::ProgressBar;
-use std::env;
+use std::{env, time::Duration};
 
 #[derive(Debug)]
 pub struct Camera {
@@ -199,7 +199,7 @@ impl AntiAliasing {
         y: usize,
         n: usize,
     ) -> Tuple {
-        let rand = fastrand::Rng::with_seed((x.pow(2) + y.pow(3) + n.pow(4)) as u64);
+        let mut rand = fastrand::Rng::with_seed((x.pow(2) + y.pow(3) + n.pow(4)) as u64);
         let mut color = color(0.0, 0.0, 0.0);
         for _ in 0..n {
             let ray = camera.ray_for_pixel_offseted(x, y, -0.5 + rand.f64(), -0.5 + rand.f64());
@@ -253,7 +253,7 @@ impl Renderer {
     fn render_singlethreaded(camera: &Camera, world: &World) -> Canvas {
         eprintln!("running single threaded for {} rows", camera.vsize);
         let progress = ProgressBar::new((camera.vsize) as u64);
-        progress.set_draw_rate(5);
+        progress.enable_steady_tick(Duration::new(0, 200_000_000));
 
         let mut image = Canvas::new(camera.hsize, camera.vsize);
         // let middle_row = (camera.vsize as f64 / 2.0) as usize;
@@ -300,7 +300,7 @@ impl Renderer {
                 .spawn(move |_| {
                     eprintln!("using {} cores for {} rows", cores, camera.vsize);
                     let progress = ProgressBar::new(camera.vsize as u64);
-                    progress.set_draw_rate(5);
+                    progress.enable_steady_tick(Duration::new(0, 200_000_000));
 
                     let mut image = Canvas::new(camera.hsize, camera.vsize);
                     for (row_id, row) in receiver {

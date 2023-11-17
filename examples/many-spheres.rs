@@ -36,7 +36,7 @@ fn main() -> io::Result<()> {
     world.add_object(floor);
 
     // 4 16 64 256
-    let rand = fastrand::Rng::with_seed(0);
+    let mut rand = fastrand::Rng::with_seed(0);
 
     // -16..16
     // 256 spheres
