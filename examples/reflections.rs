@@ -20,7 +20,7 @@ use lab_raytracing_rs::tuples::color;
 use lab_raytracing_rs::tuples::point;
 use lab_raytracing_rs::tuples::vector;
 use lab_raytracing_rs::world::World;
-use noise::{Perlin, Seedable};
+use noise::Perlin;
 use std::f64::consts::PI;
 use std::io;
 
@@ -70,12 +70,9 @@ fn main() -> io::Result<()> {
     let right_pattern = Box::new(stripe_pattern(red, grey));
     let mut right = default_sphere();
     right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
-    let px = Box::new(Perlin::new());
-    px.set_seed(1);
-    let py = Box::new(Perlin::new());
-    py.set_seed(1);
-    let pz = Box::new(Perlin::new());
-    pz.set_seed(1);
+    let px = Box::new(Perlin::new(1));
+    let py = Box::new(Perlin::new(1));
+    let pz = Box::new(Perlin::new(1));
     let perlin_pattern = Box::new(Pattern::new(
         identity_matrix(),
         Renderer::Perturbed(0.5, px, py, pz, right_pattern),
