@@ -14,7 +14,7 @@ pprof = { version = "0.13.0", features = ["flamegraph", "prost-codec", ] }
 crossbeam = "0.8.2"
 crossbeam-channel = "0.5.8"
 num_cpus = "1.16.0"
-fastrand = "1.9.0"
+fastrand = "2.0.1"
 indicatif = "0.16.2"
 regex = "1.10.2"
 approx = "0.5.1"
