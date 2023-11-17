@@ -13,13 +13,17 @@ use lab_raytracing_rs::{
 use std::{env, f64::consts::PI, fs, io};
 
 fn main() -> io::Result<()> {
+    coz::thread_init();
+
     let args: Vec<String> = env::args().collect();
     let rotate = match args.get(1).expect("upwards axis is missing").as_str() {
         "y" => identity_matrix(),
         "z" => rotation_x(-PI / 2.0),
         _ => panic!("upwards axis undefined"),
     };
-    let file = args.get(2).expect("obj file missing");
+    let width = args.get(2).expect("width is missing").parse::<usize>().expect("width is not a number");
+    let height  = (width as f64 * 9.0 / 16.0) as usize;
+    let file = args.get(3).expect("obj file missing");
 
     let mut world = World::default();
 
@@ -89,7 +93,7 @@ fn main() -> io::Result<()> {
         color(1.0, 1.0, 1.0),
     ));
 
-    let mut camera = Camera::new(1600, 900, PI / 3.0);
+    let mut camera = Camera::new(width, height, PI / 3.0);
     camera.set_transform(view_transform(
         &point(-5.0, 5.0, -10.0),
         &point(0.0, 2.0, 0.0),

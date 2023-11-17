@@ -18,6 +18,7 @@ fastrand = "1.9.0"
 indicatif = "0.16.2"
 regex = "1.10.2"
 approx = "0.5.1"
+coz = "0.1"
 
 [dev-dependencies]
 cucumber = "0.10.2"

@@ -251,15 +251,17 @@ impl Renderer {
     }
 
     fn render_singlethreaded(camera: &Camera, world: &World) -> Canvas {
-        eprintln!("using 1 cores for {} rows", camera.vsize);
+        eprintln!("running single threaded for {} rows", camera.vsize);
         let progress = ProgressBar::new((camera.vsize) as u64);
         progress.set_draw_rate(5);
 
         let mut image = Canvas::new(camera.hsize, camera.vsize);
+        // let middle_row = (camera.vsize as f64 / 2.0) as usize;
         for row in 0..camera.vsize {
             for x in 0..camera.hsize {
                 let color = camera.color_at_pixel(world, x, row);
                 image.set(x, row, color);
+                coz::progress!("pixel");
             }
             progress.inc(1);
         }

@@ -80,19 +80,24 @@ dodecahedron.png:
 	cargo run --release --example dodecahedron | convert /dev/stdin dodecahedron.png
 
 teapot.png:
-	cargo run --release --example obj_file y examples/teapot.obj | convert /dev/stdin teapot.png
+	cargo run --release --example obj_file y 1600 examples/teapot.obj | convert /dev/stdin teapot.png
 
 teapot-low.png:
-	cargo run --release --example obj_file z examples/teapot-low.obj | convert /dev/stdin teapot-low.png
+	cargo run --release --example obj_file z 1600 examples/teapot-low.obj | convert /dev/stdin teapot-low.png
 
 teapot-high.png:
-	cargo run --release --example obj_file z examples/teapot-high.obj | convert /dev/stdin teapot-high.png
+	cargo run --release --example obj_file z 1600 examples/teapot-high.obj | convert /dev/stdin teapot-high.png
 
 dragon.png:
-	cargo run --release --example obj_file y examples/dragon.obj | convert /dev/stdin dragon.png
+	cargo run --release --example obj_file y 1600 examples/dragon.obj | convert /dev/stdin dragon.png
 
 astronaut.png:
-	cargo run --release --example obj_file y examples/astronaut.obj | convert /dev/stdin astronaut.png
+	cargo run --release --example obj_file y 1600 examples/astronaut.obj | convert /dev/stdin astronaut.png
 
 csg.png:
 	cargo run --release --example csg | convert /dev/stdin csg.png
+
+profile.coz:
+	cargo build --release --example obj_file
+	sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid'
+	CORES=off coz run --- ./target/release/examples/obj_file y 8000 ./examples/dragon.obj > profile.ppm
