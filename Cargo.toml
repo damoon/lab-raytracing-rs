@@ -12,7 +12,7 @@ auto_ops = "0.3.0"
 noise = "0.8.2"
 pprof = { version = "0.13.0", features = ["flamegraph", "prost-codec", ] }
 crossbeam = "0.8.3"
-crossbeam-channel = "0.5.9"
+crossbeam-channel = "0.5.10"
 num_cpus = "1.16.0"
 fastrand = "2.0.1"
 indicatif = "0.17.7"
